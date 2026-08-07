@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+    <title>Edit Course - PreQABoard</title>
+</head>
+<body>
+    <h1>Edit Course</h1>
+    <hr>
+    <form
+        method="POST"
+        action="{{ url_for(
+            'admin.edit_course',
+            course_id=course.course_id
+        ) }}"
+    >
+        <!-- Department -->
+
+        <label for="department_id">
+            Department:
+        </label>
+        <br><br>
+        <select
+            id="department_id"
+            name="department_id"
+            required
+        >
+            {% for department in departments %}
+
+                <option
+                    value="{{ department.department_id }}"
+                    {% if department.department_id == course.department_id %}
+                        selected
+                    {% endif %}
+                >
+                    {{ department.department_name }}
+
+                </option>
+
+            {% endfor %}
+
+        </select>
+        <br><br>
+
+
+        <!-- Course Name -->
+        <label for="course_name">
+            Course Name:
+        </label>
+        <br><br>
+        <input
+            type="text"
+            id="course_name"
+            name="course_name"
+            value="{{ course.course_name }}"
+            required
+        >
+        <br><br>
+
+
+        <!-- Duration -->
+
+        <label for="duration_years">
+            Duration (Years):
+        </label>
+        <br><br>
+        <input
+            type="number"
+            id="duration_years"
+            name="duration_years"
+            value="{{ course.duration_years }}"
+            min="1"
+            required
+        >
+        <br><br>
+        <button type="submit">
+            Update Course
+        </button>
+    </form>
+    <br>
+    <a href="{{ url_for('admin.courses') }}">
+        Cancel
+    </a>
+</body>
+</html>

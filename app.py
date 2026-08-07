@@ -1,15 +1,27 @@
 from flask import Flask
+
 from config import Config
 from database.db_connection import get_connection
+
+from routes.auth_routes import auth_bp
+from routes.admin_routes import admin_bp
+
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
+
+    # Register authentication routes
+    app.register_blueprint(auth_bp)
+    # Register admin routes
+    app.register_blueprint(admin_bp)
     @app.route("/")
     def home():
         try:
             connection = get_connection()
             cursor = connection.cursor()
-            cursor.execute("SELECT COUNT(*) AS total FROM department")
+            cursor.execute(
+                "SELECT COUNT(*) AS total FROM department"
+            )
             result = cursor.fetchone()
             cursor.close()
             connection.close()
@@ -18,6 +30,10 @@ def create_app():
                 <p>Flask is working successfully.</p>
                 <p>MySQL is connected successfully.</p>
                 <p>Total Departments: {result['total']}</p>
+                <br>
+                <a href="/admin/login">
+                    Admin Login
+                </a>
             """
         except Exception as e:
             return f"""

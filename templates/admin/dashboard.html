@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - PreQABoard</title>
+
+</head>
+<body>
+
+    <!-- =====================================================
+         ADMIN DASHBOARD HEADER
+         ===================================================== -->
+
+    <h1>PreQABoard Admin Dashboard</h1>
+
+    <h2>
+        Welcome, {{ username }}
+    </h2>
+    <hr>
+
+
+    <!-- =====================================================
+         ADMIN FUNCTIONS
+         ===================================================== -->
+
+    <h3>Admin Functions</h3>
+
+    <ul>
+
+        <!-- Department Management -->
+        <li>
+            <a href="{{ url_for('admin.departments') }}">
+                Manage Departments
+            </a>
+        </li>
+
+        <!-- Course Management -->
+
+        <li>
+            <a href="{{ url_for('admin.courses') }}">
+                Manage Courses
+            </a>
+        </li>
+
+        <!-- Academic Year Management -->
+        <li>
+            <a href="#">
+                Manage Academic Years
+            </a>
+        </li>
+
+        <!-- Exam Type Management -->
+        <li>
+            <a href="#">
+                Manage Exam Types
+            </a>
+        </li>
+
+        <!-- HOD Management -->
+        <li>
+            <a href="#">
+                Manage HOD Accounts
+            </a>
+        </li>
+    </ul>
+    <hr>
+
+
+    <!-- =====================================================
+         LOGOUT
+         ===================================================== -->
+
+    <a href="{{ url_for('admin.logout') }}">
+        Logout
+    </a>
+</body>
+</html>
