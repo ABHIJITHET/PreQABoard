@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Environment variables
+.env
+
+# Flask
+instance/
+
+# Logs
+logs/
+
+# Uploaded files
+uploads/
+
+# IDE
+.idea/

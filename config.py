@@ -1,9 +1,12 @@
 #SQL Configure
 
+import os
+from dotenv import load_dotenv
+load_dotenv()
 class Config:
-    SECRET_KEY = "preqaboard_secret_key"
-    MYSQL_HOST = "localhost"
-    MYSQL_USER = "root"
-    MYSQL_PASSWORD = "2004"
-    MYSQL_DB = "preqaboard"
-    MYSQL_PORT = 3306
+    SECRET_KEY = "preqaboard_secret_key_change_later"
+    MYSQL_HOST = os.getenv("MYSQL_HOST", "127.0.0.1")
+    MYSQL_PORT = int(os.getenv("MYSQL_PORT", 3306))
+    MYSQL_USER = os.getenv("MYSQL_USER", "root")
+    MYSQL_PASSWORD = os.getenv("MYSQL_PASSWORD", "")
+    MYSQL_DB = os.getenv("MYSQL_DB", "preqaboard")
