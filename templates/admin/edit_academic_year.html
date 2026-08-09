@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Edit Academic Year - PreQABoard</title>
+
+</head>
+
+<body>
+
+    <h1>Edit Academic Year</h1>
+
+    <hr>
+
+    <form
+        method="POST"
+        action="{{ url_for(
+            'admin.edit_academic_year',
+            academic_year_id=academic_year.academic_year_id
+        ) }}"
+    >
+
+        <!-- Academic Year -->
+
+        <label for="academic_year_name">
+            Academic Year:
+        </label>
+
+        <br><br>
+
+        <input
+            type="text"
+            id="academic_year_name"
+            name="academic_year_name"
+            value="{{ academic_year.academic_year_name }}"
+            required
+        >
+
+        <br><br>
+
+
+        <!-- Start Date -->
+
+        <label for="start_date">
+            Start Date:
+        </label>
+
+        <br><br>
+
+        <input
+            type="date"
+            id="start_date"
+            name="start_date"
+            value="{{ academic_year.start_date }}"
+            required
+        >
+
+        <br><br>
+
+
+        <!-- End Date -->
+
+        <label for="end_date">
+            End Date:
+        </label>
+
+        <br><br>
+
+        <input
+            type="date"
+            id="end_date"
+            name="end_date"
+            value="{{ academic_year.end_date }}"
+            required
+        >
+
+        <br><br>
+
+
+        <!-- Status -->
+
+        <label for="status">
+            Status:
+        </label>
+
+        <br><br>
+
+        <select
+            id="status"
+            name="status"
+            required
+        >
+
+            <option
+                value="Upcoming"
+                {% if academic_year.status == "Upcoming" %}
+                    selected
+                {% endif %}
+            >
+                Upcoming
+            </option>
+
+            <option
+                value="Current"
+                {% if academic_year.status == "Current" %}
+                    selected
+                {% endif %}
+            >
+                Current
+            </option>
+
+            <option
+                value="Completed"
+                {% if academic_year.status == "Completed" %}
+                    selected
+                {% endif %}
+            >
+                Completed
+            </option>
+        </select>
+        <br><br>
+
+        <button type="submit">
+            Update Academic Year
+        </button>
+    </form>
+    <br>
+    <a href="{{ url_for('admin.academic_years') }}">
+        Cancel
+    </a>
+</body>
+</html>

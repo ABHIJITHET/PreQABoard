@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Manage Academic Years - PreQABoard</title>
+
+</head>
+
+<body>
+
+    <h1>PreQABoard - Manage Academic Years</h1>
+
+    <h2>
+        Welcome, {{ session.get("admin_username") }}
+    </h2>
+
+    <hr>
+
+
+    <!-- =====================================================
+         ADD ACADEMIC YEAR
+         ===================================================== -->
+
+    <h2>Add New Academic Year</h2>
+
+    <form
+        method="POST"
+        action="{{ url_for('admin.add_academic_year') }}"
+    >
+
+        <!-- Academic Year -->
+
+        <label for="academic_year_name">
+            Academic Year:
+        </label>
+
+        <br><br>
+
+        <input
+            type="text"
+            id="academic_year_name"
+            name="academic_year_name"
+            placeholder="Example: 2026-2027"
+            required
+        >
+
+        <br><br>
+
+
+        <!-- Start Date -->
+
+        <label for="start_date">
+            Start Date:
+        </label>
+
+        <br><br>
+
+        <input
+            type="date"
+            id="start_date"
+            name="start_date"
+            required
+        >
+
+        <br><br>
+
+
+        <!-- End Date -->
+
+        <label for="end_date">
+            End Date:
+        </label>
+
+        <br><br>
+
+        <input
+            type="date"
+            id="end_date"
+            name="end_date"
+            required
+        >
+
+        <br><br>
+
+
+        <button type="submit">
+            Add Academic Year
+        </button>
+
+    </form>
+
+
+    <hr>
+
+
+    <!-- =====================================================
+         ACADEMIC YEAR LIST
+         ===================================================== -->
+
+    <h2>Existing Academic Years</h2>
+
+    {% if academic_years %}
+
+        <table border="1" cellpadding="10">
+
+            <thead>
+
+                <tr>
+
+                    <th>ID</th>
+
+                    <th>Academic Year</th>
+
+                    <th>Start Date</th>
+
+                    <th>End Date</th>
+
+                    <th>Status</th>
+
+                    <th>Created At</th>
+
+                    <th>Updated At</th>
+
+                    <th>Actions</th>
+
+                </tr>
+
+            </thead>
+
+
+            <tbody>
+
+                {% for year in academic_years %}
+
+                    <tr>
+
+                        <!-- ID -->
+
+                        <td>
+                            {{ year.academic_year_id }}
+                        </td>
+
+
+                        <!-- Academic Year -->
+
+                        <td>
+                            {{ year.academic_year_name }}
+                        </td>
+
+
+                        <!-- Start Date -->
+
+                        <td>
+                            {{ year.start_date }}
+                        </td>
+
+
+                        <!-- End Date -->
+
+                        <td>
+                            {{ year.end_date }}
+                        </td>
+
+
+                        <!-- Status -->
+
+                        <td>
+                            {{ year.status }}
+                        </td>
+
+
+                        <!-- Created At -->
+
+                        <td>
+                            {{ year.created_at }}
+                        </td>
+
+
+                        <!-- Updated At -->
+
+                        <td>
+                            {{ year.updated_at }}
+                        </td>
+
+
+                        <!-- =================================================
+                             ACTIONS
+                             ================================================= -->
+
+                        <td>
+
+                            <!-- EDIT -->
+
+                            <a href="{{ url_for(
+                                'admin.edit_academic_year',
+                                academic_year_id=year.academic_year_id
+                            ) }}">
+                                <button>Edit</button>
+
+                            </a>
+
+
+                            <br>
+                            <br>
+
+
+                            <!-- DELETE -->
+
+                            <form
+                                method="POST"
+                                action="{{ url_for(
+                                    'admin.delete_academic_year',
+                                    academic_year_id=year.academic_year_id
+                                ) }}"
+                                onsubmit="
+                                    return confirm(
+                                        'Are you sure you want to delete this academic year?'
+                                    );
+                                "
+                            >
+
+                                <button type="submit">
+                                    Delete
+                                </button>
+
+                            </form>
+
+
+                            <br>
+
+
+                            <!-- CHANGE STATUS -->
+
+                            <form
+                                method="POST"
+                                action="{{ url_for(
+                                    'admin.change_academic_year_status',
+                                    academic_year_id=year.academic_year_id
+                                ) }}"
+                            >
+
+                                <select name="status">
+
+                                    <option
+                                        value="Upcoming"
+                                        {% if year.status =="Upcoming" %}
+                                            selected
+                                        {% endif %}
+                                    >
+                                        Upcoming
+                                    </option>
+
+
+                                    <option
+                                        value="Current"
+                                        {% if year.status =="Current" %}
+                                            selected
+                                        {% endif %}
+                                    >
+                                        Current
+                                    </option>
+
+
+                                    <option
+                                        value="Completed"
+                                        {% if year.status =="Completed" %}
+                                            selected
+                                        {% endif %}
+                                    >
+                                        Completed
+                                    </option>
+
+                                </select>
+
+
+                                <button type="submit">
+                                    Change Status
+                                </button>
+
+                            </form>
+
+                        </td>
+
+                    </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    {% else %}
+
+        <p>
+            No academic years found.
+        </p>
+
+    {% endif %}
+
+    <br>
+    <hr>
+
+    <!-- =====================================================
+         NAVIGATION
+         ===================================================== -->
+
+    <a href="{{ url_for('admin.dashboard') }}">
+        Back to Dashboard
+    </a>
+    <br>
+    <br>
+    <a href="{{ url_for('admin.logout') }}">
+        Logout
+    </a>
+</body>
+
+</html>

@@ -44,23 +44,31 @@
             </a>
         </li>
 
+        <!-- Semester Manage -->
+
+        <li>
+            <a href="{{ url_for('admin.semesters') }}">
+                Manage Semesters
+            </a>
+        </li>
+
         <!-- Academic Year Management -->
         <li>
-            <a href="#">
+            <a href="{{ url_for('admin.academic_years') }}">
                 Manage Academic Years
             </a>
         </li>
 
         <!-- Exam Type Management -->
         <li>
-            <a href="#">
+            <a href="{{ url_for('admin.exam_types') }}">
                 Manage Exam Types
             </a>
         </li>
 
         <!-- HOD Management -->
         <li>
-            <a href="#">
+            <a href="{{ url_for('admin.hod_accounts') }}">
                 Manage HOD Accounts
             </a>
         </li>

@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Manage HOD Accounts - PreQABoard</title>
+
+</head>
+
+<body>
+
+<h1>PreQABoard - Manage HOD Accounts</h1>
+
+<h2>
+    Welcome, {{ session.get("admin_username") }}
+</h2>
+
+<hr>
+
+
+<!-- =====================================================
+     ADD HOD
+     ===================================================== -->
+
+<h2>Add New HOD</h2>
+
+<form
+    method="POST"
+    action="{{ url_for('admin.add_hod') }}"
+>
+
+    <!-- DEPARTMENT -->
+
+    <label for="department_id">
+        Department:
+    </label>
+
+    <br><br>
+
+    <select
+        id="department_id"
+        name="department_id"
+        required
+    >
+
+        <option value="">
+            -- Select Department --
+        </option>
+
+        {% for department in departments %}
+
+            <option value="{{ department.department_id }}">
+
+                {{ department.department_name }}
+
+            </option>
+
+        {% endfor %}
+
+    </select>
+
+    <br><br>
+
+
+    <!-- EMPLOYEE ID -->
+
+    <label for="employee_id">
+        Employee ID:
+    </label>
+
+    <br><br>
+
+    <input
+        type="text"
+        id="employee_id"
+        name="employee_id"
+        placeholder="Example: HOD001"
+        required
+    >
+
+    <br><br>
+
+
+    <!-- FULL NAME -->
+
+    <label for="full_name">
+        Full Name:
+    </label>
+
+    <br><br>
+
+    <input
+        type="text"
+        id="full_name"
+        name="full_name"
+        placeholder="Enter HOD name"
+        required
+    >
+
+    <br><br>
+
+
+    <!-- EMAIL -->
+
+    <label for="email">
+        Email:
+    </label>
+
+    <br><br>
+
+    <input
+        type="email"
+        id="email"
+        name="email"
+        placeholder="hod@example.com"
+        required
+    >
+
+    <br><br>
+
+
+    <!-- PHONE -->
+
+    <label for="phone">
+        Phone:
+    </label>
+
+    <br><br>
+
+    <input
+        type="text"
+        id="phone"
+        name="phone"
+        placeholder="Enter phone number"
+    >
+
+    <br><br>
+
+
+    <!-- USERNAME -->
+
+    <label for="username">
+        Username:
+    </label>
+
+    <br><br>
+
+    <input
+        type="text"
+        id="username"
+        name="username"
+        placeholder="Enter username"
+        required
+    >
+
+    <br><br>
+
+
+    <!-- PASSWORD -->
+
+    <label for="password">
+        Password:
+    </label>
+
+    <br><br>
+
+    <input
+        type="password"
+        id="password"
+        name="password"
+        placeholder="Enter password"
+        required
+    >
+
+    <br><br>
+
+
+    <button type="submit">
+        Add HOD
+    </button>
+
+</form>
+
+
+<hr>
+
+
+<!-- =====================================================
+     EXISTING HOD ACCOUNTS
+     ===================================================== -->
+
+<h2>Existing HOD Accounts</h2>
+
+{% if hods %}
+
+<table
+    border="1"
+    cellpadding="10"
+    cellspacing="0"
+>
+
+    <thead>
+
+        <tr>
+
+            <th>ID</th>
+
+            <th>Department</th>
+
+            <th>Employee ID</th>
+
+            <th>Full Name</th>
+
+            <th>Email</th>
+
+            <th>Phone</th>
+
+            <th>Username</th>
+
+            <th>Status</th>
+
+            <th>Created At</th>
+
+            <th>Actions</th>
+
+        </tr>
+
+    </thead>
+
+
+    <tbody>
+
+        {% for hod in hods %}
+
+        <tr>
+
+            <!-- ID -->
+
+            <td>
+                {{ hod.hod_id }}
+            </td>
+
+
+            <!-- DEPARTMENT -->
+
+            <td>
+                {{ hod.department_name }}
+            </td>
+
+
+            <!-- EMPLOYEE ID -->
+
+            <td>
+                {{ hod.employee_id }}
+            </td>
+
+
+            <!-- NAME -->
+
+            <td>
+                {{ hod.full_name }}
+            </td>
+
+
+            <!-- EMAIL -->
+
+            <td>
+                {{ hod.email }}
+            </td>
+
+
+            <!-- PHONE -->
+
+            <td>
+                {{ hod.phone }}
+            </td>
+
+
+            <!-- USERNAME -->
+
+            <td>
+                {{ hod.username }}
+            </td>
+
+
+            <!-- STATUS -->
+
+            <td>
+                {{ hod.account_status }}
+            </td>
+
+
+            <!-- CREATED -->
+
+            <td>
+                {{ hod.created_at }}
+            </td>
+
+
+            <!-- ACTIONS -->
+
+            <td>
+
+                <!-- EDIT -->
+
+                <a href="{{ url_for(
+                    'admin.edit_hod',
+                    hod_id=hod.hod_id
+                ) }}">
+
+                    <button type="button">
+                        Edit
+                    </button>
+
+                </a>
+
+
+                <br>
+                <br>
+
+
+                <!-- DELETE -->
+
+                <form
+                    method="POST"
+                    action="{{ url_for(
+                        'admin.delete_hod',
+                        hod_id=hod.hod_id
+                    ) }}"
+                    onsubmit="
+                        return confirm(
+                            'Are you sure you want to delete this HOD account?'
+                        );
+                    "
+                >
+
+                    <button type="submit">
+                        Delete
+                    </button>
+
+                </form>
+
+
+                <br>
+
+
+                <!-- CHANGE STATUS -->
+
+                <form
+                    method="POST"
+                    action="{{ url_for(
+                        'admin.change_hod_status',
+                        hod_id=hod.hod_id
+                    ) }}"
+                >
+
+                    <select name="account_status">
+
+                        <option
+                            value="Pending"
+                            {% if hod.account_status == "Pending" %}
+                                selected
+                            {% endif %}
+                        >
+                            Pending
+                        </option>
+
+
+                        <option
+                            value="Active"
+                            {% if hod.account_status == "Active" %}
+                                selected
+                            {% endif %}
+                        >
+                            Active
+                        </option>
+
+
+                        <option
+                            value="Inactive"
+                            {% if hod.account_status == "Inactive" %}
+                                selected
+                            {% endif %}
+                        >
+                            Inactive
+                        </option>
+
+                    </select>
+
+
+                    <button type="submit">
+                        Change Status
+                    </button>
+
+                </form>
+
+            </td>
+
+        </tr>
+
+        {% endfor %}
+
+    </tbody>
+
+</table>
+
+{% else %}
+
+<p>
+    No HOD accounts found.
+</p>
+
+{% endif %}
+
+
+<br>
+
+<hr>
+
+
+<!-- =====================================================
+     NAVIGATION
+     ===================================================== -->
+
+<a href="{{ url_for('admin.dashboard') }}">
+    Back to Dashboard
+</a>
+
+<br>
+<br>
+
+<a href="{{ url_for('admin.logout') }}">
+    Logout
+</a>
+
+
+</body>
+
+</html>

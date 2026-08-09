@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Exam Type - PreQABoard</title>
+</head>
+<body>
+
+<h1>PreQABoard - Edit Exam Type</h1>
+
+<hr>
+
+<form
+    method="POST"
+    action="{{ url_for(
+        'admin.edit_exam_type',
+        exam_type_id=exam_type.exam_type_id
+    ) }}"
+>
+    <label for="exam_type_name">Exam Type:</label>
+    <br><br>
+    <input
+        type="text"
+        id="exam_type_name"
+        name="exam_type_name"
+        value="{{ exam_type.exam_type_name }}"
+        required
+    >
+    <br><br>
+
+    <label for="status">Status:</label>
+    <br><br>
+    <select id="status" name="status" required>
+        <option value="Active" {% if exam_type.status =="Active" %}selected{% endif %}>
+            Active
+        </option>
+        <option value="Inactive" {% if exam_type.status =="Inactive" %}selected{% endif %}>
+            Inactive
+        </option>
+    </select>
+
+    <br><br>
+    <button type="submit">Update Exam Type</button>
+</form>
+
+<br>
+<a href="{{ url_for('admin.exam_types') }}">Back to Exam Types</a>
+
+</body>
+</html>
