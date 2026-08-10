@@ -5,42 +5,75 @@ from database.db_connection import get_connection
 
 from routes.auth_routes import auth_bp
 from routes.admin_routes import admin_bp
+from routes.hod_routes import hod_bp
+
 
 def create_app():
+
     app = Flask(__name__)
+
     app.config.from_object(Config)
 
     # Register authentication routes
     app.register_blueprint(auth_bp)
+
     # Register admin routes
     app.register_blueprint(admin_bp)
+
+    # Register HOD routes
+    app.register_blueprint(hod_bp)
+
     @app.route("/")
     def home():
+
         try:
+
             connection = get_connection()
             cursor = connection.cursor()
+
             cursor.execute(
                 "SELECT COUNT(*) AS total FROM department"
             )
+
             result = cursor.fetchone()
+
             cursor.close()
             connection.close()
+
             return f"""
                 <h1>Welcome to PreQABoard</h1>
+
                 <p>Flask is working successfully.</p>
+
                 <p>MySQL is connected successfully.</p>
+
                 <p>Total Departments: {result['total']}</p>
+
                 <br>
+
                 <a href="/admin/login">
                     Admin Login
                 </a>
+
+                <br><br>
+
+                <a href="/hod/login">
+                    HOD Login
+                </a>
             """
+
         except Exception as e:
+
             return f"""
                 <h1>Database Connection Failed</h1>
                 <p>{e}</p>
             """
+
     return app
+
+
 app = create_app()
+
+
 if __name__ == "__main__":
     app.run(debug=True)

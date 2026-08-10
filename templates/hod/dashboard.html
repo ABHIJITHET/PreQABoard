@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>HOD Dashboard - PreQABoard</title>
+
+</head>
+
+<body>
+
+    <h1>PreQABoard</h1>
+
+    <h2>HOD Dashboard</h2>
+
+    <hr>
+
+    <h3>
+        Welcome, {{ hod_name }}
+    </h3>
+
+    {% if department %}
+
+        <p>
+            <strong>Department:</strong>
+            {{ department.department_name }}
+        </p>
+
+    {% endif %}
+
+    <hr>
+
+    <h3>Department Overview</h3>
+
+    <p>
+        Total Students:
+        <strong>{{ total_students }}</strong>
+    </p>
+
+    <p>
+        Total Teachers:
+        <strong>{{ total_teachers }}</strong>
+    </p>
+
+    <p>
+        Total Subjects:
+        <strong>{{ total_subjects }}</strong>
+    </p>
+
+    <hr>
+
+    <h3>HOD Management</h3>
+
+    <p>
+        <a href="#">
+            Manage Teachers
+        </a>
+    </p>
+
+    <p>
+        <a href="#">
+            Manage Subjects
+        </a>
+    </p>
+
+    <p>
+        <a href="#">
+            Assign Teachers
+        </a>
+    </p>
+
+    <p>
+    <a href="{{ url_for('hod.approve_students') }}">
+        Approve Students
+    </a>
+</p>
+
+    <p>
+        <a href="{{ url_for('hod.students') }}">
+            View Students
+        </a>
+    </p>
+
+    <p>
+        <a href="#">
+            Approve Question Papers
+        </a>
+    </p>
+
+    <p>
+        <a href="#">
+            Student Doubts
+        </a>
+    </p>
+
+    <hr>
+
+    <h3>Account</h3>
+
+    <p>
+        <a href="#">
+            My Profile
+        </a>
+    </p>
+
+    <p>
+        <a href="#">
+            Change Password
+        </a>
+    </p>
+
+    <p>
+        <a href="{{ url_for('hod.logout') }}">
+            Logout
+        </a>
+    </p>
+
+</body>
+
+</html>
