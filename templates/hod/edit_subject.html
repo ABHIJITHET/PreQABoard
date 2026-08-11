@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Edit Subject - PreQABoard</title>
+
+</head>
+
+<body>
+
+    <h1>PreQABoard</h1>
+
+    <h2>Edit Subject</h2>
+
+    <hr>
+
+    <p>
+        <a href="{{ url_for('hod.manage_subjects') }}">
+            ← Back to Manage Subjects
+        </a>
+    </p>
+
+    <form method="POST">
+
+        <label>Course:</label>
+
+        <br>
+
+        <select name="course_id" required>
+
+            {% for course in courses %}
+
+            <option
+                value="{{ course.course_id }}"
+                {% if course.course_id == subject.course_id %}
+                    selected
+                {% endif %}
+            >
+                {{ course.course_name }}
+            </option>
+
+            {% endfor %}
+
+        </select>
+
+        <br><br>
+
+
+        <label>Semester:</label>
+
+        <br>
+
+        <select name="semester_id" required>
+
+            {% for semester in semesters %}
+
+            <option
+                value="{{ semester.semester_id }}"
+                {% if semester.semester_id == subject.semester_id %}
+                    selected
+                {% endif %}
+            >
+                Semester {{ semester.semester_number }}
+            </option>
+
+            {% endfor %}
+
+        </select>
+
+        <br><br>
+
+
+        <label>Subject Code:</label>
+
+        <br>
+
+        <input
+            type="text"
+            name="subject_code"
+            value="{{ subject.subject_code }}"
+            required
+        >
+
+        <br><br>
+
+
+        <label>Subject Name:</label>
+
+        <br>
+
+        <input
+            type="text"
+            name="subject_name"
+            value="{{ subject.subject_name }}"
+            required
+        >
+
+        <br><br>
+
+
+        <label>Credits:</label>
+
+        <br>
+
+        <input
+            type="number"
+            name="credits"
+            value="{{ subject.credits }}"
+            min="1"
+            max="20"
+            required
+        >
+
+        <br><br>
+
+
+        <button type="submit">
+            Update Subject
+        </button>
+
+    </form>
+
+    <br>
+
+    <a href="{{ url_for('hod.logout') }}">
+        Logout
+    </a>
+
+</body>
+
+</html>

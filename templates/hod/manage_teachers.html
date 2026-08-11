@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Manage Teachers - PreQABoard</title>
+
+</head>
+
+<body>
+
+    <h1>PreQABoard</h1>
+
+    <h2>Manage Teachers</h2>
+
+    <hr>
+
+    <p>
+        <a href="{{ url_for('hod.dashboard') }}">
+            ← Back to Dashboard
+        </a>
+    </p>
+
+    {% if teachers %}
+
+        <table border="1" cellpadding="10">
+
+            <thead>
+
+                <tr>
+                    <th>No.</th>
+                    <th>Employee ID</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Username</th>
+                    <th>Status</th>
+                    <th>Created At</th>
+                    <th>Action</th>
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                {% for teacher in teachers %}
+
+                <tr>
+
+                    <td>
+                        {{ loop.index }}
+                    </td>
+
+                    <td>
+                        {{ teacher.employee_id }}
+                    </td>
+
+                    <td>
+                        {{ teacher.full_name }}
+                    </td>
+
+                    <td>
+                        {{ teacher.email }}
+                    </td>
+
+                    <td>
+                        {{ teacher.phone or '-' }}
+                    </td>
+
+                    <td>
+                        {{ teacher.username or '-' }}
+                    </td>
+
+                    <td>
+                        {{ teacher.account_status }}
+                    </td>
+
+                    <td>
+                        {{ teacher.created_at }}
+                    </td>
+
+                    <td>
+
+                        {% if teacher.account_status != 'Active' %}
+
+                        <form
+                            method="POST"
+                            action="{{ url_for(
+                                'hod.change_teacher_status',
+                                teacher_id=teacher.teacher_id
+                            ) }}"
+                            style="display:inline;"
+                        >
+
+                            <input
+                                type="hidden"
+                                name="status"
+                                value="Active"
+                            >
+
+                            <button type="submit">
+                                Activate
+                            </button>
+
+                        </form>
+
+                        {% endif %}
+
+
+                        {% if teacher.account_status != 'Inactive' %}
+
+                        <form
+                            method="POST"
+                            action="{{ url_for(
+                                'hod.change_teacher_status',
+                                teacher_id=teacher.teacher_id
+                            ) }}"
+                            style="display:inline;"
+                        >
+
+                            <input
+                                type="hidden"
+                                name="status"
+                                value="Inactive"
+                            >
+
+                            <button type="submit">
+                                Deactivate
+                            </button>
+
+                        </form>
+
+                        {% endif %}
+
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    {% else %}
+
+        <p>
+            No teachers are registered in your department.
+        </p>
+
+    {% endif %}
+
+    <br>
+
+    <a href="{{ url_for('hod.logout') }}">
+        Logout
+    </a>
+
+</body>
+
+</html>

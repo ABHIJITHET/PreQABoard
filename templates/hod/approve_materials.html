@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Approve Study Materials - PreQABoard</title>
+
+</head>
+
+<body>
+
+    <h1>PreQABoard</h1>
+
+    <h2>Approve Study Materials</h2>
+
+    <hr>
+
+    <p>
+        <a href="{{ url_for('hod.dashboard') }}">
+            ← Back to Dashboard
+        </a>
+    </p>
+
+
+    {% if materials %}
+
+    <table border="1" cellpadding="10">
+
+        <thead>
+
+            <tr>
+
+                <th>No.</th>
+                <th>Teacher</th>
+                <th>Employee ID</th>
+                <th>Course</th>
+                <th>Semester</th>
+                <th>Subject Code</th>
+                <th>Subject</th>
+                <th>Academic Year</th>
+                <th>Title</th>
+                <th>File</th>
+                <th>Uploaded Date</th>
+                <th>Status</th>
+                <th>Action</th>
+
+            </tr>
+
+        </thead>
+
+
+        <tbody>
+
+            {% for material in materials %}
+
+            <tr>
+
+                <td>
+                    {{ loop.index }}
+                </td>
+
+
+                <td>
+                    {{ material.teacher_name }}
+                </td>
+
+
+                <td>
+                    {{ material.employee_id }}
+                </td>
+
+
+                <td>
+                    {{ material.course_name }}
+                </td>
+
+
+                <td>
+                    Semester {{ material.semester_number }}
+                </td>
+
+
+                <td>
+                    {{ material.subject_code }}
+                </td>
+
+
+                <td>
+                    {{ material.subject_name }}
+                </td>
+
+
+                <td>
+                    {{ material.academic_year_name }}
+                </td>
+
+
+                <td>
+                    {{ material.title }}
+                </td>
+
+
+                <td>
+
+                    <a
+                        href="{{ url_for(
+                            'static',
+                            filename='uploads/study_materials/' + material.file_name
+                        ) }}"
+                        target="_blank"
+                    >
+                        View Material
+                    </a>
+
+                </td>
+
+
+                <td>
+                    {{ material.upload_date }}
+                </td>
+
+
+                <td>
+
+                    {% if material.approved_by_hod == 1 %}
+
+                        Approved
+
+                    {% else %}
+
+                        Pending
+
+                    {% endif %}
+
+                </td>
+
+
+                <td>
+
+                    {% if material.approved_by_hod == 0 %}
+
+                    <form
+                        method="POST"
+                        action="{{ url_for(
+                            'hod.approve_study_material',
+                            study_material_id=material.study_material_id
+                        ) }}"
+                    >
+
+                        <button type="submit">
+                            Approve
+                        </button>
+
+                    </form>
+
+                    {% else %}
+
+                        Already Approved
+
+                    {% endif %}
+
+                </td>
+
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+    {% else %}
+
+        <p>
+            No study materials have been uploaded yet.
+        </p>
+
+    {% endif %}
+
+
+    <br>
+
+    <a href="{{ url_for('hod.logout') }}">
+        Logout
+    </a>
+
+</body>
+
+</html>

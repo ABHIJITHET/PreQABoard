@@ -26,113 +26,142 @@
         </a>
     </p>
 
+
     {% if students %}
 
-        <table border="1" cellpadding="10">
+    <table border="1" cellpadding="10">
 
-            <thead>
+        <thead>
 
-                <tr>
-                    <th>No.</th>
-                    <th>Register Number</th>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Phone</th>
-                    <th>Course</th>
-                    <th>Semester</th>
-                    <th>Status</th>
-                    <th>Action</th>
-                </tr>
+            <tr>
 
-            </thead>
+                <th>No.</th>
+                <th>Register Number</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Course</th>
+                <th>Semester</th>
+                <th>Status</th>
+                <th>Action</th>
 
-            <tbody>
+            </tr>
 
-                {% for student in students %}
+        </thead>
 
-                    <tr>
 
-                        <td>
-                            {{ loop.index }}
-                        </td>
+        <tbody>
 
-                        <td>
-                            {{ student.register_number }}
-                        </td>
+            {% for student in students %}
 
-                        <td>
-                            {{ student.full_name }}
-                        </td>
+            <tr>
 
-                        <td>
-                            {{ student.email }}
-                        </td>
+                <td>
+                    {{ loop.index }}
+                </td>
 
-                        <td>
-                            {{ student.phone or '-' }}
-                        </td>
 
-                        <td>
-                            {{ student.course_name }}
-                        </td>
+                <td>
+                    {{ student.register_number }}
+                </td>
 
-                        <td>
-                            Semester {{ student.semester_number }}
-                        </td>
 
-                        <td>
-                            {{ student.account_status }}
-                        </td>
+                <td>
+                    {{ student.full_name }}
+                </td>
 
-                        <td>
 
-                           <form
-                                method="POST"
-                                action="{{ url_for(
-                                    'hod.approve_student',
-                                    student_id=student.student_id
-                                ) }}"
-                                style="display:inline;"
-                           >
+                <td>
+                    {{ student.email }}
+                </td>
 
-                                <button type="submit">
-                                    Approve
-                                </button>
 
-                           </form>
+                <td>
+                    {{ student.phone or '-' }}
+                </td>
 
-                           <form
-                                method="POST"
-                                action="{{ url_for(
-                                    'hod.reject_student',
-                                    student_id=student.student_id
-                                ) }}"
-                                style="display:inline;"
-                           >
 
-                                <button type="submit">
-                                    Reject
-                                </button>
+                <td>
+                    {{ student.course_name }}
+                </td>
 
-                           </form>
 
-                        </td>
+                <td>
+                    Semester {{ student.semester_number }}
+                </td>
 
-                    </tr>
 
-                {% endfor %}
+                <td>
+                    {{ student.account_status }}
+                </td>
 
-            </tbody>
 
-        </table>
+                <td>
+
+                    {% if student.account_status == 'Pending' %}
+
+                        <!-- APPROVE -->
+
+                        <form
+                            method="POST"
+                            action="{{ url_for(
+                                'hod.approve_student',
+                                student_id=student.student_id
+                            ) }}"
+                            style="display:inline;"
+                        >
+
+                            <button type="submit">
+                                Approve
+                            </button>
+
+                        </form>
+
+
+                        <!-- REJECT -->
+
+                        <form
+                            method="POST"
+                            action="{{ url_for(
+                                'hod.reject_student',
+                                student_id=student.student_id
+                            ) }}"
+                            style="display:inline;"
+                            onsubmit="return confirm(
+                                'Are you sure you want to reject this student?'
+                            );"
+                        >
+
+                            <button type="submit">
+                                Reject
+                            </button>
+
+                        </form>
+
+                    {% else %}
+
+                        No Action
+
+                    {% endif %}
+
+                </td>
+
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
 
     {% else %}
 
-        <p>
-            No pending student registrations.
-        </p>
+    <p>
+        No pending student registrations.
+    </p>
 
     {% endif %}
+
 
     <br>
 

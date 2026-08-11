@@ -57,19 +57,19 @@
     <h3>HOD Management</h3>
 
     <p>
-        <a href="#">
+        <a href="{{ url_for('hod.teachers') }}">
             Manage Teachers
         </a>
     </p>
 
     <p>
-        <a href="#">
+        <a href="{{ url_for('hod.manage_subjects') }}">
             Manage Subjects
         </a>
     </p>
 
     <p>
-        <a href="#">
+        <a href="{{ url_for('hod.teacher_assignments') }}">
             Assign Teachers
         </a>
     </p>
@@ -87,9 +87,15 @@
     </p>
 
     <p>
-        <a href="#">
+        <a href="{{ url_for('hod.approve_papers') }}">
             Approve Question Papers
         </a>
+    </p>
+
+    <p>
+    <a href="{{ url_for('hod.approve_materials') }}">
+        Approve Materials
+    </a>
     </p>
 
     <p>
