@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Student Doubts - PreQABoard</title>
+
+</head>
+
+<body>
+
+    <h1>PreQABoard</h1>
+
+    <h2>Student Doubts</h2>
+
+    <hr>
+
+
+    {% if error %}
+
+    <p style="color: red;">
+        {{ error }}
+    </p>
+
+    {% endif %}
+
+
+    {% if doubts %}
+
+    <table border="1"
+           cellpadding="10"
+           cellspacing="0">
+
+        <tr>
+
+            <th>Sl No</th>
+
+            <th>Student</th>
+
+            <th>Register Number</th>
+
+            <th>Subject</th>
+
+            <th>Doubt Title</th>
+
+            <th>Doubt Description</th>
+
+            <th>Date</th>
+
+            <th>Action</th>
+
+        </tr>
+
+
+        {% for doubt in doubts %}
+
+        <tr>
+
+            <td>
+                {{ loop.index }}
+            </td>
+
+
+            <td>
+                {{ doubt.student_name }}
+            </td>
+
+
+            <td>
+                {{ doubt.register_number }}
+            </td>
+
+
+            <td>
+
+                {{ doubt.subject_code }}
+
+                <br>
+
+                {{ doubt.subject_name }}
+
+            </td>
+
+
+            <td>
+                {{ doubt.doubt_title }}
+            </td>
+
+
+            <td>
+                {{ doubt.doubt_description }}
+            </td>
+
+
+            <td>
+                {{ doubt.created_at }}
+            </td>
+
+
+            <td>
+
+                <a href="{{ url_for(
+                    'teacher.reply_doubt',
+                    doubt_id=doubt.doubt_id
+                ) }}">
+
+                    Reply
+
+                </a>
+
+            </td>
+
+        </tr>
+
+        {% endfor %}
+
+    </table>
+
+
+    {% else %}
+
+    <p>
+        No student doubts found.
+    </p>
+
+    {% endif %}
+
+
+    <hr>
+
+
+    <p>
+
+        <a href="{{ url_for('teacher.dashboard') }}">
+            Back to Dashboard
+        </a>
+
+    </p>
+
+
+</body>
+
+</html>

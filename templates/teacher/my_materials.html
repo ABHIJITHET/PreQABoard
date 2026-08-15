@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>My Study Materials - PreQABoard</title>
+
+</head>
+
+<body>
+
+    <h1>PreQABoard</h1>
+
+    <h2>My Study Materials</h2>
+
+    <hr>
+
+
+    {% if error %}
+
+    <p style="color: red;">
+        {{ error }}
+    </p>
+
+    {% endif %}
+
+
+    {% if success %}
+
+    <p style="color: green;">
+        {{ success }}
+    </p>
+
+    {% endif %}
+
+
+    {% if materials %}
+
+    <table border="1"
+           cellpadding="10"
+           cellspacing="0">
+
+        <tr>
+
+            <th>Sl No</th>
+
+            <th>Subject Code</th>
+
+            <th>Subject</th>
+
+            <th>Title</th>
+
+            <th>File</th>
+
+            <th>Uploaded Date</th>
+
+            <th>Approval Status</th>
+
+        </tr>
+
+
+        {% for material in materials %}
+
+        <tr>
+
+            <td>
+                {{ loop.index }}
+            </td>
+
+
+            <td>
+                {{ material.subject_code }}
+            </td>
+
+
+            <td>
+                {{ material.subject_name }}
+            </td>
+
+
+            <td>
+                {{ material.title }}
+            </td>
+
+
+            <td>
+
+                {% if material.file_name %}
+
+                <a href="{{ url_for(
+                    'teacher.download_study_material',
+                    study_material_id=material.study_material_id
+                ) }}">
+
+                    View / Download
+
+                </a>
+
+                {% else %}
+
+                -
+
+                {% endif %}
+
+            </td>
+
+
+            <td>
+                {{ material.upload_date }}
+            </td>
+
+
+            <td>
+
+                {% if material.approved_by_hod %}
+
+                    <span style="color: green;">
+                        Approved
+                    </span>
+
+                {% else %}
+
+                    <span style="color: orange;">
+                        Pending HOD Approval
+                    </span>
+
+                {% endif %}
+
+            </td>
+
+        </tr>
+
+        {% endfor %}
+
+    </table>
+
+
+    {% else %}
+
+    <p>
+        No study materials have been uploaded yet.
+    </p>
+
+    {% endif %}
+
+
+    <hr>
+
+
+    <p>
+
+        <a href="{{ url_for('teacher.upload_study_material') }}">
+            Upload New Study Material
+        </a>
+
+    </p>
+
+
+    <p>
+
+        <a href="{{ url_for('teacher.dashboard') }}">
+            Back to Dashboard
+        </a>
+
+    </p>
+
+
+</body>
+
+</html>

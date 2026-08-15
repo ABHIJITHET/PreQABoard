@@ -20,6 +20,11 @@
 
     <hr>
 
+
+    <!-- =====================================================
+         NAVIGATION
+    ====================================================== -->
+
     <p>
         <a href="{{ url_for('hod.dashboard') }}">
             ← Back to Dashboard
@@ -28,10 +33,12 @@
 
 
     <!-- =====================================================
-         HOD PROFILE
+         PROFILE INFORMATION
     ====================================================== -->
 
     <h3>Profile Information</h3>
+
+    {% if hod %}
 
     <table border="1" cellpadding="10">
 
@@ -52,30 +59,48 @@
 
         <tr>
             <th>Phone</th>
-            <td>{{ hod.phone or '-' }}</td>
+            <td>
+                {{ hod.phone or '-' }}
+            </td>
         </tr>
 
         <tr>
             <th>Username</th>
-            <td>{{ hod.username }}</td>
+            <td>
+                {{ hod.username or '-' }}
+            </td>
         </tr>
 
         <tr>
             <th>Department</th>
-            <td>{{ hod.department_name }}</td>
+            <td>
+                {{ hod.department_name or '-' }}
+            </td>
         </tr>
 
         <tr>
             <th>Account Status</th>
-            <td>{{ hod.account_status }}</td>
+            <td>
+                {{ hod.account_status }}
+            </td>
         </tr>
 
         <tr>
             <th>Created At</th>
-            <td>{{ hod.created_at }}</td>
+            <td>
+                {{ hod.created_at or '-' }}
+            </td>
         </tr>
 
     </table>
+
+    {% else %}
+
+    <p>
+        HOD profile information could not be found.
+    </p>
+
+    {% endif %}
 
 
     <br>
@@ -84,14 +109,10 @@
 
 
     <!-- =====================================================
-         CHANGE PASSWORD
+         ACCOUNT OPTIONS
     ====================================================== -->
 
-    <h3>Change Password</h3>
-
-    <p>
-        Change your password while logged in.
-    </p>
+    <h3>Account Options</h3>
 
     <p>
         <a href="{{ url_for('hod.change_password') }}">
@@ -102,6 +123,10 @@
 
     <hr>
 
+
+    <!-- =====================================================
+         LOGOUT
+    ====================================================== -->
 
     <p>
         <a href="{{ url_for('hod.logout') }}">

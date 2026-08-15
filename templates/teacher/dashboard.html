@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Teacher Dashboard - PreQABoard</title>
+
+</head>
+
+
+<body>
+
+    <h1>PreQABoard</h1>
+
+    <h2>Teacher Dashboard</h2>
+
+    <hr>
+
+
+    {% if error %}
+
+    <p style="color: red;">
+        {{ error }}
+    </p>
+
+    {% endif %}
+
+
+    {% if teacher %}
+
+    <!-- =====================================================
+         TEACHER WELCOME
+    ====================================================== -->
+
+    <h3>
+        Welcome, {{ teacher.full_name }}
+    </h3>
+
+
+    <hr>
+
+
+    <!-- =====================================================
+         TEACHER OPTIONS
+    ====================================================== -->
+
+    <h3>Teacher Options</h3>
+
+
+    <!-- MY PROFILE -->
+
+    <p>
+
+        <a href="{{ url_for('teacher.profile') }}">
+            My Profile
+        </a>
+
+    </p>
+
+
+    <!-- ASSIGNED SUBJECTS -->
+
+    <p>
+
+        Assigned Subjects:
+
+        <strong>
+            {{ total_subjects }}
+        </strong>
+
+    </p>
+
+
+    <!-- MY SUBJECTS -->
+
+    <p>
+
+        <a href="{{ url_for('teacher.my_subjects') }}">
+            My Subjects
+        </a>
+
+    </p>
+
+
+    <!-- UPLOAD QUESTION PAPER -->
+
+    <p>
+
+        <a href="{{ url_for('teacher.upload_question_paper') }}">
+            Upload Question Paper
+        </a>
+
+    </p>
+
+
+    <!-- MY QUESTION PAPERS -->
+
+    <p>
+
+        <a href="{{ url_for('teacher.my_question_papers') }}">
+            My Question Papers
+        </a>
+
+    </p>
+
+
+    <!-- UPLOAD STUDY MATERIAL -->
+
+    <p>
+
+        <a href="{{ url_for('teacher.upload_study_material') }}">
+            Upload Study Material
+        </a>
+
+    </p>
+
+
+    <!-- MY STUDY MATERIALS -->
+
+    <p>
+
+        <a href="{{ url_for('teacher.my_materials') }}">
+            My Study Materials
+        </a>
+
+    </p>
+
+
+    <!-- STUDENT DOUBTS -->
+
+    <p>
+
+        <a href="{{ url_for('teacher.doubt_list') }}">
+            Student Doubts
+        </a>
+
+    </p>
+
+
+    {% endif %}
+
+
+    <hr>
+
+
+    <!-- =====================================================
+         ACCOUNT OPTIONS
+    ====================================================== -->
+
+    <h3>Account</h3>
+
+
+    <!-- LOGOUT -->
+
+    <p>
+
+        <a href="{{ url_for('teacher.logout') }}">
+            Logout
+        </a>
+
+    </p>
+
+
+    <!-- CHANGE PASSWORD -->
+
+    <p>
+
+        <a href="{{ url_for('teacher.change_password') }}">
+            Change Password
+        </a>
+
+    </p>
+
+
+</body>
+
+</html>

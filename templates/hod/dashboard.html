@@ -56,48 +56,49 @@
 
     <h3>HOD Management</h3>
 
+    <!-- Manage Teachers -->
     <p>
-        <a href="{{ url_for('hod.teachers') }}">
+        <a href="{{ url_for('hod.manage_teachers') }}">
             Manage Teachers
         </a>
     </p>
 
+    <!-- Manage Subjects -->
     <p>
         <a href="{{ url_for('hod.manage_subjects') }}">
             Manage Subjects
         </a>
     </p>
 
+    <!-- Assign Teachers -->
     <p>
         <a href="{{ url_for('hod.teacher_assignments') }}">
             Assign Teachers
         </a>
     </p>
 
-    <p>
-    <a href="{{ url_for('hod.approve_students') }}">
-        Approve Students
-    </a>
-</p>
-
+    <!-- View Students -->
     <p>
         <a href="{{ url_for('hod.students') }}">
             View Students
         </a>
     </p>
 
+    <!-- Approve Question Papers -->
     <p>
         <a href="{{ url_for('hod.approve_papers') }}">
             Approve Question Papers
         </a>
     </p>
 
+    <!-- Approve Materials -->
     <p>
-    <a href="{{ url_for('hod.approve_materials') }}">
-        Approve Materials
-    </a>
+        <a href="{{ url_for('hod.approve_materials') }}">
+            Approve Materials
+        </a>
     </p>
 
+    <!-- Student Doubts -->
     <p>
         <a href="#">
             Student Doubts
@@ -108,18 +109,14 @@
 
     <h3>Account</h3>
 
+    <!-- Profile -->
     <p>
-        <a href="#">
+        <a href="{{ url_for('hod.profile') }}">
             My Profile
         </a>
     </p>
 
-    <p>
-        <a href="#">
-            Change Password
-        </a>
-    </p>
-
+    <!-- Logout -->
     <p>
         <a href="{{ url_for('hod.logout') }}">
             Logout
@@ -129,3 +126,4 @@
 </body>
 
 </html>
+```

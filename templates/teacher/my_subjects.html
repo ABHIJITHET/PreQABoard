@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>My Subjects - PreQABoard</title>
+
+</head>
+
+<body>
+
+    <h1>PreQABoard</h1>
+
+    <h2>My Subjects / Classes</h2>
+
+    <hr>
+
+
+    <p>
+
+        <a href="{{ url_for('teacher.dashboard') }}">
+            ← Back to Dashboard
+        </a>
+
+    </p>
+
+
+    {% if error %}
+
+    <p style="color: red;">
+        {{ error }}
+    </p>
+
+    {% endif %}
+
+
+    <h3>Assigned Subjects</h3>
+
+
+    {% if subjects %}
+
+    <table border="1" cellpadding="10">
+
+        <tr>
+
+            <th>Subject Code</th>
+
+            <th>Subject Name</th>
+
+            <th>Course</th>
+
+            <th>Semester</th>
+
+            <th>Credits</th>
+
+            <th>Academic Year</th>
+
+            <th>Assigned Date</th>
+
+        </tr>
+
+
+        {% for subject in subjects %}
+
+        <tr>
+
+            <td>
+                {{ subject.subject_code }}
+            </td>
+
+            <td>
+                {{ subject.subject_name }}
+            </td>
+
+            <td>
+                {{ subject.course_name }}
+            </td>
+
+            <td>
+                Semester {{ subject.semester_number }}
+            </td>
+
+            <td>
+                {{ subject.credits }}
+            </td>
+
+            <td>
+                {{ subject.academic_year_name }}
+            </td>
+
+            <td>
+                {{ subject.assigned_date }}
+            </td>
+
+        </tr>
+
+        {% endfor %}
+
+    </table>
+
+
+    {% else %}
+
+    <p>
+        No subjects have been assigned to you yet.
+    </p>
+
+    {% endif %}
+
+
+    <br>
+
+    <hr>
+
+
+    <p>
+
+        <a href="{{ url_for('teacher.profile') }}">
+            My Profile
+        </a>
+
+    </p>
+
+
+    <p>
+
+        <a href="{{ url_for('teacher.change_password') }}">
+            Change Password
+        </a>
+
+    </p>
+
+
+    <p>
+
+        <a href="{{ url_for('teacher.logout') }}">
+            Logout
+        </a>
+
+    </p>
+
+
+</body>
+
+</html>

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Edit Teacher - PreQABoard</title>
+</head>
+
+<body>
+
+    <h1>PreQABoard</h1>
+
+    <h2>Edit Teacher</h2>
+
+    <hr>
+
+    <!-- Back to Manage Teachers -->
+    <p>
+        <a href="{{ url_for('hod.manage_teachers') }}">
+            ← Back to Manage Teachers
+        </a>
+    </p>
+
+    <!-- Error Message -->
+    {% if error %}
+    <p style="color: red;">
+        {{ error }}
+    </p>
+    {% endif %}
+
+    <!-- Edit Teacher Form -->
+    <form method="POST">
+
+        <p>
+            <label for="employee_id">
+                Employee ID:
+            </label>
+            <br>
+
+            <input
+                type="text"
+                id="employee_id"
+                name="employee_id"
+                value="{{ teacher.employee_id }}"
+                required
+            >
+        </p>
+
+        <p>
+            <label for="full_name">
+                Full Name:
+            </label>
+            <br>
+
+            <input
+                type="text"
+                id="full_name"
+                name="full_name"
+                value="{{ teacher.full_name }}"
+                required
+            >
+        </p>
+
+        <p>
+            <label for="email">
+                Email:
+            </label>
+            <br>
+
+            <input
+                type="email"
+                id="email"
+                name="email"
+                value="{{ teacher.email }}"
+                required
+            >
+        </p>
+
+        <p>
+            <label for="phone">
+                Phone:
+            </label>
+            <br>
+
+            <input
+                type="text"
+                id="phone"
+                name="phone"
+                value="{{ teacher.phone or '' }}"
+            >
+        </p>
+
+        <p>
+            <label for="username">
+                Username:
+            </label>
+            <br>
+
+            <input
+                type="text"
+                id="username"
+                name="username"
+                value="{{ teacher.username }}"
+                required
+            >
+        </p>
+
+        <br>
+
+        <button type="submit">
+            Update Teacher
+        </button>
+
+        <a href="{{ url_for('hod.manage_teachers') }}">
+            Cancel
+        </a>
+
+    </form>
+
+</body>
+
+</html>
+```

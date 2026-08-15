@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Upload Question Paper - PreQABoard</title>
+
+</head>
+
+
+<body>
+
+    <h1>PreQABoard</h1>
+
+    <h2>Upload Question Paper</h2>
+
+    <hr>
+
+
+    <!-- =====================================================
+         ERROR MESSAGE
+    ====================================================== -->
+
+    {% if error %}
+
+        <p style="color: red;">
+            {{ error }}
+        </p>
+
+    {% endif %}
+
+
+    <!-- =====================================================
+         SUCCESS MESSAGE
+    ====================================================== -->
+
+    {% if success %}
+
+        <p style="color: green;">
+            {{ success }}
+        </p>
+
+    {% endif %}
+
+
+    <!-- =====================================================
+         UPLOAD FORM
+    ====================================================== -->
+
+    <form
+        method="POST"
+        enctype="multipart/form-data"
+    >
+
+
+        <!-- =================================================
+             SUBJECT
+        ================================================== -->
+
+        <p>
+
+            <label for="assignment_id">
+                Subject:
+            </label>
+
+            <br>
+
+            <select
+                id="assignment_id"
+                name="assignment_id"
+                required
+            >
+
+                <option value="">
+                    -- Select Subject --
+                </option>
+
+
+                {% for assignment in assignments %}
+
+                    <option
+                        value="{{ assignment.assignment_id }}"
+                    >
+
+                        {{ assignment.subject_code }}
+                        -
+                        {{ assignment.subject_name }}
+
+                        |
+                        {{ assignment.course_name }}
+
+                        |
+                        Semester
+                        {{ assignment.semester_number }}
+
+                        |
+                        {{ assignment.academic_year_name }}
+
+                    </option>
+
+                {% endfor %}
+
+            </select>
+
+        </p>
+
+
+        <!-- =================================================
+             EXAM TYPE
+        ================================================== -->
+
+        <p>
+
+            <label for="exam_type_id">
+                Exam Type:
+            </label>
+
+            <br>
+
+            <select
+                id="exam_type_id"
+                name="exam_type_id"
+                required
+            >
+
+                <option value="">
+                    -- Select Exam Type --
+                </option>
+
+
+                {% for exam_type in exam_types %}
+
+                    <option
+                        value="{{ exam_type.exam_type_id }}"
+                    >
+
+                        {{ exam_type.exam_type_name }}
+
+                    </option>
+
+                {% endfor %}
+
+            </select>
+
+        </p>
+
+
+        <!-- =================================================
+             TITLE
+        ================================================== -->
+
+        <p>
+
+            <label for="title">
+                Question Paper Title:
+            </label>
+
+            <br>
+
+            <input
+                type="text"
+                id="title"
+                name="title"
+                placeholder="Enter question paper title"
+                maxlength="200"
+                required
+            >
+
+        </p>
+
+
+        <!-- =================================================
+             PDF FILE
+        ================================================== -->
+
+        <p>
+
+            <label for="question_paper">
+                Question Paper PDF:
+            </label>
+
+            <br>
+
+            <input
+                type="file"
+                id="question_paper"
+                name="question_paper"
+                accept=".pdf,application/pdf"
+                required
+            >
+
+        </p>
+
+
+        <p>
+            <small>
+                Only PDF files are allowed.
+            </small>
+        </p>
+
+
+        <!-- =================================================
+             SUBMIT
+        ================================================== -->
+
+        <p>
+
+            <button type="submit">
+                Upload Question Paper
+            </button>
+
+        </p>
+
+
+    </form>
+
+
+    <hr>
+
+
+    <!-- =====================================================
+         BACK TO DASHBOARD
+    ====================================================== -->
+
+    <p>
+
+        <a href="{{ url_for('teacher.dashboard') }}">
+            Back to Teacher Dashboard
+        </a>
+
+    </p>
+
+
+    <!-- =====================================================
+         LOGOUT
+    ====================================================== -->
+
+    <p>
+
+        <a href="{{ url_for('teacher.logout') }}">
+            Logout
+        </a>
+
+    </p>
+
+
+</body>
+
+</html>

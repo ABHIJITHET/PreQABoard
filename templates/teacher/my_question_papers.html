@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>My Question Papers - PreQABoard</title>
+
+</head>
+
+<body>
+
+    <h1>PreQABoard</h1>
+
+    <h2>My Question Papers</h2>
+
+    <hr>
+
+
+    {% if error %}
+
+        <p style="color: red;">
+            {{ error }}
+        </p>
+
+    {% endif %}
+
+
+    {% if question_papers %}
+
+        <table border="1" cellpadding="10">
+
+            <tr>
+
+                <th>Sl No</th>
+
+                <th>Subject</th>
+
+                <th>Exam Type</th>
+
+                <th>Title</th>
+
+                <th>Academic Year</th>
+
+                <th>File</th>
+
+                <th>Uploaded Date</th>
+
+                <th>HOD Status</th>
+
+            </tr>
+
+
+            {% for paper in question_papers %}
+
+                <tr>
+
+                    <td>
+                        {{ loop.index }}
+                    </td>
+
+
+                    <td>
+
+                        {{ paper.subject_code }}
+
+                        <br>
+
+                        {{ paper.subject_name }}
+
+                    </td>
+
+
+                    <td>
+                        {{ paper.exam_type_name }}
+                    </td>
+
+
+                    <td>
+                        {{ paper.title }}
+                    </td>
+
+
+                    <td>
+                        {{ paper.academic_year_name }}
+                    </td>
+
+
+                    <td>
+
+                        <a href="{{ url_for(
+                            'teacher.view_question_paper',
+                            question_paper_id=paper.question_paper_id
+                        ) }}">
+
+                            View PDF
+
+                        </a>
+
+                    </td>
+
+
+                    <td>
+                        {{ paper.upload_date }}
+                    </td>
+
+
+                    <td>
+
+                        {% if paper.approved_by_hod %}
+
+                            <span style="color: green;">
+                                Approved
+                            </span>
+
+                        {% else %}
+
+                            <span style="color: orange;">
+                                Pending HOD Approval
+                            </span>
+
+                        {% endif %}
+
+                    </td>
+
+                </tr>
+
+            {% endfor %}
+
+        </table>
+
+    {% else %}
+
+        <p>
+            You have not uploaded any question papers yet.
+        </p>
+
+    {% endif %}
+
+
+    <hr>
+
+
+    <p>
+
+        <a href="{{ url_for('teacher.upload_question_paper') }}">
+            Upload Question Paper
+        </a>
+
+    </p>
+
+
+    <p>
+
+        <a href="{{ url_for('teacher.dashboard') }}">
+            Back to Dashboard
+        </a>
+
+    </p>
+
+
+    <p>
+
+        <a href="{{ url_for('teacher.logout') }}">
+            Logout
+        </a>
+
+    </p>
+
+</body>
+
+</html>

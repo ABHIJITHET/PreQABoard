@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Reply to Doubt - PreQABoard</title>
+
+</head>
+
+<body>
+
+    <h1>PreQABoard</h1>
+
+    <h2>Reply to Student Doubt</h2>
+
+    <hr>
+
+
+    {% if error %}
+
+        <p style="color: red;">
+            {{ error }}
+        </p>
+
+    {% endif %}
+
+
+    {% if doubt %}
+
+        <h3>
+            {{ doubt.doubt_title }}
+        </h3>
+
+
+        <p>
+
+            <strong>Student:</strong>
+
+            {{ doubt.student_name }}
+
+        </p>
+
+
+        <p>
+
+            <strong>Register Number:</strong>
+
+            {{ doubt.register_number }}
+
+        </p>
+
+
+        <p>
+
+            <strong>Subject:</strong>
+
+            {{ doubt.subject_code }}
+            -
+            {{ doubt.subject_name }}
+
+        </p>
+
+
+        <hr>
+
+
+        <h3>
+            Student's Doubt
+        </h3>
+
+
+        <p>
+
+            {{ doubt.doubt_description }}
+
+        </p>
+
+
+        <p>
+
+            <strong>Posted:</strong>
+
+            {{ doubt.created_at }}
+
+        </p>
+
+
+        <hr>
+
+
+        <h3>
+            Your Reply
+        </h3>
+
+
+        <form method="POST">
+
+            <label for="reply">
+                Reply:
+            </label>
+
+            <br><br>
+
+
+            <textarea
+                id="reply"
+                name="reply"
+                rows="8"
+                cols="60"
+                placeholder="Enter your answer..."
+                required
+            ></textarea>
+
+
+            <br><br>
+
+
+            <button type="submit">
+                Send Reply
+            </button>
+
+        </form>
+
+    {% endif %}
+
+
+    <br>
+
+
+    <p>
+
+        <a href="{{ url_for('teacher.doubt_list') }}">
+            Back to Student Doubts
+        </a>
+
+    </p>
+
+
+    <p>
+
+        <a href="{{ url_for('teacher.dashboard') }}">
+            Back to Dashboard
+        </a>
+
+    </p>
+
+
+    <p>
+
+        <a href="{{ url_for('teacher.logout') }}">
+            Logout
+        </a>
+
+    </p>
+
+</body>
+
+</html>

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Teacher Login - PreQABoard</title>
+
+</head>
+
+<body>
+
+    <h1>PreQABoard</h1>
+
+    <h2>Teacher Login</h2>
+
+    <hr>
+
+
+    <!-- ERROR MESSAGE -->
+
+    {% if error %}
+
+    <p style="color: red;">
+        {{ error }}
+    </p>
+
+    {% endif %}
+
+
+    <!-- LOGIN FORM -->
+
+    <form method="POST"
+          action="{{ url_for('auth.teacher_login') }}">
+
+        <label>
+            Username:
+        </label>
+
+        <br>
+
+        <input
+            type="text"
+            name="username"
+            required
+        >
+
+        <br><br>
+
+
+        <label>
+            Password:
+        </label>
+
+        <br>
+
+        <input
+            type="password"
+            name="password"
+            required
+        >
+
+        <br><br>
+
+
+        <button type="submit">
+            Login
+        </button>
+
+    </form>
+
+
+    <br>
+
+    <hr>
+
+
+    <!-- TEACHER REGISTRATION -->
+
+    <p>
+        Don't have a teacher account?
+    </p>
+
+    <p>
+
+        <a href="{{ url_for('auth.teacher_register') }}">
+            Register as Teacher
+        </a>
+
+    </p>
+
+
+    <!-- BACK TO HOME -->
+
+    <p>
+
+        <a href="/">
+            ← Back to Home
+        </a>
+
+    </p>
+
+</body>
+
+</html>

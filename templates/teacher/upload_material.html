@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Upload Study Material - PreQABoard</title>
+
+</head>
+
+<body>
+
+    <h1>PreQABoard</h1>
+
+    <h2>Upload Study Material</h2>
+
+    <hr>
+
+
+    <!-- =====================================================
+         BACK
+    ====================================================== -->
+
+    <p>
+        <a href="{{ url_for('teacher.dashboard') }}">
+            ← Back to Dashboard
+        </a>
+    </p>
+
+
+    <!-- =====================================================
+         ERROR
+    ====================================================== -->
+
+    {% if error %}
+
+    <p style="color: red;">
+        {{ error }}
+    </p>
+
+    {% endif %}
+
+
+    <!-- =====================================================
+         SUCCESS
+    ====================================================== -->
+
+    {% if success %}
+
+    <p style="color: green;">
+        {{ success }}
+    </p>
+
+    {% endif %}
+
+
+    <!-- =====================================================
+         UPLOAD FORM
+    ====================================================== -->
+
+    <form
+        method="POST"
+        enctype="multipart/form-data"
+    >
+
+        <!-- SUBJECT -->
+
+        <p>
+
+            <label for="assignment_id">
+                Subject:
+            </label>
+
+            <br>
+
+            <select
+                id="assignment_id"
+                name="assignment_id"
+                required
+            >
+
+                <option value="">
+                    -- Select Subject --
+                </option>
+
+                {% for assignment in assignments %}
+
+                <option value="{{ assignment.assignment_id }}">
+
+                    {{ assignment.subject_code }}
+                    -
+                    {{ assignment.subject_name }}
+
+                    |
+                    {{ assignment.course_name }}
+
+                    |
+                    Semester
+                    {{ assignment.semester_number }}
+
+                    |
+                    {{ assignment.academic_year_name }}
+
+                </option>
+
+                {% endfor %}
+
+            </select>
+
+        </p>
+
+
+        <!-- TITLE -->
+
+        <p>
+
+            <label for="title">
+                Study Material Title:
+            </label>
+
+            <br>
+
+            <input
+                type="text"
+                id="title"
+                name="title"
+                maxlength="200"
+                placeholder="Enter study material title"
+                required
+            >
+
+        </p>
+
+
+        <!-- FILE -->
+
+        <p>
+
+            <label for="study_material">
+                PDF File:
+            </label>
+
+            <br>
+
+            <input
+                type="file"
+                id="study_material"
+                name="study_material"
+                accept=".pdf,application/pdf"
+                required
+            >
+
+        </p>
+
+
+        <p>
+
+            <small>
+                Only PDF files are allowed.
+            </small>
+
+        </p>
+
+
+        <!-- SUBMIT -->
+
+        <p>
+
+            <button type="submit">
+                Upload Study Material
+            </button>
+
+        </p>
+
+    </form>
+
+
+    <hr>
+
+
+    <!-- =====================================================
+         LOGOUT
+    ====================================================== -->
+
+    <p>
+
+        <a href="{{ url_for('teacher.logout') }}">
+            Logout
+        </a>
+
+    </p>
+
+</body>
+
+</html>

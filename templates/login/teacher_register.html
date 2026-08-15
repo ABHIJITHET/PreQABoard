@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Teacher Registration - PreQABoard</title>
+
+</head>
+
+<body>
+
+    <h1>PreQABoard</h1>
+
+    <h2>Teacher Registration</h2>
+
+    <hr>
+
+
+    {% if error %}
+
+    <p style="color: red;">
+        {{ error }}
+    </p>
+
+    {% endif %}
+
+
+    {% if success %}
+
+    <p style="color: green;">
+        {{ success }}
+    </p>
+
+    {% endif %}
+
+
+    <h3>Create Teacher Account</h3>
+
+
+    <form method="POST"
+          action="{{ url_for('auth.teacher_register') }}">
+
+
+        <!-- EMPLOYEE ID -->
+
+        <label>
+            Employee ID:
+        </label>
+
+        <br>
+
+        <input
+            type="text"
+            name="employee_id"
+            required
+        >
+
+        <br><br>
+
+
+        <!-- FULL NAME -->
+
+        <label>
+            Full Name:
+        </label>
+
+        <br>
+
+        <input
+            type="text"
+            name="full_name"
+            required
+        >
+
+        <br><br>
+
+
+        <!-- EMAIL -->
+
+        <label>
+            Email:
+        </label>
+
+        <br>
+
+        <input
+            type="email"
+            name="email"
+            required
+        >
+
+        <br><br>
+
+
+        <!-- PHONE -->
+
+        <label>
+            Phone:
+        </label>
+
+        <br>
+
+        <input
+            type="text"
+            name="phone"
+        >
+
+        <br><br>
+
+
+        <!-- DEPARTMENT -->
+
+        <label>
+            Department:
+        </label>
+
+        <br>
+
+        <select name="department_id" required>
+
+            <option value="">
+                -- Select Department --
+            </option>
+
+            {% for department in departments %}
+
+            <option value="{{ department.department_id }}">
+                {{ department.department_name }}
+            </option>
+
+            {% endfor %}
+
+        </select>
+
+        <br><br>
+
+
+        <!-- USERNAME -->
+
+        <label>
+            Username:
+        </label>
+
+        <br>
+
+        <input
+            type="text"
+            name="username"
+            required
+        >
+
+        <br><br>
+
+
+        <!-- PASSWORD -->
+
+        <label>
+            Password:
+        </label>
+
+        <br>
+
+        <input
+            type="password"
+            name="password"
+            required
+        >
+
+        <br><br>
+
+
+        <!-- CONFIRM PASSWORD -->
+
+        <label>
+            Confirm Password:
+        </label>
+
+        <br>
+
+        <input
+            type="password"
+            name="confirm_password"
+            required
+        >
+
+        <br><br>
+
+
+        <button type="submit">
+            Register
+        </button>
+
+    </form>
+
+
+    <br>
+
+    <hr>
+
+
+    <p>
+        Already have an account?
+    </p>
+
+    <p>
+        <a href="{{ url_for('auth.teacher_login') }}">
+            Teacher Login
+        </a>
+    </p>
+
+
+    <p>
+        <a href="/">
+            ← Back to Home
+        </a>
+    </p>
+
+</body>
+
+</html>

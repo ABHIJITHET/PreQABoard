@@ -11,6 +11,7 @@ from database.db_connection import get_connection
 
 from werkzeug.security import generate_password_hash
 
+
 # ===========================================================
 # ADMIN BLUEPRINT
 # ===========================================================
@@ -33,10 +34,164 @@ def dashboard():
     if "admin_id" not in session:
         return redirect(url_for("auth.admin_login"))
 
-    return render_template(
-        "admin/dashboard.html",
-        username=session.get("admin_username")
-    )
+    connection = None
+    cursor = None
+
+    try:
+
+        connection = get_connection()
+        cursor = connection.cursor()
+
+        # ===================================================
+        # GET ALL DEPARTMENTS
+        # ===================================================
+
+        cursor.execute("""
+            SELECT
+                department_id,
+                department_name,
+                status
+            FROM department
+            ORDER BY department_name
+        """)
+
+        departments = cursor.fetchall()
+
+
+        # ===================================================
+        # GET DEPARTMENT-WISE STUDENT COUNT
+        # ===================================================
+
+        cursor.execute("""
+            SELECT
+                d.department_id,
+                d.department_name,
+                COUNT(s.student_id) AS student_count
+            FROM department d
+
+            LEFT JOIN course c
+                ON d.department_id = c.department_id
+
+            LEFT JOIN student s
+                ON c.course_id = s.course_id
+
+            GROUP BY
+                d.department_id,
+                d.department_name
+
+            ORDER BY
+                d.department_name
+        """)
+
+        department_student_counts = cursor.fetchall()
+
+
+        # ===================================================
+        # GET DEPARTMENT-WISE TEACHER COUNT
+        # ===================================================
+
+        cursor.execute("""
+            SELECT
+                d.department_id,
+                d.department_name,
+                COUNT(t.teacher_id) AS teacher_count
+            FROM department d
+
+            LEFT JOIN teacher t
+                ON d.department_id = t.department_id
+
+            GROUP BY
+                d.department_id,
+                d.department_name
+
+            ORDER BY
+                d.department_name
+        """)
+
+        department_teacher_counts = cursor.fetchall()
+
+
+        # ===================================================
+        # GET TOTAL STUDENTS
+        # ===================================================
+
+        cursor.execute("""
+            SELECT COUNT(*)
+            FROM student
+        """)
+
+        total_students = cursor.fetchone()[0]
+
+
+        # ===================================================
+        # GET TOTAL TEACHERS
+        # ===================================================
+
+        cursor.execute("""
+            SELECT COUNT(*)
+            FROM teacher
+        """)
+
+        total_teachers = cursor.fetchone()[0]
+
+
+        # ===================================================
+        # GET TOTAL DEPARTMENTS
+        # ===================================================
+
+        cursor.execute("""
+            SELECT COUNT(*)
+            FROM department
+        """)
+
+        total_departments = cursor.fetchone()[0]
+
+
+        # ===================================================
+        # GET TOTAL COURSES
+        # ===================================================
+
+        cursor.execute("""
+            SELECT COUNT(*)
+            FROM course
+        """)
+
+        total_courses = cursor.fetchone()[0]
+
+
+        return render_template(
+            "admin/dashboard.html",
+
+            username=session.get("admin_username"),
+
+            departments=departments,
+
+            department_student_counts=department_student_counts,
+
+            department_teacher_counts=department_teacher_counts,
+
+            total_students=total_students,
+
+            total_teachers=total_teachers,
+
+            total_departments=total_departments,
+
+            total_courses=total_courses
+        )
+
+
+    except Exception as e:
+
+        return f"Database Error: {e}"
+
+
+    finally:
+
+        if cursor:
+            cursor.close()
+
+        if connection:
+            connection.close()
 
 
 # ===========================================================
@@ -46,10 +201,11 @@ def dashboard():
 @admin_bp.route("/logout")
 def logout():
 
-    # Remove all session information
     session.clear()
 
-    return redirect(url_for("auth.admin_login"))
+    return redirect(
+        url_for("auth.admin_login")
+    )
 
 
 # ===========================================================
@@ -59,9 +215,11 @@ def logout():
 @admin_bp.route("/departments")
 def departments():
 
-    # Check whether admin is logged in
     if "admin_id" not in session:
         return redirect(url_for("auth.admin_login"))
+
+    connection = None
+    cursor = None
 
     try:
 
@@ -72,15 +230,13 @@ def departments():
             SELECT
                 department_id,
                 department_name,
+                status,
                 created_at
             FROM department
             ORDER BY department_name
         """)
 
         departments = cursor.fetchall()
-
-        cursor.close()
-        connection.close()
 
         return render_template(
             "admin/manage_department.html",
@@ -91,15 +247,25 @@ def departments():
 
         return f"Database Error: {e}"
 
+    finally:
+
+        if cursor:
+            cursor.close()
+
+        if connection:
+            connection.close()
+
 
 # ===========================================================
 # ADD DEPARTMENT
 # ===========================================================
 
-@admin_bp.route("/departments/add", methods=["POST"])
+@admin_bp.route(
+    "/departments/add",
+    methods=["POST"]
+)
 def add_department():
 
-    # Check whether admin is logged in
     if "admin_id" not in session:
         return redirect(url_for("auth.admin_login"))
 
@@ -108,39 +274,50 @@ def add_department():
         ""
     ).strip()
 
-    # Do not allow empty department names
     if not department_name:
+
         return redirect(
             url_for("admin.departments")
         )
 
-    connection = get_connection()
-    cursor = connection.cursor()
+    connection = None
+    cursor = None
 
     try:
 
-        cursor.execute(
-            """
-            INSERT INTO department (department_name)
+        connection = get_connection()
+        cursor = connection.cursor()
+
+        cursor.execute("""
+            INSERT INTO department
+            (
+                department_name
+            )
             VALUES (%s)
-            """,
-            (department_name,)
-        )
+        """, (
+            department_name,
+        ))
 
         connection.commit()
 
-    except Exception:
+        return redirect(
+            url_for("admin.departments")
+        )
 
-        connection.rollback()
+    except Exception as e:
+
+        if connection:
+            connection.rollback()
+
+        return f"Database Error: {e}"
 
     finally:
 
-        cursor.close()
-        connection.close()
+        if cursor:
+            cursor.close()
 
-    return redirect(
-        url_for("admin.departments")
-    )
+        if connection:
+            connection.close()
 
 
 # ===========================================================
@@ -153,37 +330,44 @@ def add_department():
 )
 def delete_department(department_id):
 
-    # Check whether admin is logged in
     if "admin_id" not in session:
         return redirect(url_for("auth.admin_login"))
 
-    connection = get_connection()
-    cursor = connection.cursor()
+    connection = None
+    cursor = None
 
     try:
 
-        cursor.execute(
-            """
+        connection = get_connection()
+        cursor = connection.cursor()
+
+        cursor.execute("""
             DELETE FROM department
             WHERE department_id = %s
-            """,
-            (department_id,)
-        )
+        """, (
+            department_id,
+        ))
 
         connection.commit()
 
-    except Exception:
+        return redirect(
+            url_for("admin.departments")
+        )
 
-        connection.rollback()
+    except Exception as e:
+
+        if connection:
+            connection.rollback()
+
+        return f"Database Error: {e}"
 
     finally:
 
-        cursor.close()
-        connection.close()
+        if cursor:
+            cursor.close()
 
-    return redirect(
-        url_for("admin.departments")
-    )
+        if connection:
+            connection.close()
 
 
 # ===========================================================
@@ -193,16 +377,19 @@ def delete_department(department_id):
 @admin_bp.route("/courses")
 def courses():
 
-    # Check whether admin is logged in
     if "admin_id" not in session:
         return redirect(url_for("auth.admin_login"))
+
+    connection = None
+    cursor = None
 
     try:
 
         connection = get_connection()
         cursor = connection.cursor()
 
-        # Get all courses
+        # GET COURSES
+
         cursor.execute("""
             SELECT
                 c.course_id,
@@ -213,27 +400,34 @@ def courses():
                 c.created_at,
                 c.updated_at,
                 d.department_name
+
             FROM course c
+
             INNER JOIN department d
                 ON c.department_id = d.department_id
-            ORDER BY c.course_id
+
+            ORDER BY
+                c.course_id
         """)
 
         courses = cursor.fetchall()
 
-        # Get all departments for Add/Edit Course
+
+        # GET DEPARTMENTS
+
         cursor.execute("""
             SELECT
                 department_id,
                 department_name
+
             FROM department
-            ORDER BY department_name
+
+            ORDER BY
+                department_name
         """)
 
         departments = cursor.fetchall()
 
-        cursor.close()
-        connection.close()
 
         return render_template(
             "admin/manage_course.html",
@@ -245,15 +439,25 @@ def courses():
 
         return f"Database Error: {e}"
 
+    finally:
+
+        if cursor:
+            cursor.close()
+
+        if connection:
+            connection.close()
+
 
 # ===========================================================
 # ADD COURSE
 # ===========================================================
 
-@admin_bp.route("/courses/add", methods=["POST"])
+@admin_bp.route(
+    "/courses/add",
+    methods=["POST"]
+)
 def add_course():
 
-    # Check whether admin is logged in
     if "admin_id" not in session:
         return redirect(url_for("auth.admin_login"))
 
@@ -270,9 +474,17 @@ def add_course():
         "duration_years"
     )
 
-    if not department_id or not course_name or not duration_years:
+    if (
+        not department_id
+        or not course_name
+        or not duration_years
+    ):
 
         return "All course fields are required."
+
+
+    connection = None
+    cursor = None
 
     try:
 
@@ -286,7 +498,12 @@ def add_course():
                 course_name,
                 duration_years
             )
-            VALUES (%s, %s, %s)
+            VALUES
+            (
+                %s,
+                %s,
+                %s
+            )
         """, (
             department_id,
             course_name,
@@ -295,16 +512,24 @@ def add_course():
 
         connection.commit()
 
-        cursor.close()
-        connection.close()
-
         return redirect(
             url_for("admin.courses")
         )
 
     except Exception as e:
 
+        if connection:
+            connection.rollback()
+
         return f"Database Error: {e}"
+
+    finally:
+
+        if cursor:
+            cursor.close()
+
+        if connection:
+            connection.close()
 
 
 # ===========================================================
@@ -317,18 +542,19 @@ def add_course():
 )
 def edit_course(course_id):
 
-    # Check whether admin is logged in
     if "admin_id" not in session:
         return redirect(url_for("auth.admin_login"))
+
+    connection = None
+    cursor = None
 
     try:
 
         connection = get_connection()
         cursor = connection.cursor()
 
-        # ---------------------------------------------------
-        # POST = Save updated course
-        # ---------------------------------------------------
+
+        # POST
 
         if request.method == "POST":
 
@@ -351,17 +577,17 @@ def edit_course(course_id):
                 or not duration_years
             ):
 
-                cursor.close()
-                connection.close()
-
                 return "All course fields are required."
+
 
             cursor.execute("""
                 UPDATE course
+
                 SET
                     department_id = %s,
                     course_name = %s,
                     duration_years = %s
+
                 WHERE course_id = %s
             """, (
                 department_id,
@@ -372,16 +598,12 @@ def edit_course(course_id):
 
             connection.commit()
 
-            cursor.close()
-            connection.close()
-
             return redirect(
                 url_for("admin.courses")
             )
 
-        # ---------------------------------------------------
-        # GET = Display course for editing
-        # ---------------------------------------------------
+
+        # GET
 
         cursor.execute("""
             SELECT
@@ -392,29 +614,34 @@ def edit_course(course_id):
                 status,
                 created_at,
                 updated_at
+
             FROM course
+
             WHERE course_id = %s
-        """, (course_id,))
+        """, (
+            course_id,
+        ))
 
         course = cursor.fetchone()
 
-        # Get departments
+
         cursor.execute("""
             SELECT
                 department_id,
                 department_name
+
             FROM department
+
             ORDER BY department_name
         """)
 
         departments = cursor.fetchall()
 
-        cursor.close()
-        connection.close()
 
         if not course:
 
             return "Course not found."
+
 
         return render_template(
             "admin/edit_course.html",
@@ -422,9 +649,22 @@ def edit_course(course_id):
             departments=departments
         )
 
+
     except Exception as e:
 
+        if connection:
+            connection.rollback()
+
         return f"Database Error: {e}"
+
+
+    finally:
+
+        if cursor:
+            cursor.close()
+
+        if connection:
+            connection.close()
 
 
 # ===========================================================
@@ -437,9 +677,11 @@ def edit_course(course_id):
 )
 def delete_course(course_id):
 
-    # Check whether admin is logged in
     if "admin_id" not in session:
         return redirect(url_for("auth.admin_login"))
+
+    connection = None
+    cursor = None
 
     try:
 
@@ -449,12 +691,11 @@ def delete_course(course_id):
         cursor.execute("""
             DELETE FROM course
             WHERE course_id = %s
-        """, (course_id,))
+        """, (
+            course_id,
+        ))
 
         connection.commit()
-
-        cursor.close()
-        connection.close()
 
         return redirect(
             url_for("admin.courses")
@@ -462,7 +703,18 @@ def delete_course(course_id):
 
     except Exception as e:
 
+        if connection:
+            connection.rollback()
+
         return f"Database Error: {e}"
+
+    finally:
+
+        if cursor:
+            cursor.close()
+
+        if connection:
+            connection.close()
 
 
 # ===========================================================
@@ -472,9 +724,11 @@ def delete_course(course_id):
 @admin_bp.route("/academic-years")
 def academic_years():
 
-    # Check whether admin is logged in
     if "admin_id" not in session:
         return redirect(url_for("auth.admin_login"))
+
+    connection = None
+    cursor = None
 
     try:
 
@@ -490,14 +744,14 @@ def academic_years():
                 status,
                 created_at,
                 updated_at
+
             FROM academic_year
-            ORDER BY start_date DESC
+
+            ORDER BY
+                start_date DESC
         """)
 
         academic_years = cursor.fetchall()
-
-        cursor.close()
-        connection.close()
 
         return render_template(
             "admin/manage_academic_year.html",
@@ -507,6 +761,14 @@ def academic_years():
     except Exception as e:
 
         return f"Database Error: {e}"
+
+    finally:
+
+        if cursor:
+            cursor.close()
+
+        if connection:
+            connection.close()
 
 
 # ===========================================================
@@ -519,7 +781,6 @@ def academic_years():
 )
 def add_academic_year():
 
-    # Check whether admin is logged in
     if "admin_id" not in session:
         return redirect(url_for("auth.admin_login"))
 
@@ -544,6 +805,10 @@ def add_academic_year():
 
         return "All academic year fields are required."
 
+
+    connection = None
+    cursor = None
+
     try:
 
         connection = get_connection()
@@ -556,7 +821,12 @@ def add_academic_year():
                 start_date,
                 end_date
             )
-            VALUES (%s, %s, %s)
+            VALUES
+            (
+                %s,
+                %s,
+                %s
+            )
         """, (
             academic_year_name,
             start_date,
@@ -565,16 +835,24 @@ def add_academic_year():
 
         connection.commit()
 
-        cursor.close()
-        connection.close()
-
         return redirect(
             url_for("admin.academic_years")
         )
 
     except Exception as e:
 
+        if connection:
+            connection.rollback()
+
         return f"Database Error: {e}"
+
+    finally:
+
+        if cursor:
+            cursor.close()
+
+        if connection:
+            connection.close()
 
 
 # ===========================================================
@@ -587,18 +865,17 @@ def add_academic_year():
 )
 def edit_academic_year(academic_year_id):
 
-    # Check whether admin is logged in
     if "admin_id" not in session:
         return redirect(url_for("auth.admin_login"))
+
+    connection = None
+    cursor = None
 
     try:
 
         connection = get_connection()
         cursor = connection.cursor()
 
-        # ---------------------------------------------------
-        # POST = Save updated academic year
-        # ---------------------------------------------------
 
         if request.method == "POST":
 
@@ -632,18 +909,18 @@ def edit_academic_year(academic_year_id):
                 or status not in allowed_statuses
             ):
 
-                cursor.close()
-                connection.close()
-
                 return "Invalid academic year information."
+
 
             cursor.execute("""
                 UPDATE academic_year
+
                 SET
                     academic_year_name = %s,
                     start_date = %s,
                     end_date = %s,
                     status = %s
+
                 WHERE academic_year_id = %s
             """, (
                 academic_year_name,
@@ -655,16 +932,10 @@ def edit_academic_year(academic_year_id):
 
             connection.commit()
 
-            cursor.close()
-            connection.close()
-
             return redirect(
                 url_for("admin.academic_years")
             )
 
-        # ---------------------------------------------------
-        # GET = Display existing academic year
-        # ---------------------------------------------------
 
         cursor.execute("""
             SELECT
@@ -675,7 +946,9 @@ def edit_academic_year(academic_year_id):
                 status,
                 created_at,
                 updated_at
+
             FROM academic_year
+
             WHERE academic_year_id = %s
         """, (
             academic_year_id,
@@ -683,21 +956,33 @@ def edit_academic_year(academic_year_id):
 
         academic_year = cursor.fetchone()
 
-        cursor.close()
-        connection.close()
 
         if not academic_year:
 
             return "Academic year not found."
+
 
         return render_template(
             "admin/edit_academic_year.html",
             academic_year=academic_year
         )
 
+
     except Exception as e:
 
+        if connection:
+            connection.rollback()
+
         return f"Database Error: {e}"
+
+
+    finally:
+
+        if cursor:
+            cursor.close()
+
+        if connection:
+            connection.close()
 
 
 # ===========================================================
@@ -710,9 +995,11 @@ def edit_academic_year(academic_year_id):
 )
 def delete_academic_year(academic_year_id):
 
-    # Check whether admin is logged in
     if "admin_id" not in session:
         return redirect(url_for("auth.admin_login"))
+
+    connection = None
+    cursor = None
 
     try:
 
@@ -721,6 +1008,7 @@ def delete_academic_year(academic_year_id):
 
         cursor.execute("""
             DELETE FROM academic_year
+
             WHERE academic_year_id = %s
         """, (
             academic_year_id,
@@ -728,16 +1016,24 @@ def delete_academic_year(academic_year_id):
 
         connection.commit()
 
-        cursor.close()
-        connection.close()
-
         return redirect(
             url_for("admin.academic_years")
         )
 
     except Exception as e:
 
+        if connection:
+            connection.rollback()
+
         return f"Database Error: {e}"
+
+    finally:
+
+        if cursor:
+            cursor.close()
+
+        if connection:
+            connection.close()
 
 
 # ===========================================================
@@ -750,7 +1046,6 @@ def delete_academic_year(academic_year_id):
 )
 def change_academic_year_status(academic_year_id):
 
-    # Check whether admin is logged in
     if "admin_id" not in session:
         return redirect(url_for("auth.admin_login"))
 
@@ -768,6 +1063,10 @@ def change_academic_year_status(academic_year_id):
 
         return "Invalid academic year status."
 
+
+    connection = None
+    cursor = None
+
     try:
 
         connection = get_connection()
@@ -775,7 +1074,10 @@ def change_academic_year_status(academic_year_id):
 
         cursor.execute("""
             UPDATE academic_year
-            SET status = %s
+
+            SET
+                status = %s
+
             WHERE academic_year_id = %s
         """, (
             status,
@@ -784,17 +1086,24 @@ def change_academic_year_status(academic_year_id):
 
         connection.commit()
 
-        cursor.close()
-        connection.close()
-
         return redirect(
             url_for("admin.academic_years")
         )
 
     except Exception as e:
 
+        if connection:
+            connection.rollback()
+
         return f"Database Error: {e}"
 
+    finally:
+
+        if cursor:
+            cursor.close()
+
+        if connection:
+            connection.close()
 
 
 # ===========================================================
@@ -804,9 +1113,11 @@ def change_academic_year_status(academic_year_id):
 @admin_bp.route("/exam-types")
 def exam_types():
 
-    # Check whether admin is logged in
     if "admin_id" not in session:
         return redirect(url_for("auth.admin_login"))
+
+    connection = None
+    cursor = None
 
     try:
 
@@ -819,14 +1130,14 @@ def exam_types():
                 exam_type_name,
                 status,
                 created_at
+
             FROM exam_type
-            ORDER BY exam_type_name
+
+            ORDER BY
+                exam_type_name
         """)
 
         exam_types = cursor.fetchall()
-
-        cursor.close()
-        connection.close()
 
         return render_template(
             "admin/manage_exam_type.html",
@@ -837,15 +1148,25 @@ def exam_types():
 
         return f"Database Error: {e}"
 
+    finally:
+
+        if cursor:
+            cursor.close()
+
+        if connection:
+            connection.close()
+
 
 # ===========================================================
 # ADD EXAM TYPE
 # ===========================================================
 
-@admin_bp.route("/exam-types/add", methods=["POST"])
+@admin_bp.route(
+    "/exam-types/add",
+    methods=["POST"]
+)
 def add_exam_type():
 
-    # Check whether admin is logged in
     if "admin_id" not in session:
         return redirect(url_for("auth.admin_login"))
 
@@ -855,9 +1176,14 @@ def add_exam_type():
     ).strip()
 
     if not exam_type_name:
+
         return redirect(
             url_for("admin.exam_types")
         )
+
+
+    connection = None
+    cursor = None
 
     try:
 
@@ -869,15 +1195,15 @@ def add_exam_type():
             (
                 exam_type_name
             )
-            VALUES (%s)
+            VALUES
+            (
+                %s
+            )
         """, (
             exam_type_name,
         ))
 
         connection.commit()
-
-        cursor.close()
-        connection.close()
 
         return redirect(
             url_for("admin.exam_types")
@@ -885,59 +1211,87 @@ def add_exam_type():
 
     except Exception as e:
 
+        if connection:
+            connection.rollback()
+
         return f"Database Error: {e}"
+
+    finally:
+
+        if cursor:
+            cursor.close()
+
+        if connection:
+            connection.close()
 
 
 # ===========================================================
 # EDIT EXAM TYPE
 # ===========================================================
 
-@admin_bp.route("/exam-types/edit/<int:exam_type_id>", methods=["GET", "POST"])
+@admin_bp.route(
+    "/exam-types/edit/<int:exam_type_id>",
+    methods=["GET", "POST"]
+)
 def edit_exam_type(exam_type_id):
 
-    # Check whether admin is logged in
     if "admin_id" not in session:
         return redirect(url_for("auth.admin_login"))
 
+    connection = None
+    cursor = None
+
     try:
+
         connection = get_connection()
         cursor = connection.cursor()
 
-        # ---------------------------------------------------
-        # POST = Update exam type
-        # ---------------------------------------------------
 
         if request.method == "POST":
-            exam_type_name = request.form.get("exam_type_name", "").strip()
-            status = request.form.get("status", "")
 
-            allowed_statuses = ["Active", "Inactive"]
+            exam_type_name = request.form.get(
+                "exam_type_name",
+                ""
+            ).strip()
 
-            if not exam_type_name or status not in allowed_statuses:
-                cursor.close()
-                connection.close()
+            status = request.form.get(
+                "status",
+                ""
+            )
+
+            allowed_statuses = [
+                "Active",
+                "Inactive"
+            ]
+
+            if (
+                not exam_type_name
+                or status not in allowed_statuses
+            ):
+
                 return "Invalid exam type information."
 
+
             cursor.execute("""
-                           UPDATE exam_type
-                           SET exam_type_name = %s,
-                               status         = %s
-                           WHERE exam_type_id = %s
-                           """, (
-                               exam_type_name,
-                               status,
-                               exam_type_id
-                           ))
+                UPDATE exam_type
+
+                SET
+                    exam_type_name = %s,
+                    status = %s
+
+                WHERE exam_type_id = %s
+            """, (
+                exam_type_name,
+                status,
+                exam_type_id
+            ))
 
             connection.commit()
-            cursor.close()
-            connection.close()
 
-            return redirect(url_for("admin.exam_types"))
+            return redirect(
+                url_for("admin.exam_types")
+            )
 
-        # ---------------------------------------------------
-        # GET = Display existing exam type
-        # ---------------------------------------------------
 
         cursor.execute("""
             SELECT
@@ -945,26 +1299,43 @@ def edit_exam_type(exam_type_id):
                 exam_type_name,
                 status,
                 created_at
+
             FROM exam_type
+
             WHERE exam_type_id = %s
         """, (
             exam_type_id,
         ))
 
         exam_type = cursor.fetchone()
-        cursor.close()
-        connection.close()
+
 
         if not exam_type:
+
             return "Exam type not found."
+
 
         return render_template(
             "admin/edit_exam_type.html",
             exam_type=exam_type
         )
 
+
     except Exception as e:
+
+        if connection:
+            connection.rollback()
+
         return f"Database Error: {e}"
+
+
+    finally:
+
+        if cursor:
+            cursor.close()
+
+        if connection:
+            connection.close()
 
 
 # ===========================================================
@@ -977,9 +1348,11 @@ def edit_exam_type(exam_type_id):
 )
 def delete_exam_type(exam_type_id):
 
-    # Check whether admin is logged in
     if "admin_id" not in session:
         return redirect(url_for("auth.admin_login"))
+
+    connection = None
+    cursor = None
 
     try:
 
@@ -988,6 +1361,7 @@ def delete_exam_type(exam_type_id):
 
         cursor.execute("""
             DELETE FROM exam_type
+
             WHERE exam_type_id = %s
         """, (
             exam_type_id,
@@ -995,16 +1369,24 @@ def delete_exam_type(exam_type_id):
 
         connection.commit()
 
-        cursor.close()
-        connection.close()
-
         return redirect(
             url_for("admin.exam_types")
         )
 
     except Exception as e:
 
+        if connection:
+            connection.rollback()
+
         return f"Database Error: {e}"
+
+    finally:
+
+        if cursor:
+            cursor.close()
+
+        if connection:
+            connection.close()
 
 
 # ===========================================================
@@ -1017,7 +1399,6 @@ def delete_exam_type(exam_type_id):
 )
 def change_exam_type_status(exam_type_id):
 
-    # Check whether admin is logged in
     if "admin_id" not in session:
         return redirect(url_for("auth.admin_login"))
 
@@ -1031,7 +1412,12 @@ def change_exam_type_status(exam_type_id):
     ]
 
     if status not in allowed_statuses:
+
         return "Invalid exam type status."
+
+
+    connection = None
+    cursor = None
 
     try:
 
@@ -1040,7 +1426,10 @@ def change_exam_type_status(exam_type_id):
 
         cursor.execute("""
             UPDATE exam_type
-            SET status = %s
+
+            SET
+                status = %s
+
             WHERE exam_type_id = %s
         """, (
             status,
@@ -1049,16 +1438,24 @@ def change_exam_type_status(exam_type_id):
 
         connection.commit()
 
-        cursor.close()
-        connection.close()
-
         return redirect(
             url_for("admin.exam_types")
         )
 
     except Exception as e:
 
+        if connection:
+            connection.rollback()
+
         return f"Database Error: {e}"
+
+    finally:
+
+        if cursor:
+            cursor.close()
+
+        if connection:
+            connection.close()
 
 
 # ===========================================================
@@ -1068,18 +1465,17 @@ def change_exam_type_status(exam_type_id):
 @admin_bp.route("/semesters")
 def semesters():
 
-    # Check whether admin is logged in
     if "admin_id" not in session:
         return redirect(url_for("auth.admin_login"))
+
+    connection = None
+    cursor = None
 
     try:
 
         connection = get_connection()
         cursor = connection.cursor()
 
-        # ---------------------------------------------------
-        # GET ALL SEMESTERS
-        # ---------------------------------------------------
 
         cursor.execute("""
             SELECT
@@ -1090,31 +1486,33 @@ def semesters():
                 s.created_at,
                 s.updated_at,
                 c.course_name
+
             FROM semester s
+
             INNER JOIN course c
                 ON s.course_id = c.course_id
-            ORDER BY c.course_name, s.semester_number
+
+            ORDER BY
+                c.course_name,
+                s.semester_number
         """)
 
         semesters = cursor.fetchall()
 
-        # ---------------------------------------------------
-        # GET ALL COURSES
-        # Used in Add Semester form
-        # ---------------------------------------------------
 
         cursor.execute("""
             SELECT
                 course_id,
                 course_name
+
             FROM course
-            ORDER BY course_name
+
+            ORDER BY
+                course_name
         """)
 
         courses = cursor.fetchall()
 
-        cursor.close()
-        connection.close()
 
         return render_template(
             "admin/manage_semester.html",
@@ -1122,9 +1520,19 @@ def semesters():
             courses=courses
         )
 
+
     except Exception as e:
 
         return f"Database Error: {e}"
+
+
+    finally:
+
+        if cursor:
+            cursor.close()
+
+        if connection:
+            connection.close()
 
 
 # ===========================================================
@@ -1137,7 +1545,6 @@ def semesters():
 )
 def add_semester():
 
-    # Check whether admin is logged in
     if "admin_id" not in session:
         return redirect(url_for("auth.admin_login"))
 
@@ -1149,19 +1556,21 @@ def add_semester():
         "semester_number"
     )
 
-    # Check required fields
-    if not course_id or not semester_number:
+    if (
+        not course_id
+        or not semester_number
+    ):
 
         return "All semester fields are required."
+
+
+    connection = None
+    cursor = None
 
     try:
 
         connection = get_connection()
         cursor = connection.cursor()
-
-        # ---------------------------------------------------
-        # INSERT SEMESTER
-        # ---------------------------------------------------
 
         cursor.execute("""
             INSERT INTO semester
@@ -1169,7 +1578,11 @@ def add_semester():
                 course_id,
                 semester_number
             )
-            VALUES (%s, %s)
+            VALUES
+            (
+                %s,
+                %s
+            )
         """, (
             course_id,
             semester_number
@@ -1177,16 +1590,26 @@ def add_semester():
 
         connection.commit()
 
-        cursor.close()
-        connection.close()
-
         return redirect(
             url_for("admin.semesters")
         )
 
+
     except Exception as e:
 
+        if connection:
+            connection.rollback()
+
         return f"Database Error: {e}"
+
+
+    finally:
+
+        if cursor:
+            cursor.close()
+
+        if connection:
+            connection.close()
 
 
 # ===========================================================
@@ -1199,18 +1622,17 @@ def add_semester():
 )
 def edit_semester(semester_id):
 
-    # Check whether admin is logged in
     if "admin_id" not in session:
         return redirect(url_for("auth.admin_login"))
+
+    connection = None
+    cursor = None
 
     try:
 
         connection = get_connection()
         cursor = connection.cursor()
 
-        # ===================================================
-        # POST = UPDATE SEMESTER
-        # ===================================================
 
         if request.method == "POST":
 
@@ -1222,18 +1644,21 @@ def edit_semester(semester_id):
                 "semester_number"
             )
 
-            if not course_id or not semester_number:
-
-                cursor.close()
-                connection.close()
+            if (
+                not course_id
+                or not semester_number
+            ):
 
                 return "All semester fields are required."
 
+
             cursor.execute("""
                 UPDATE semester
+
                 SET
                     course_id = %s,
                     semester_number = %s
+
                 WHERE semester_id = %s
             """, (
                 course_id,
@@ -1243,16 +1668,10 @@ def edit_semester(semester_id):
 
             connection.commit()
 
-            cursor.close()
-            connection.close()
-
             return redirect(
                 url_for("admin.semesters")
             )
 
-        # ===================================================
-        # GET = SHOW SEMESTER
-        # ===================================================
 
         cursor.execute("""
             SELECT
@@ -1262,7 +1681,9 @@ def edit_semester(semester_id):
                 status,
                 created_at,
                 updated_at
+
             FROM semester
+
             WHERE semester_id = %s
         """, (
             semester_id,
@@ -1270,26 +1691,25 @@ def edit_semester(semester_id):
 
         semester = cursor.fetchone()
 
-        # ---------------------------------------------------
-        # GET ALL COURSES
-        # ---------------------------------------------------
 
         cursor.execute("""
             SELECT
                 course_id,
                 course_name
+
             FROM course
-            ORDER BY course_name
+
+            ORDER BY
+                course_name
         """)
 
         courses = cursor.fetchall()
 
-        cursor.close()
-        connection.close()
 
         if not semester:
 
             return "Semester not found."
+
 
         return render_template(
             "admin/edit_semester.html",
@@ -1297,9 +1717,22 @@ def edit_semester(semester_id):
             courses=courses
         )
 
+
     except Exception as e:
 
+        if connection:
+            connection.rollback()
+
         return f"Database Error: {e}"
+
+
+    finally:
+
+        if cursor:
+            cursor.close()
+
+        if connection:
+            connection.close()
 
 
 # ===========================================================
@@ -1312,9 +1745,11 @@ def edit_semester(semester_id):
 )
 def delete_semester(semester_id):
 
-    # Check whether admin is logged in
     if "admin_id" not in session:
         return redirect(url_for("auth.admin_login"))
+
+    connection = None
+    cursor = None
 
     try:
 
@@ -1323,6 +1758,7 @@ def delete_semester(semester_id):
 
         cursor.execute("""
             DELETE FROM semester
+
             WHERE semester_id = %s
         """, (
             semester_id,
@@ -1330,16 +1766,26 @@ def delete_semester(semester_id):
 
         connection.commit()
 
-        cursor.close()
-        connection.close()
-
         return redirect(
             url_for("admin.semesters")
         )
 
+
     except Exception as e:
 
+        if connection:
+            connection.rollback()
+
         return f"Database Error: {e}"
+
+
+    finally:
+
+        if cursor:
+            cursor.close()
+
+        if connection:
+            connection.close()
 
 
 # ===========================================================
@@ -1352,7 +1798,6 @@ def delete_semester(semester_id):
 )
 def change_semester_status(semester_id):
 
-    # Check whether admin is logged in
     if "admin_id" not in session:
         return redirect(url_for("auth.admin_login"))
 
@@ -1360,7 +1805,6 @@ def change_semester_status(semester_id):
         "status"
     )
 
-    # Only these statuses are allowed
     allowed_statuses = [
         "Active",
         "Inactive"
@@ -1370,6 +1814,10 @@ def change_semester_status(semester_id):
 
         return "Invalid semester status."
 
+
+    connection = None
+    cursor = None
+
     try:
 
         connection = get_connection()
@@ -1377,8 +1825,10 @@ def change_semester_status(semester_id):
 
         cursor.execute("""
             UPDATE semester
+
             SET
                 status = %s
+
             WHERE semester_id = %s
         """, (
             status,
@@ -1387,42 +1837,46 @@ def change_semester_status(semester_id):
 
         connection.commit()
 
-        cursor.close()
-        connection.close()
-
         return redirect(
             url_for("admin.semesters")
         )
 
+
     except Exception as e:
 
+        if connection:
+            connection.rollback()
+
         return f"Database Error: {e}"
+
+
+    finally:
+
+        if cursor:
+            cursor.close()
+
+        if connection:
+            connection.close()
 
 
 # ===========================================================
 # HOD ACCOUNT MANAGEMENT
 # ===========================================================
 
-
-# ===========================================================
-# MANAGE HOD ACCOUNTS
-# ===========================================================
-
 @admin_bp.route("/hod-accounts")
 def hod_accounts():
 
-    # Check whether admin is logged in
     if "admin_id" not in session:
         return redirect(url_for("auth.admin_login"))
+
+    connection = None
+    cursor = None
 
     try:
 
         connection = get_connection()
         cursor = connection.cursor()
 
-        # ---------------------------------------------------
-        # Get all HOD accounts
-        # ---------------------------------------------------
 
         cursor.execute("""
             SELECT
@@ -1437,31 +1891,34 @@ def hod_accounts():
                 h.created_at,
                 h.updated_at,
                 d.department_name
+
             FROM hod h
+
             INNER JOIN department d
                 ON h.department_id = d.department_id
-            ORDER BY h.hod_id
+
+            ORDER BY
+                h.hod_id
         """)
 
         hods = cursor.fetchall()
 
-        # ---------------------------------------------------
-        # Get departments
-        # ---------------------------------------------------
 
         cursor.execute("""
             SELECT
                 department_id,
                 department_name
+
             FROM department
+
             WHERE status = 'Active'
-            ORDER BY department_name
+
+            ORDER BY
+                department_name
         """)
 
         departments = cursor.fetchall()
 
-        cursor.close()
-        connection.close()
 
         return render_template(
             "admin/manage_hod.html",
@@ -1469,9 +1926,19 @@ def hod_accounts():
             departments=departments
         )
 
+
     except Exception as e:
 
         return f"Database Error: {e}"
+
+
+    finally:
+
+        if cursor:
+            cursor.close()
+
+        if connection:
+            connection.close()
 
 
 # ===========================================================
@@ -1484,7 +1951,6 @@ def hod_accounts():
 )
 def add_hod():
 
-    # Check whether admin is logged in
     if "admin_id" not in session:
         return redirect(url_for("auth.admin_login"))
 
@@ -1522,9 +1988,6 @@ def add_hod():
         ""
     )
 
-    # ---------------------------------------------------
-    # Validate required fields
-    # ---------------------------------------------------
 
     if (
         not department_id
@@ -1537,13 +2000,11 @@ def add_hod():
 
         return "All required HOD fields are required."
 
-    # ---------------------------------------------------
-    # Hash password
-    # ---------------------------------------------------
 
     hashed_password = generate_password_hash(
         password
     )
+
 
     connection = None
     cursor = None
@@ -1552,10 +2013,6 @@ def add_hod():
 
         connection = get_connection()
         cursor = connection.cursor()
-
-        # ---------------------------------------------------
-        # Insert HOD
-        # ---------------------------------------------------
 
         cursor.execute("""
             INSERT INTO hod
@@ -1569,6 +2026,7 @@ def add_hod():
                 password,
                 account_status
             )
+
             VALUES
             (
                 %s,
@@ -1596,12 +2054,14 @@ def add_hod():
             url_for("admin.hod_accounts")
         )
 
+
     except Exception as e:
 
         if connection:
             connection.rollback()
 
         return f"Database Error: {e}"
+
 
     finally:
 
@@ -1622,7 +2082,6 @@ def add_hod():
 )
 def edit_hod(hod_id):
 
-    # Check whether admin is logged in
     if "admin_id" not in session:
         return redirect(url_for("auth.admin_login"))
 
@@ -1634,9 +2093,6 @@ def edit_hod(hod_id):
         connection = get_connection()
         cursor = connection.cursor()
 
-        # ---------------------------------------------------
-        # POST = Update HOD
-        # ---------------------------------------------------
 
         if request.method == "POST":
 
@@ -1669,6 +2125,7 @@ def edit_hod(hod_id):
                 ""
             ).strip()
 
+
             if (
                 not department_id
                 or not employee_id
@@ -1679,8 +2136,10 @@ def edit_hod(hod_id):
 
                 return "All required HOD fields are required."
 
+
             cursor.execute("""
                 UPDATE hod
+
                 SET
                     department_id = %s,
                     employee_id = %s,
@@ -1688,6 +2147,7 @@ def edit_hod(hod_id):
                     email = %s,
                     phone = %s,
                     username = %s
+
                 WHERE hod_id = %s
             """, (
                 department_id,
@@ -1705,9 +2165,6 @@ def edit_hod(hod_id):
                 url_for("admin.hod_accounts")
             )
 
-        # ---------------------------------------------------
-        # GET = Get HOD
-        # ---------------------------------------------------
 
         cursor.execute("""
             SELECT
@@ -1721,7 +2178,9 @@ def edit_hod(hod_id):
                 account_status,
                 created_at,
                 updated_at
+
             FROM hod
+
             WHERE hod_id = %s
         """, (
             hod_id,
@@ -1729,24 +2188,27 @@ def edit_hod(hod_id):
 
         hod = cursor.fetchone()
 
+
         if not hod:
 
             return "HOD account not found."
 
-        # ---------------------------------------------------
-        # Get departments
-        # ---------------------------------------------------
 
         cursor.execute("""
             SELECT
                 department_id,
                 department_name
+
             FROM department
+
             WHERE status = 'Active'
-            ORDER BY department_name
+
+            ORDER BY
+                department_name
         """)
 
         departments = cursor.fetchall()
+
 
         return render_template(
             "admin/edit_hod.html",
@@ -1754,12 +2216,14 @@ def edit_hod(hod_id):
             departments=departments
         )
 
+
     except Exception as e:
 
         if connection:
             connection.rollback()
 
         return f"Database Error: {e}"
+
 
     finally:
 
@@ -1780,7 +2244,6 @@ def edit_hod(hod_id):
 )
 def delete_hod(hod_id):
 
-    # Check whether admin is logged in
     if "admin_id" not in session:
         return redirect(url_for("auth.admin_login"))
 
@@ -1794,6 +2257,7 @@ def delete_hod(hod_id):
 
         cursor.execute("""
             DELETE FROM hod
+
             WHERE hod_id = %s
         """, (
             hod_id,
@@ -1805,12 +2269,14 @@ def delete_hod(hod_id):
             url_for("admin.hod_accounts")
         )
 
+
     except Exception as e:
 
         if connection:
             connection.rollback()
 
         return f"Database Error: {e}"
+
 
     finally:
 
@@ -1831,7 +2297,6 @@ def delete_hod(hod_id):
 )
 def change_hod_status(hod_id):
 
-    # Check whether admin is logged in
     if "admin_id" not in session:
         return redirect(url_for("auth.admin_login"))
 
@@ -1849,6 +2314,7 @@ def change_hod_status(hod_id):
 
         return "Invalid HOD account status."
 
+
     connection = None
     cursor = None
 
@@ -1859,7 +2325,10 @@ def change_hod_status(hod_id):
 
         cursor.execute("""
             UPDATE hod
-            SET account_status = %s
+
+            SET
+                account_status = %s
+
             WHERE hod_id = %s
         """, (
             account_status,
@@ -1872,12 +2341,226 @@ def change_hod_status(hod_id):
             url_for("admin.hod_accounts")
         )
 
+
     except Exception as e:
 
         if connection:
             connection.rollback()
 
         return f"Database Error: {e}"
+
+
+    finally:
+
+        if cursor:
+            cursor.close()
+
+        if connection:
+            connection.close()
+
+
+# ===========================================================
+# DEPARTMENT-WISE STUDENTS
+# ===========================================================
+
+@admin_bp.route(
+    "/departments/<int:department_id>/students"
+)
+def department_students(department_id):
+
+    if "admin_id" not in session:
+        return redirect(url_for("auth.admin_login"))
+
+    connection = None
+    cursor = None
+
+    try:
+
+        connection = get_connection()
+        cursor = connection.cursor()
+
+
+        # ===================================================
+        # GET DEPARTMENT
+        # ===================================================
+
+        cursor.execute("""
+            SELECT
+                department_id,
+                department_name,
+                status
+
+            FROM department
+
+            WHERE department_id = %s
+        """, (
+            department_id,
+        ))
+
+        department = cursor.fetchone()
+
+
+        if not department:
+
+            return "Department not found."
+
+
+        # ===================================================
+        # GET STUDENTS
+        #
+        # student
+        #    ↓
+        # course
+        #    ↓
+        # department
+        # ===================================================
+
+        cursor.execute("""
+            SELECT
+                s.student_id,
+                s.register_number,
+                s.full_name,
+                s.email,
+                s.phone,
+                s.account_status,
+
+                c.course_id,
+                c.course_name,
+
+                sem.semester_id,
+                sem.semester_number
+
+            FROM student s
+
+            INNER JOIN course c
+                ON s.course_id = c.course_id
+
+            INNER JOIN semester sem
+                ON s.semester_id = sem.semester_id
+
+            WHERE c.department_id = %s
+
+            ORDER BY
+                c.course_name,
+                sem.semester_number,
+                s.full_name
+        """, (
+            department_id,
+        ))
+
+        students = cursor.fetchall()
+
+
+        return render_template(
+            "admin/department_students.html",
+
+            department=department,
+
+            students=students
+        )
+
+
+    except Exception as e:
+
+        return f"Database Error: {e}"
+
+
+    finally:
+
+        if cursor:
+            cursor.close()
+
+        if connection:
+            connection.close()
+
+
+# ===========================================================
+# DEPARTMENT-WISE TEACHERS
+# ===========================================================
+
+@admin_bp.route(
+    "/departments/<int:department_id>/teachers"
+)
+def department_teachers(department_id):
+
+    if "admin_id" not in session:
+        return redirect(url_for("auth.admin_login"))
+
+    connection = None
+    cursor = None
+
+    try:
+
+        connection = get_connection()
+        cursor = connection.cursor()
+
+
+        # ===================================================
+        # GET DEPARTMENT
+        # ===================================================
+
+        cursor.execute("""
+            SELECT
+                department_id,
+                department_name,
+                status
+
+            FROM department
+
+            WHERE department_id = %s
+        """, (
+            department_id,
+        ))
+
+        department = cursor.fetchone()
+
+
+        if not department:
+
+            return "Department not found."
+
+
+        # ===================================================
+        # GET TEACHERS
+        # ===================================================
+
+        cursor.execute("""
+            SELECT
+                t.teacher_id,
+                t.employee_id,
+                t.full_name,
+                t.email,
+                t.phone,
+                t.username,
+                t.account_status,
+                t.created_at
+
+            FROM teacher t
+
+            WHERE t.department_id = %s
+
+            ORDER BY
+                t.full_name
+        """, (
+            department_id,
+        ))
+
+        teachers = cursor.fetchall()
+
+
+        return render_template(
+            "admin/department_teachers.html",
+
+            department=department,
+
+            teachers=teachers
+        )
+
+
+    except Exception as e:
+
+        return f"Database Error: {e}"
+
 
     finally:
 
