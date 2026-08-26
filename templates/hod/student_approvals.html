@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Student Approvals | HOD</title>
+
+</head>
+
+<body>
+
+    <!-- =====================================================
+         HEADER
+    ===================================================== -->
+
+    <div>
+
+        <h1>HOD - Student Approvals</h1>
+
+        <a href="{{ url_for('hod.dashboard') }}">
+            ← Back to Dashboard
+        </a>
+
+    </div>
+
+
+    <hr>
+
+
+    <!-- =====================================================
+         MAIN
+    ===================================================== -->
+
+    <div>
+
+        <h2>
+            Student Approvals
+        </h2>
+
+        <p>
+            Review and manage student registrations belonging
+            to your department.
+        </p>
+
+
+        <!-- =================================================
+             SUMMARY
+        ================================================= -->
+
+        <div>
+
+            <div>
+
+                <h3>
+                    Pending Students
+                </h3>
+
+                <strong>
+                    {{ pending_count | default(0) }}
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <h3>
+                    Approved Students
+                </h3>
+
+                <strong>
+                    {{ approved_count | default(0) }}
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <h3>
+                    Students in Other Sections
+                </h3>
+
+                <strong>
+                    {{ other_section_count | default(0) }}
+                </strong>
+
+            </div>
+
+        </div>
+
+
+        <hr>
+
+
+        <!-- =================================================
+             FILTER
+        ================================================= -->
+
+        <div>
+
+            <input
+                type="text"
+                id="searchInput"
+                placeholder="Search by name, register number or email..."
+                onkeyup="filterStudents()"
+            >
+
+
+            <select
+                id="statusFilter"
+                onchange="filterStudents()"
+            >
+
+                <option value="all">
+                    All Status
+                </option>
+
+                <option value="Pending">
+                    Pending
+                </option>
+
+                <option value="Approved">
+                    Approved
+                </option>
+
+                <option value="Rejected">
+                    Rejected
+                </option>
+
+            </select>
+
+
+            <select
+                id="sectionFilter"
+                onchange="filterStudents()"
+            >
+
+                <option value="all">
+                    All Sections
+                </option>
+
+                <option value="current">
+                    Current Section
+                </option>
+
+                <option value="other">
+                    Other Section
+                </option>
+
+                <option value="none">
+                    No Section
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <hr>
+
+
+        <!-- =================================================
+             STUDENT TABLE
+        ================================================= -->
+
+        <div>
+
+            {% if students %}
+
+            <table
+                id="studentTable"
+                border="1"
+                cellpadding="8"
+                cellspacing="0"
+            >
+
+                <thead>
+
+                    <tr>
+
+                        <th>#</th>
+
+                        <th>Register Number</th>
+
+                        <th>Student Name</th>
+
+                        <th>Email</th>
+
+                        <th>Phone</th>
+
+                        <th>Course</th>
+
+                        <th>Semester</th>
+
+                        <th>Section</th>
+
+                        <th>Status</th>
+
+                        <th>Action</th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                    {% for student in students %}
+
+                    <tr
+                        data-status="{{ student.account_status | default('Pending') }}"
+                        data-section="{% if student.is_other_section | default(false) %}other{% elif student.section_name | default('') %}current{% else %}none{% endif %}"
+                    >
+
+                        <!-- NUMBER -->
+
+                        <td>
+                            {{ loop.index }}
+                        </td>
+
+
+                        <!-- REGISTER NUMBER -->
+
+                        <td>
+                            {{ student.register_number }}
+                        </td>
+
+
+                        <!-- NAME -->
+
+                        <td>
+                            {{ student.full_name }}
+                        </td>
+
+
+                        <!-- EMAIL -->
+
+                        <td>
+                            {{ student.email | default('-') }}
+                        </td>
+
+
+                        <!-- PHONE -->
+
+                        <td>
+                            {{ student.phone | default('-') }}
+                        </td>
+
+
+                        <!-- COURSE -->
+
+                        <td>
+                            {{ student.course_name | default('-') }}
+                        </td>
+
+
+                        <!-- SEMESTER -->
+
+                        <td>
+                            Semester
+                            {{ student.semester_number | default('-') }}
+                        </td>
+
+
+                        <!-- SECTION -->
+
+                        <td>
+
+                            {% if student.section_name | default('') %}
+
+                                {% if student.is_other_section | default(false) %}
+
+                                    {{ student.section_name }}
+                                    (Other)
+
+                                {% else %}
+
+                                    {{ student.section_name }}
+
+                                {% endif %}
+
+                            {% else %}
+
+                                Not Assigned
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <!-- STATUS -->
+
+                        <td>
+
+                            {% set status =
+                                student.account_status
+                                | default('Pending')
+                            %}
+
+                            {% if status == 'Approved'
+                                  or status == 'Active' %}
+
+                                Approved
+
+                            {% elif status == 'Rejected'
+                                  or status == 'Inactive' %}
+
+                                Rejected
+
+                            {% else %}
+
+                                Pending
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <!-- ACTION -->
+
+                        <td>
+
+                            {% if student.student_id %}
+
+                                <a href="{{ url_for('hod.students') }}">
+                                    View
+                                </a>
+
+                            {% endif %}
+
+
+                            {% if student.account_status == 'Pending' %}
+
+                                <form
+                                    method="POST"
+                                    action="{{ url_for(
+                                        'hod.approve_student',
+                                        student_id=student.student_id
+                                    ) }}"
+                                >
+
+                                    <button type="submit"
+                                            onclick="return confirm(
+                                                'Are you sure you want to approve this student?'
+                                            );">
+
+                                        Approve
+
+                                    </button>
+
+                                </form>
+
+
+                                <form
+                                    method="POST"
+                                    action="{{ url_for(
+                                        'hod.reject_student',
+                                        student_id=student.student_id
+                                    ) }}"
+                                >
+
+                                    <button type="submit"
+                                            onclick="return confirm(
+                                                'Are you sure you want to reject this student?'
+                                            );">
+
+                                        Reject
+
+                                    </button>
+
+                                </form>
+
+                            {% endif %}
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+
+            <!-- =================================================
+                 NO SEARCH RESULT
+            ================================================= -->
+
+            <div
+                id="noSearchResult"
+                style="display:none;"
+            >
+
+                <h3>
+                    No students found
+                </h3>
+
+                <p>
+                    No students match the selected filters.
+                </p>
+
+            </div>
+
+
+            {% else %}
+
+
+            <!-- =================================================
+                 NO STUDENTS
+            ================================================= -->
+
+            <div>
+
+                <h3>
+                    No Students Found
+                </h3>
+
+                <p>
+                    There are currently no student registrations
+                    in your department.
+                </p>
+
+            </div>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         JAVASCRIPT
+    ===================================================== -->
+
+    <script>
+
+        function filterStudents() {
+
+            const searchInput =
+                document.getElementById("searchInput");
+
+            const statusFilter =
+                document.getElementById("statusFilter");
+
+            const sectionFilter =
+                document.getElementById("sectionFilter");
+
+            const search =
+                searchInput.value.toLowerCase().trim();
+
+            const selectedStatus =
+                statusFilter.value;
+
+            const selectedSection =
+                sectionFilter.value;
+
+            const table =
+                document.getElementById("studentTable");
+
+            const noSearchResult =
+                document.getElementById("noSearchResult");
+
+
+            if (!table) {
+                return;
+            }
+
+
+            const rows =
+                table.querySelectorAll("tbody tr");
+
+
+            let visibleRows = 0;
+
+
+            rows.forEach(function(row) {
+
+                const text =
+                    row.innerText.toLowerCase();
+
+                const rowStatus =
+                    row.getAttribute("data-status");
+
+                const rowSection =
+                    row.getAttribute("data-section");
+
+
+                /* SEARCH */
+
+                const matchesSearch =
+                    search === "" ||
+                    text.includes(search);
+
+
+                /* STATUS */
+
+                let matchesStatus = true;
+
+
+                if (selectedStatus !== "all") {
+
+                    if (
+                        selectedStatus === "Approved"
+                    ) {
+
+                        matchesStatus =
+                            rowStatus === "Approved" ||
+                            rowStatus === "Active";
+
+                    }
+
+                    else if (
+                        selectedStatus === "Rejected"
+                    ) {
+
+                        matchesStatus =
+                            rowStatus === "Rejected" ||
+                            rowStatus === "Inactive";
+
+                    }
+
+                    else {
+
+                        matchesStatus =
+                            rowStatus === selectedStatus;
+
+                    }
+
+                }
+
+
+                /* SECTION */
+
+                const matchesSection =
+                    selectedSection === "all" ||
+                    rowSection === selectedSection;
+
+
+                /* SHOW / HIDE */
+
+                if (
+                    matchesSearch &&
+                    matchesStatus &&
+                    matchesSection
+                ) {
+
+                    row.style.display = "";
+
+                    visibleRows++;
+
+                }
+
+                else {
+
+                    row.style.display = "none";
+
+                }
+
+            });
+
+
+            if (noSearchResult) {
+
+                if (visibleRows === 0) {
+
+                    noSearchResult.style.display =
+                        "block";
+
+                }
+
+                else {
+
+                    noSearchResult.style.display =
+                        "none";
+
+                }
+
+            }
+
+        }
+
+    </script>
+
+</body>
+
+</html>

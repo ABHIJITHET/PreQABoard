@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>All Students - Admin</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/dashboard.css') }}"
+    >
+
+</head>
+
+
+<body>
+
+
+<!-- =====================================================
+     SIDEBAR
+===================================================== -->
+
+<div class="sidebar">
+
+    <h2>Admin Panel</h2>
+
+    <a href="{{ url_for('admin.dashboard') }}">
+        Dashboard
+    </a>
+
+    <a href="{{ url_for('admin.departments') }}">
+        Departments
+    </a>
+
+    <a href="{{ url_for('admin.courses') }}">
+        Courses
+    </a>
+
+    <a href="{{ url_for('admin.semesters') }}">
+        Semesters
+    </a>
+
+    <a href="{{ url_for('admin.academic_years') }}">
+        Academic Years
+    </a>
+
+    <a href="{{ url_for('admin.exam_types') }}">
+        Exam Types
+    </a>
+
+    <a href="{{ url_for('admin.hod_accounts') }}">
+        HOD Accounts
+    </a>
+
+    <a href="{{ url_for('admin.all_students') }}">
+        Students
+    </a>
+
+    <a href="{{ url_for('admin.all_teachers') }}">
+        Teachers
+    </a>
+
+    <a
+        href="{{ url_for('admin.logout') }}"
+        class="logout"
+    >
+        Logout
+    </a>
+
+</div>
+
+
+
+<!-- =====================================================
+     MAIN CONTENT
+===================================================== -->
+
+<div class="main">
+
+
+    <div class="topbar">
+
+        <h1>
+            All Students
+        </h1>
+
+        <p>
+            View all students registered in the system.
+        </p>
+
+    </div>
+
+
+
+    <div class="section">
+
+
+        <div class="section-header">
+
+            <h2>
+                Student List
+            </h2>
+
+        </div>
+
+
+
+        <div class="table-container">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+
+                        <th>#</th>
+
+                        <th>Register Number</th>
+
+                        <th>Student Name</th>
+
+                        <th>Department</th>
+
+                        <th>Course</th>
+
+                        <th>Semester</th>
+
+                        <th>Email</th>
+
+                        <th>Phone</th>
+
+                        <th>Status</th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                    {% if students %}
+
+                        {% for student in students %}
+
+                        <tr>
+
+                            <td>
+                                {{ loop.index }}
+                            </td>
+
+                            <td>
+                                <strong>
+                                    {{ student.register_number }}
+                                </strong>
+                            </td>
+
+                            <td>
+                                {{ student.full_name }}
+                            </td>
+
+                            <td>
+                                {{ student.department_name }}
+                            </td>
+
+                            <td>
+                                {{ student.course_name }}
+                            </td>
+
+                            <td>
+                                Semester
+                                {{ student.semester_number }}
+                            </td>
+
+                            <td>
+                                {{ student.email }}
+                            </td>
+
+                            <td>
+                                {{ student.phone or '-' }}
+                            </td>
+
+                            <td>
+                                {{ student.account_status }}
+                            </td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                    {% else %}
+
+                        <tr>
+
+                            <td
+                                colspan="9"
+                                class="no-data"
+                            >
+                                No students found.
+                            </td>
+
+                        </tr>
+
+                    {% endif %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+
+</div>
+
+
+</body>
+
+</html>

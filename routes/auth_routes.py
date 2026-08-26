@@ -1,3 +1,4 @@
+import traceback
 from flask import (
     Blueprint,
     render_template,
@@ -13,7 +14,6 @@ from werkzeug.security import (
     check_password_hash,
     generate_password_hash
 )
-
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -251,14 +251,15 @@ def admin_login():
 
         except Exception as e:
 
-            print("\n========================================")
-            print("ADMIN LOGIN DATABASE ERROR")
-            print(repr(e))
-            print("========================================\n")
+            print("\n=================== REAL DATABASE ERROR ===================")
+            print("Error Type:", type(e).__name__)
+            print("Error Args:", e.args)
+            traceback.print_exc()
+            print("===========================================================\n")
 
             return render_template(
                 "login/admin_login.html",
-                error=f"DEBUG DATABASE ERROR: {e}"
+                error=f"Database Error: [{type(e).__name__}] {str(e)}"
             )
 
         finally:
@@ -368,9 +369,13 @@ def hod_login():
 
         except Exception as e:
 
+            print("\n=================== HOD DATABASE ERROR ===================")
+            traceback.print_exc()
+            print("===========================================================\n")
+
             return render_template(
                 "login/hod_login.html",
-                error=f"Database Error: {e}"
+                error=f"Database Error: [{type(e).__name__}] {str(e)}"
             )
 
         finally:
@@ -430,10 +435,6 @@ def teacher_register():
             "confirm_password"
         )
 
-        # =======================================================
-        # CHECK REQUIRED FIELDS
-        # =======================================================
-
         if (
             not employee_id
             or not department_id
@@ -447,10 +448,6 @@ def teacher_register():
                 "login/teacher_register.html",
                 error="Please fill in all required fields."
             )
-
-        # =======================================================
-        # CHECK PASSWORD MATCH
-        # =======================================================
 
         if password != confirm_password:
 
@@ -466,10 +463,6 @@ def teacher_register():
 
             connection = get_connection()
             cursor = connection.cursor()
-
-            # ===================================================
-            # CHECK EMPLOYEE ID
-            # ===================================================
 
             cursor.execute(
                 """
@@ -489,10 +482,6 @@ def teacher_register():
                     error="Employee ID already registered."
                 )
 
-            # ===================================================
-            # CHECK EMAIL
-            # ===================================================
-
             cursor.execute(
                 """
                 SELECT teacher_id
@@ -511,10 +500,6 @@ def teacher_register():
                     error="Email already registered."
                 )
 
-            # ===================================================
-            # CHECK USERNAME
-            # ===================================================
-
             cursor.execute(
                 """
                 SELECT teacher_id
@@ -532,10 +517,6 @@ def teacher_register():
                     "login/teacher_register.html",
                     error="Username already registered."
                 )
-
-            # ===================================================
-            # CHECK DEPARTMENT
-            # ===================================================
 
             cursor.execute(
                 """
@@ -556,17 +537,9 @@ def teacher_register():
                     error="Selected department is not available."
                 )
 
-            # ===================================================
-            # HASH PASSWORD
-            # ===================================================
-
             hashed_password = generate_password_hash(
                 password
             )
-
-            # ===================================================
-            # CREATE TEACHER ACCOUNT
-            # ===================================================
 
             cursor.execute(
                 """
@@ -617,9 +590,13 @@ def teacher_register():
             if connection:
                 connection.rollback()
 
+            print("\n=================== TEACHER REGISTRATION ERROR ===================")
+            traceback.print_exc()
+            print("==================================================================\n")
+
             return render_template(
                 "login/teacher_register.html",
-                error=f"Registration failed: {e}"
+                error=f"Registration failed: [{type(e).__name__}] {str(e)}"
             )
 
         finally:
@@ -629,10 +606,6 @@ def teacher_register():
 
             if connection:
                 connection.close()
-
-    # =======================================================
-    # GET ACTIVE DEPARTMENTS
-    # =======================================================
 
     connection = None
     cursor = None
@@ -662,9 +635,13 @@ def teacher_register():
 
     except Exception as e:
 
+        print("\n=================== GET DEPARTMENTS ERROR ===================")
+        traceback.print_exc()
+        print("=============================================================\n")
+
         return render_template(
             "login/teacher_register.html",
-            error=f"Unable to load departments: {e}"
+            error=f"Unable to load departments: [{type(e).__name__}] {str(e)}"
         )
 
     finally:
@@ -728,10 +705,6 @@ def teacher_login():
 
             if teacher:
 
-                # ------------------------------------------------
-                # CHECK ACCOUNT STATUS
-                # ------------------------------------------------
-
                 if teacher["account_status"] != "Active":
 
                     return render_template(
@@ -742,20 +715,12 @@ def teacher_login():
                         )
                     )
 
-                # ------------------------------------------------
-                # CHECK PASSWORD
-                # ------------------------------------------------
-
                 stored_password = teacher["password"]
 
                 if check_password_hash(
                     stored_password,
                     password
                 ):
-
-                    # ============================================
-                    # CREATE TEACHER SESSION
-                    # ============================================
 
                     session["teacher_id"] = (
                         teacher["teacher_id"]
@@ -775,17 +740,9 @@ def teacher_login():
 
                     session["role"] = "teacher"
 
-                    # ============================================
-                    # GO TO TEACHER DASHBOARD
-                    # ============================================
-
                     return redirect(
                         url_for("teacher.dashboard")
                     )
-
-            # ===================================================
-            # INVALID LOGIN
-            # ===================================================
 
             return render_template(
                 "login/teacher_login.html",
@@ -794,9 +751,13 @@ def teacher_login():
 
         except Exception as e:
 
+            print("\n=================== TEACHER LOGIN ERROR ===================")
+            traceback.print_exc()
+            print("===========================================================\n")
+
             return render_template(
                 "login/teacher_login.html",
-                error=f"Database Error: {e}"
+                error=f"Database Error: [{type(e).__name__}] {str(e)}"
             )
 
         finally:

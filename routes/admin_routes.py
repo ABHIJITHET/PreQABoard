@@ -24,13 +24,24 @@ admin_bp = Blueprint(
 
 
 # ===========================================================
+# ADMIN LOGIN CHECK
+# ===========================================================
+
+def admin_required():
+
+    if "admin_id" not in session:
+        return redirect(url_for("auth.admin_login"))
+
+    return None
+
+
+# ===========================================================
 # ADMIN DASHBOARD
 # ===========================================================
 
 @admin_bp.route("/dashboard")
 def dashboard():
 
-    # Check whether admin is logged in
     if "admin_id" not in session:
         return redirect(url_for("auth.admin_login"))
 
@@ -41,6 +52,126 @@ def dashboard():
 
         connection = get_connection()
         cursor = connection.cursor()
+
+        # ===================================================
+        # TOTAL DEPARTMENTS
+        # ===================================================
+
+        cursor.execute("""
+            SELECT COUNT(*) AS total_departments
+            FROM department
+        """)
+
+        total_departments = cursor.fetchone()["total_departments"]
+
+
+        # ===================================================
+        # TOTAL STUDENTS
+        # ===================================================
+
+        cursor.execute("""
+            SELECT COUNT(*) AS total_students
+            FROM student
+        """)
+
+        total_students = cursor.fetchone()["total_students"]
+
+
+        # ===================================================
+        # TOTAL TEACHERS
+        # ===================================================
+
+        cursor.execute("""
+            SELECT COUNT(*) AS total_teachers
+            FROM teacher
+        """)
+
+        total_teachers = cursor.fetchone()["total_teachers"]
+
+
+        # ===================================================
+        # TOTAL HODS
+        # ===================================================
+
+        cursor.execute("""
+            SELECT COUNT(*) AS total_hods
+            FROM hod
+        """)
+
+        total_hods = cursor.fetchone()["total_hods"]
+
+
+        # ===================================================
+        # TOTAL COURSES
+        # ===================================================
+
+        cursor.execute("""
+            SELECT COUNT(*) AS total_courses
+            FROM course
+        """)
+
+        total_courses = cursor.fetchone()["total_courses"]
+
+
+        # ===================================================
+        # DEPARTMENT-WISE SUMMARY
+        #
+        # Department
+        #     |
+        #     +---- Courses
+        #              |
+        #              +---- Students
+        #
+        # Department
+        #     |
+        #     +---- Teachers
+        #
+        # Department
+        #     |
+        #     +---- HOD
+        # ===================================================
+
+        cursor.execute("""
+            SELECT
+
+                d.department_id,
+
+                d.department_name,
+
+                COUNT(DISTINCT s.student_id)
+                    AS student_count,
+
+                COUNT(DISTINCT t.teacher_id)
+                    AS teacher_count,
+
+                MAX(h.full_name)
+                    AS hod_name
+
+            FROM department d
+
+            LEFT JOIN course c
+                ON d.department_id = c.department_id
+
+            LEFT JOIN student s
+                ON c.course_id = s.course_id
+
+            LEFT JOIN teacher t
+                ON d.department_id = t.department_id
+
+            LEFT JOIN hod h
+                ON d.department_id = h.department_id
+                AND h.account_status = 'Active'
+
+            GROUP BY
+                d.department_id,
+                d.department_name
+
+            ORDER BY
+                d.department_name
+        """)
+
+        department_summary = cursor.fetchall()
+
 
         # ===================================================
         # GET ALL DEPARTMENTS
@@ -59,105 +190,8 @@ def dashboard():
 
 
         # ===================================================
-        # GET DEPARTMENT-WISE STUDENT COUNT
+        # RENDER DASHBOARD
         # ===================================================
-
-        cursor.execute("""
-            SELECT
-                d.department_id,
-                d.department_name,
-                COUNT(s.student_id) AS student_count
-            FROM department d
-
-            LEFT JOIN course c
-                ON d.department_id = c.department_id
-
-            LEFT JOIN student s
-                ON c.course_id = s.course_id
-
-            GROUP BY
-                d.department_id,
-                d.department_name
-
-            ORDER BY
-                d.department_name
-        """)
-
-        department_student_counts = cursor.fetchall()
-
-
-        # ===================================================
-        # GET DEPARTMENT-WISE TEACHER COUNT
-        # ===================================================
-
-        cursor.execute("""
-            SELECT
-                d.department_id,
-                d.department_name,
-                COUNT(t.teacher_id) AS teacher_count
-            FROM department d
-
-            LEFT JOIN teacher t
-                ON d.department_id = t.department_id
-
-            GROUP BY
-                d.department_id,
-                d.department_name
-
-            ORDER BY
-                d.department_name
-        """)
-
-        department_teacher_counts = cursor.fetchall()
-
-
-        # ===================================================
-        # GET TOTAL STUDENTS
-        # ===================================================
-
-        cursor.execute("""
-            SELECT COUNT(*)
-            FROM student
-        """)
-
-        total_students = cursor.fetchone()[0]
-
-
-        # ===================================================
-        # GET TOTAL TEACHERS
-        # ===================================================
-
-        cursor.execute("""
-            SELECT COUNT(*)
-            FROM teacher
-        """)
-
-        total_teachers = cursor.fetchone()[0]
-
-
-        # ===================================================
-        # GET TOTAL DEPARTMENTS
-        # ===================================================
-
-        cursor.execute("""
-            SELECT COUNT(*)
-            FROM department
-        """)
-
-        total_departments = cursor.fetchone()[0]
-
-
-        # ===================================================
-        # GET TOTAL COURSES
-        # ===================================================
-
-        cursor.execute("""
-            SELECT COUNT(*)
-            FROM course
-        """)
-
-        total_courses = cursor.fetchone()[0]
-
 
         return render_template(
             "admin/dashboard.html",
@@ -166,15 +200,15 @@ def dashboard():
 
             departments=departments,
 
-            department_student_counts=department_student_counts,
+            department_summary=department_summary,
 
-            department_teacher_counts=department_teacher_counts,
+            total_departments=total_departments,
 
             total_students=total_students,
 
             total_teachers=total_teachers,
 
-            total_departments=total_departments,
+            total_hods=total_hods,
 
             total_courses=total_courses
         )
@@ -275,7 +309,6 @@ def add_department():
     ).strip()
 
     if not department_name:
-
         return redirect(
             url_for("admin.departments")
         )
@@ -388,8 +421,6 @@ def courses():
         connection = get_connection()
         cursor = connection.cursor()
 
-        # GET COURSES
-
         cursor.execute("""
             SELECT
                 c.course_id,
@@ -406,14 +437,11 @@ def courses():
             INNER JOIN department d
                 ON c.department_id = d.department_id
 
-            ORDER BY
-                c.course_id
+            ORDER BY c.course_id
         """)
 
         courses = cursor.fetchall()
 
-
-        # GET DEPARTMENTS
 
         cursor.execute("""
             SELECT
@@ -422,8 +450,7 @@ def courses():
 
             FROM department
 
-            ORDER BY
-                department_name
+            ORDER BY department_name
         """)
 
         departments = cursor.fetchall()
@@ -479,7 +506,6 @@ def add_course():
         or not course_name
         or not duration_years
     ):
-
         return "All course fields are required."
 
 
@@ -553,9 +579,6 @@ def edit_course(course_id):
         connection = get_connection()
         cursor = connection.cursor()
 
-
-        # POST
-
         if request.method == "POST":
 
             department_id = request.form.get(
@@ -576,7 +599,6 @@ def edit_course(course_id):
                 or not course_name
                 or not duration_years
             ):
-
                 return "All course fields are required."
 
 
@@ -603,8 +625,6 @@ def edit_course(course_id):
             )
 
 
-        # GET
-
         cursor.execute("""
             SELECT
                 course_id,
@@ -625,6 +645,10 @@ def edit_course(course_id):
         course = cursor.fetchone()
 
 
+        if not course:
+            return "Course not found."
+
+
         cursor.execute("""
             SELECT
                 department_id,
@@ -636,11 +660,6 @@ def edit_course(course_id):
         """)
 
         departments = cursor.fetchall()
-
-
-        if not course:
-
-            return "Course not found."
 
 
         return render_template(
@@ -656,7 +675,6 @@ def edit_course(course_id):
             connection.rollback()
 
         return f"Database Error: {e}"
-
 
     finally:
 
@@ -747,8 +765,7 @@ def academic_years():
 
             FROM academic_year
 
-            ORDER BY
-                start_date DESC
+            ORDER BY start_date DESC
         """)
 
         academic_years = cursor.fetchall()
@@ -802,7 +819,6 @@ def add_academic_year():
         or not start_date
         or not end_date
     ):
-
         return "All academic year fields are required."
 
 
@@ -876,7 +892,6 @@ def edit_academic_year(academic_year_id):
         connection = get_connection()
         cursor = connection.cursor()
 
-
         if request.method == "POST":
 
             academic_year_name = request.form.get(
@@ -908,7 +923,6 @@ def edit_academic_year(academic_year_id):
                 or not end_date
                 or status not in allowed_statuses
             ):
-
                 return "Invalid academic year information."
 
 
@@ -958,7 +972,6 @@ def edit_academic_year(academic_year_id):
 
 
         if not academic_year:
-
             return "Academic year not found."
 
 
@@ -974,7 +987,6 @@ def edit_academic_year(academic_year_id):
             connection.rollback()
 
         return f"Database Error: {e}"
-
 
     finally:
 
@@ -1008,7 +1020,6 @@ def delete_academic_year(academic_year_id):
 
         cursor.execute("""
             DELETE FROM academic_year
-
             WHERE academic_year_id = %s
         """, (
             academic_year_id,
@@ -1049,9 +1060,7 @@ def change_academic_year_status(academic_year_id):
     if "admin_id" not in session:
         return redirect(url_for("auth.admin_login"))
 
-    status = request.form.get(
-        "status"
-    )
+    status = request.form.get("status")
 
     allowed_statuses = [
         "Current",
@@ -1060,7 +1069,6 @@ def change_academic_year_status(academic_year_id):
     ]
 
     if status not in allowed_statuses:
-
         return "Invalid academic year status."
 
 
@@ -1133,8 +1141,7 @@ def exam_types():
 
             FROM exam_type
 
-            ORDER BY
-                exam_type_name
+            ORDER BY exam_type_name
         """)
 
         exam_types = cursor.fetchall()
@@ -1176,7 +1183,6 @@ def add_exam_type():
     ).strip()
 
     if not exam_type_name:
-
         return redirect(
             url_for("admin.exam_types")
         )
@@ -1195,10 +1201,7 @@ def add_exam_type():
             (
                 exam_type_name
             )
-            VALUES
-            (
-                %s
-            )
+            VALUES (%s)
         """, (
             exam_type_name,
         ))
@@ -1246,7 +1249,6 @@ def edit_exam_type(exam_type_id):
         connection = get_connection()
         cursor = connection.cursor()
 
-
         if request.method == "POST":
 
             exam_type_name = request.form.get(
@@ -1268,7 +1270,6 @@ def edit_exam_type(exam_type_id):
                 not exam_type_name
                 or status not in allowed_statuses
             ):
-
                 return "Invalid exam type information."
 
 
@@ -1311,7 +1312,6 @@ def edit_exam_type(exam_type_id):
 
 
         if not exam_type:
-
             return "Exam type not found."
 
 
@@ -1327,7 +1327,6 @@ def edit_exam_type(exam_type_id):
             connection.rollback()
 
         return f"Database Error: {e}"
-
 
     finally:
 
@@ -1402,9 +1401,7 @@ def change_exam_type_status(exam_type_id):
     if "admin_id" not in session:
         return redirect(url_for("auth.admin_login"))
 
-    status = request.form.get(
-        "status"
-    )
+    status = request.form.get("status")
 
     allowed_statuses = [
         "Active",
@@ -1412,7 +1409,6 @@ def change_exam_type_status(exam_type_id):
     ]
 
     if status not in allowed_statuses:
-
         return "Invalid exam type status."
 
 
@@ -1476,7 +1472,6 @@ def semesters():
         connection = get_connection()
         cursor = connection.cursor()
 
-
         cursor.execute("""
             SELECT
                 s.semester_id,
@@ -1507,8 +1502,7 @@ def semesters():
 
             FROM course
 
-            ORDER BY
-                course_name
+            ORDER BY course_name
         """)
 
         courses = cursor.fetchall()
@@ -1560,7 +1554,6 @@ def add_semester():
         not course_id
         or not semester_number
     ):
-
         return "All semester fields are required."
 
 
@@ -1633,7 +1626,6 @@ def edit_semester(semester_id):
         connection = get_connection()
         cursor = connection.cursor()
 
-
         if request.method == "POST":
 
             course_id = request.form.get(
@@ -1648,7 +1640,6 @@ def edit_semester(semester_id):
                 not course_id
                 or not semester_number
             ):
-
                 return "All semester fields are required."
 
 
@@ -1692,6 +1683,10 @@ def edit_semester(semester_id):
         semester = cursor.fetchone()
 
 
+        if not semester:
+            return "Semester not found."
+
+
         cursor.execute("""
             SELECT
                 course_id,
@@ -1699,16 +1694,10 @@ def edit_semester(semester_id):
 
             FROM course
 
-            ORDER BY
-                course_name
+            ORDER BY course_name
         """)
 
         courses = cursor.fetchall()
-
-
-        if not semester:
-
-            return "Semester not found."
 
 
         return render_template(
@@ -1811,7 +1800,6 @@ def change_semester_status(semester_id):
     ]
 
     if status not in allowed_statuses:
-
         return "Invalid semester status."
 
 
@@ -1877,7 +1865,6 @@ def hod_accounts():
         connection = get_connection()
         cursor = connection.cursor()
 
-
         cursor.execute("""
             SELECT
                 h.hod_id,
@@ -1897,8 +1884,7 @@ def hod_accounts():
             INNER JOIN department d
                 ON h.department_id = d.department_id
 
-            ORDER BY
-                h.hod_id
+            ORDER BY h.hod_id
         """)
 
         hods = cursor.fetchall()
@@ -1913,8 +1899,7 @@ def hod_accounts():
 
             WHERE status = 'Active'
 
-            ORDER BY
-                department_name
+            ORDER BY department_name
         """)
 
         departments = cursor.fetchall()
@@ -1997,7 +1982,6 @@ def add_hod():
         or not username
         or not password
     ):
-
         return "All required HOD fields are required."
 
 
@@ -2093,7 +2077,6 @@ def edit_hod(hod_id):
         connection = get_connection()
         cursor = connection.cursor()
 
-
         if request.method == "POST":
 
             department_id = request.form.get(
@@ -2133,7 +2116,6 @@ def edit_hod(hod_id):
                 or not email
                 or not username
             ):
-
                 return "All required HOD fields are required."
 
 
@@ -2190,7 +2172,6 @@ def edit_hod(hod_id):
 
 
         if not hod:
-
             return "HOD account not found."
 
 
@@ -2203,8 +2184,7 @@ def edit_hod(hod_id):
 
             WHERE status = 'Active'
 
-            ORDER BY
-                department_name
+            ORDER BY department_name
         """)
 
         departments = cursor.fetchall()
@@ -2311,7 +2291,6 @@ def change_hod_status(hod_id):
     ]
 
     if account_status not in allowed_statuses:
-
         return "Invalid HOD account status."
 
 
@@ -2346,6 +2325,85 @@ def change_hod_status(hod_id):
 
         if connection:
             connection.rollback()
+
+        return f"Database Error: {e}"
+
+
+    finally:
+
+        if cursor:
+            cursor.close()
+
+        if connection:
+            connection.close()
+
+
+# ===========================================================
+# ALL STUDENTS
+# ===========================================================
+
+@admin_bp.route("/students")
+def all_students():
+
+    if "admin_id" not in session:
+        return redirect(url_for("auth.admin_login"))
+
+    connection = None
+    cursor = None
+
+    try:
+
+        connection = get_connection()
+        cursor = connection.cursor()
+
+        cursor.execute("""
+            SELECT
+                s.student_id,
+                s.register_number,
+                s.full_name,
+                s.email,
+                s.phone,
+                s.username,
+                s.account_status,
+                s.created_at,
+
+                c.course_id,
+                c.course_name,
+
+                sem.semester_id,
+                sem.semester_number,
+
+                d.department_id,
+                d.department_name
+
+            FROM student s
+
+            INNER JOIN course c
+                ON s.course_id = c.course_id
+
+            INNER JOIN semester sem
+                ON s.semester_id = sem.semester_id
+
+            INNER JOIN department d
+                ON c.department_id = d.department_id
+
+            ORDER BY
+                d.department_name,
+                c.course_name,
+                sem.semester_number,
+                s.full_name
+        """)
+
+        students = cursor.fetchall()
+
+
+        return render_template(
+            "admin/students.html",
+            students=students
+        )
+
+
+    except Exception as e:
 
         return f"Database Error: {e}"
 
@@ -2401,18 +2459,11 @@ def department_students(department_id):
 
 
         if not department:
-
             return "Department not found."
 
 
         # ===================================================
         # GET STUDENTS
-        #
-        # student
-        #    ↓
-        # course
-        #    ↓
-        # department
         # ===================================================
 
         cursor.execute("""
@@ -2422,7 +2473,9 @@ def department_students(department_id):
                 s.full_name,
                 s.email,
                 s.phone,
+                s.username,
                 s.account_status,
+                s.created_at,
 
                 c.course_id,
                 c.course_name,
@@ -2453,10 +2506,75 @@ def department_students(department_id):
 
         return render_template(
             "admin/department_students.html",
-
             department=department,
-
             students=students
+        )
+
+
+    except Exception as e:
+
+        return f"Database Error: {e}"
+
+
+    finally:
+
+        if cursor:
+            cursor.close()
+
+        if connection:
+            connection.close()
+
+
+# ===========================================================
+# ALL TEACHERS
+# ===========================================================
+
+@admin_bp.route("/teachers")
+def all_teachers():
+
+    if "admin_id" not in session:
+        return redirect(
+            url_for("auth.admin_login")
+        )
+
+    connection = None
+    cursor = None
+
+    try:
+
+        connection = get_connection()
+        cursor = connection.cursor()
+
+        cursor.execute("""
+            SELECT
+                t.teacher_id,
+                t.employee_id,
+                t.full_name,
+                t.email,
+                t.phone,
+                t.username,
+                t.account_status,
+                t.created_at,
+
+                t.department_id,
+
+                d.department_name
+
+            FROM teacher t
+
+            LEFT JOIN department d
+                ON t.department_id = d.department_id
+
+            ORDER BY
+                d.department_name,
+                t.full_name
+        """)
+
+        teachers = cursor.fetchall()
+
+        return render_template(
+            "admin/teachers.html",
+            teachers=teachers
         )
 
 
@@ -2484,7 +2602,9 @@ def department_students(department_id):
 def department_teachers(department_id):
 
     if "admin_id" not in session:
-        return redirect(url_for("auth.admin_login"))
+        return redirect(
+            url_for("auth.admin_login")
+        )
 
     connection = None
     cursor = None
@@ -2493,7 +2613,6 @@ def department_teachers(department_id):
 
         connection = get_connection()
         cursor = connection.cursor()
-
 
         # ===================================================
         # GET DEPARTMENT
@@ -2504,9 +2623,7 @@ def department_teachers(department_id):
                 department_id,
                 department_name,
                 status
-
             FROM department
-
             WHERE department_id = %s
         """, (
             department_id,
@@ -2514,14 +2631,22 @@ def department_teachers(department_id):
 
         department = cursor.fetchone()
 
-
         if not department:
-
             return "Department not found."
 
 
         # ===================================================
         # GET TEACHERS
+        # ===================================================
+        #
+        # IMPORTANT:
+        # teacher.department_id must match
+        # department.department_id
+        #
+        # Example:
+        # teacher.department_id = 6
+        # department.department_id = 6
+        #
         # ===================================================
 
         cursor.execute("""
@@ -2533,20 +2658,88 @@ def department_teachers(department_id):
                 t.phone,
                 t.username,
                 t.account_status,
-                t.created_at
+                t.created_at,
+                t.department_id,
+
+                d.department_id AS joined_department_id,
+                d.department_name
 
             FROM teacher t
+
+            LEFT JOIN department d
+                ON t.department_id = d.department_id
 
             WHERE t.department_id = %s
 
             ORDER BY
-                t.full_name
+                t.full_name ASC
         """, (
             department_id,
         ))
 
         teachers = cursor.fetchall()
 
+
+        # ===================================================
+        # DEBUG
+        # ===================================================
+
+        print()
+        print("==========================================")
+        print("DEPARTMENT-WISE TEACHER DEBUG")
+        print("==========================================")
+
+        print(
+            "Requested Department ID:",
+            department_id
+        )
+
+        print(
+            "Department:",
+            department
+        )
+
+        print(
+            "Number of Teachers:",
+            len(teachers)
+        )
+
+        for teacher in teachers:
+
+            print(
+                "Teacher ID:",
+                teacher["teacher_id"]
+            )
+
+            print(
+                "Employee ID:",
+                teacher["employee_id"]
+            )
+
+            print(
+                "Name:",
+                teacher["full_name"]
+            )
+
+            print(
+                "Teacher Department ID:",
+                teacher["department_id"]
+            )
+
+            print(
+                "Department Name:",
+                teacher["department_name"]
+            )
+
+            print("------------------------------------------")
+
+        print("==========================================")
+        print()
+
+
+        # ===================================================
+        # RENDER PAGE
+        # ===================================================
 
         return render_template(
             "admin/department_teachers.html",
@@ -2558,6 +2751,14 @@ def department_teachers(department_id):
 
 
     except Exception as e:
+
+        print()
+        print("==========================================")
+        print("DEPARTMENT TEACHER ERROR")
+        print("==========================================")
+        print(repr(e))
+        print("==========================================")
+        print()
 
         return f"Database Error: {e}"
 

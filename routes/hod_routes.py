@@ -1,7 +1,24 @@
+from flask import (
+    Blueprint,
+    render_template,
+    request,
+    redirect,
+    url_for,
+    session,
+    send_from_directory
+)
 
-from flask import Blueprint, render_template, request, redirect, url_for, session
 from database.db_connection import get_connection
-from werkzeug.security import check_password_hash, generate_password_hash
+
+from werkzeug.security import (
+    check_password_hash,
+    generate_password_hash
+)
+
+from werkzeug.utils import secure_filename
+
+import os
+import uuid
 
 
 # ===========================================================
@@ -16,6 +33,29 @@ hod_bp = Blueprint(
 
 
 # ===========================================================
+# SYLLABUS UPLOAD CONFIGURATION
+# ===========================================================
+
+SYLLABUS_UPLOAD_FOLDER = os.path.join(
+    "uploads",
+    "syllabus"
+)
+
+ALLOWED_SYLLABUS_EXTENSIONS = {
+    "pdf"
+}
+
+
+def allowed_syllabus_file(filename):
+
+    return (
+        "." in filename
+        and filename.rsplit(".", 1)[1].lower()
+        in ALLOWED_SYLLABUS_EXTENSIONS
+    )
+
+
+# ===========================================================
 # HOD DASHBOARD
 # ===========================================================
 
@@ -23,7 +63,9 @@ hod_bp = Blueprint(
 def dashboard():
 
     if "hod_id" not in session:
-        return redirect(url_for("auth.hod_login"))
+        return redirect(
+            url_for("auth.hod_login")
+        )
 
     connection = None
     cursor = None
@@ -38,7 +80,8 @@ def dashboard():
         # ---------------------------------------------------
 
         cursor.execute("""
-            SELECT department_name
+            SELECT
+                department_name
             FROM department
             WHERE department_id = %s
         """, (
@@ -52,7 +95,8 @@ def dashboard():
         # ---------------------------------------------------
 
         cursor.execute("""
-            SELECT COUNT(DISTINCT teacher_id) AS total
+            SELECT
+                COUNT(DISTINCT teacher_id) AS total
             FROM teacher
             WHERE department_id = %s
         """, (
@@ -66,7 +110,8 @@ def dashboard():
         # ---------------------------------------------------
 
         cursor.execute("""
-            SELECT COUNT(*) AS total
+            SELECT
+                COUNT(*) AS total
             FROM student st
 
             INNER JOIN course c
@@ -84,7 +129,8 @@ def dashboard():
         # ---------------------------------------------------
 
         cursor.execute("""
-            SELECT COUNT(*) AS total
+            SELECT
+                COUNT(*) AS total
             FROM subject s
 
             INNER JOIN course c
@@ -97,13 +143,47 @@ def dashboard():
 
         subject_result = cursor.fetchone()
 
+        # ---------------------------------------------------
+        # COUNT PENDING STUDENT APPROVALS
+        # ---------------------------------------------------
+
+        cursor.execute("""
+            SELECT
+                COUNT(*) AS total
+            FROM student st
+
+            INNER JOIN course c
+                ON st.course_id = c.course_id
+
+            WHERE c.department_id = %s
+              AND st.account_status = 'Pending'
+        """, (
+            session["hod_department_id"],
+        ))
+
+        pending_student_result = cursor.fetchone()
+
+        # ---------------------------------------------------
+        # RENDER DASHBOARD
+        # ---------------------------------------------------
+
         return render_template(
             "hod/dashboard.html",
-            hod_name=session.get("hod_name"),
+
+            hod_name=session.get(
+                "hod_name"
+            ),
+
             department=department,
+
             total_teachers=teacher_result["total"],
+
             total_students=student_result["total"],
-            total_subjects=subject_result["total"]
+
+            total_subjects=subject_result["total"],
+
+            pending_student_approvals=
+                pending_student_result["total"]
         )
 
     except Exception as e:
@@ -135,18 +215,15 @@ def logout():
 
 # ===========================================================
 # VIEW STUDENTS
-#
-# HOD CAN ONLY VIEW STUDENTS FROM HIS/HER DEPARTMENT.
-#
-# STUDENT APPROVAL IS NOT DONE BY HOD.
-# TEACHER WILL APPROVE STUDENTS.
 # ===========================================================
 
 @hod_bp.route("/students")
 def students():
 
     if "hod_id" not in session:
-        return redirect(url_for("auth.hod_login"))
+        return redirect(
+            url_for("auth.hod_login")
+        )
 
     connection = None
     cursor = None
@@ -164,7 +241,10 @@ def students():
                 st.email,
                 st.phone,
                 st.account_status,
+                st.created_at,
+
                 c.course_name,
+
                 sem.semester_number
 
             FROM student st
@@ -178,8 +258,23 @@ def students():
             WHERE c.department_id = %s
 
             ORDER BY
+                CASE
+                    WHEN st.account_status = 'Pending'
+                        THEN 1
+
+                    WHEN st.account_status = 'Active'
+                        THEN 2
+
+                    WHEN st.account_status = 'Inactive'
+                        THEN 3
+
+                    ELSE 4
+                END,
+
                 c.course_name,
+
                 sem.semester_number,
+
                 st.full_name
 
         """, (
@@ -196,6 +291,371 @@ def students():
     except Exception as e:
 
         return f"Database Error: {e}"
+
+    finally:
+
+        if cursor:
+            cursor.close()
+
+        if connection:
+            connection.close()
+
+
+# ===========================================================
+# STUDENT APPROVALS
+# ===========================================================
+
+@hod_bp.route("/student-approvals")
+def student_approvals():
+
+    if "hod_id" not in session:
+        return redirect(
+            url_for("auth.hod_login")
+        )
+
+    connection = None
+    cursor = None
+
+    try:
+
+        connection = get_connection()
+        cursor = connection.cursor()
+
+        cursor.execute("""
+            SELECT
+                st.student_id,
+                st.register_number,
+                st.full_name,
+                st.email,
+                st.phone,
+                st.account_status,
+                st.created_at,
+
+                c.course_id,
+                c.course_name,
+
+                sem.semester_id,
+                sem.semester_number
+
+            FROM student st
+
+            INNER JOIN course c
+                ON st.course_id = c.course_id
+
+            INNER JOIN semester sem
+                ON st.semester_id = sem.semester_id
+
+            WHERE c.department_id = %s
+
+            ORDER BY
+
+                CASE
+                    WHEN st.account_status = 'Pending'
+                        THEN 1
+
+                    WHEN st.account_status = 'Active'
+                        THEN 2
+
+                    WHEN st.account_status = 'Inactive'
+                        THEN 3
+
+                    ELSE 4
+                END,
+
+                c.course_name,
+
+                sem.semester_number,
+
+                st.full_name
+
+        """, (
+            session["hod_department_id"],
+        ))
+
+        students = cursor.fetchall()
+
+        # ---------------------------------------------------
+        # COUNT PENDING
+        # ---------------------------------------------------
+
+        cursor.execute("""
+            SELECT
+                COUNT(*) AS total
+
+            FROM student st
+
+            INNER JOIN course c
+                ON st.course_id = c.course_id
+
+            WHERE c.department_id = %s
+              AND st.account_status = 'Pending'
+
+        """, (
+            session["hod_department_id"],
+        ))
+
+        pending_result = cursor.fetchone()
+
+        # ---------------------------------------------------
+        # COUNT APPROVED
+        # ---------------------------------------------------
+
+        cursor.execute("""
+            SELECT
+                COUNT(*) AS total
+
+            FROM student st
+
+            INNER JOIN course c
+                ON st.course_id = c.course_id
+
+            WHERE c.department_id = %s
+              AND st.account_status = 'Active'
+
+        """, (
+            session["hod_department_id"],
+        ))
+
+        approved_result = cursor.fetchone()
+
+        # ---------------------------------------------------
+        # COUNT REJECTED
+        # ---------------------------------------------------
+
+        cursor.execute("""
+            SELECT
+                COUNT(*) AS total
+
+            FROM student st
+
+            INNER JOIN course c
+                ON st.course_id = c.course_id
+
+            WHERE c.department_id = %s
+              AND st.account_status = 'Inactive'
+
+        """, (
+            session["hod_department_id"],
+        ))
+
+        rejected_result = cursor.fetchone()
+
+        return render_template(
+            "hod/student_approvals.html",
+
+            students=students,
+
+            pending_students=
+                pending_result["total"],
+
+            approved_students=
+                approved_result["total"],
+
+            rejected_students=
+                rejected_result["total"]
+        )
+
+    except Exception as e:
+
+        return f"Database Error: {e}"
+
+    finally:
+
+        if cursor:
+            cursor.close()
+
+        if connection:
+            connection.close()
+
+
+# ===========================================================
+# APPROVE STUDENT
+# ===========================================================
+
+@hod_bp.route(
+    "/student-approvals/approve/<int:student_id>",
+    methods=["POST"]
+)
+def approve_student(student_id):
+
+    if "hod_id" not in session:
+        return redirect(
+            url_for("auth.hod_login")
+        )
+
+    connection = None
+    cursor = None
+
+    try:
+
+        connection = get_connection()
+        cursor = connection.cursor()
+
+        cursor.execute("""
+            UPDATE student st
+
+            INNER JOIN course c
+                ON st.course_id = c.course_id
+
+            SET
+                st.account_status = 'Active'
+
+            WHERE st.student_id = %s
+              AND c.department_id = %s
+              AND st.account_status = 'Pending'
+
+        """, (
+            student_id,
+            session["hod_department_id"]
+        ))
+
+        connection.commit()
+
+        return redirect(
+            url_for("hod.student_approvals")
+        )
+
+    except Exception as e:
+
+        if connection:
+            connection.rollback()
+
+        return f"Error approving student: {e}"
+
+    finally:
+
+        if cursor:
+            cursor.close()
+
+        if connection:
+            connection.close()
+
+
+# ===========================================================
+# REJECT STUDENT
+# ===========================================================
+
+@hod_bp.route(
+    "/student-approvals/reject/<int:student_id>",
+    methods=["POST"]
+)
+def reject_student(student_id):
+
+    if "hod_id" not in session:
+        return redirect(
+            url_for("auth.hod_login")
+        )
+
+    connection = None
+    cursor = None
+
+    try:
+
+        connection = get_connection()
+        cursor = connection.cursor()
+
+        cursor.execute("""
+            UPDATE student st
+
+            INNER JOIN course c
+                ON st.course_id = c.course_id
+
+            SET
+                st.account_status = 'Inactive'
+
+            WHERE st.student_id = %s
+              AND c.department_id = %s
+              AND st.account_status = 'Pending'
+
+        """, (
+            student_id,
+            session["hod_department_id"]
+        ))
+
+        connection.commit()
+
+        return redirect(
+            url_for("hod.student_approvals")
+        )
+
+    except Exception as e:
+
+        if connection:
+            connection.rollback()
+
+        return f"Error rejecting student: {e}"
+
+    finally:
+
+        if cursor:
+            cursor.close()
+
+        if connection:
+            connection.close()
+
+
+# ===========================================================
+# CHANGE STUDENT STATUS
+# ===========================================================
+
+@hod_bp.route(
+    "/student-approvals/status/<int:student_id>",
+    methods=["POST"]
+)
+def change_student_status(student_id):
+
+    if "hod_id" not in session:
+        return redirect(
+            url_for("auth.hod_login")
+        )
+
+    status = request.form.get("status")
+
+    if status not in [
+        "Active",
+        "Inactive"
+    ]:
+
+        return "Invalid student status."
+
+    connection = None
+    cursor = None
+
+    try:
+
+        connection = get_connection()
+        cursor = connection.cursor()
+
+        cursor.execute("""
+            UPDATE student st
+
+            INNER JOIN course c
+                ON st.course_id = c.course_id
+
+            SET
+                st.account_status = %s
+
+            WHERE st.student_id = %s
+              AND c.department_id = %s
+
+        """, (
+            status,
+            student_id,
+            session["hod_department_id"]
+        ))
+
+        connection.commit()
+
+        return redirect(
+            url_for("hod.student_approvals")
+        )
+
+    except Exception as e:
+
+        if connection:
+            connection.rollback()
+
+        return f"Error changing student status: {e}"
 
     finally:
 
@@ -307,7 +767,8 @@ def approve_teacher(teacher_id):
         cursor.execute("""
             UPDATE teacher
 
-            SET account_status = 'Active'
+            SET
+                account_status = 'Active'
 
             WHERE teacher_id = %s
               AND department_id = %s
@@ -370,7 +831,8 @@ def reject_teacher(teacher_id):
         cursor.execute("""
             UPDATE teacher
 
-            SET account_status = 'Inactive'
+            SET
+                account_status = 'Inactive'
 
             WHERE teacher_id = %s
               AND department_id = %s
@@ -442,7 +904,8 @@ def change_teacher_status(teacher_id):
         cursor.execute("""
             UPDATE teacher
 
-            SET account_status = %s
+            SET
+                account_status = %s
 
             WHERE teacher_id = %s
               AND department_id = %s
@@ -589,25 +1052,11 @@ def edit_teacher(teacher_id):
 
         if request.method == "POST":
 
-            employee_id = request.form.get(
-                "employee_id"
-            )
-
-            full_name = request.form.get(
-                "full_name"
-            )
-
-            email = request.form.get(
-                "email"
-            )
-
-            phone = request.form.get(
-                "phone"
-            )
-
-            username = request.form.get(
-                "username"
-            )
+            employee_id = request.form.get("employee_id")
+            full_name = request.form.get("full_name")
+            email = request.form.get("email")
+            phone = request.form.get("phone")
+            username = request.form.get("username")
 
             cursor.execute("""
                 UPDATE teacher
@@ -661,15 +1110,6 @@ def edit_teacher(teacher_id):
 
 # ===========================================================
 # TEACHER SUBJECT ASSIGNMENTS
-#
-# HOD CAN:
-#   - VIEW ASSIGNMENTS
-#   - ADD ASSIGNMENTS
-#   - EDIT ASSIGNMENTS
-#   - DELETE ASSIGNMENTS
-#   - ACTIVATE/DEACTIVATE ASSIGNMENTS
-#
-# ACADEMIC YEAR IS AUTOMATICALLY SELECTED.
 # ===========================================================
 
 @hod_bp.route("/teacher-assignments")
@@ -687,10 +1127,6 @@ def teacher_assignments():
 
         connection = get_connection()
         cursor = connection.cursor()
-
-        # ---------------------------------------------------
-        # GET ACTIVE TEACHERS
-        # ---------------------------------------------------
 
         cursor.execute("""
             SELECT
@@ -710,10 +1146,6 @@ def teacher_assignments():
         ))
 
         teachers = cursor.fetchall()
-
-        # ---------------------------------------------------
-        # GET ACTIVE SUBJECTS
-        # ---------------------------------------------------
 
         cursor.execute("""
             SELECT
@@ -744,10 +1176,6 @@ def teacher_assignments():
         ))
 
         subjects = cursor.fetchall()
-
-        # ---------------------------------------------------
-        # GET ASSIGNMENTS
-        # ---------------------------------------------------
 
         cursor.execute("""
             SELECT
@@ -822,9 +1250,6 @@ def teacher_assignments():
 
 # ===========================================================
 # ADD TEACHER SUBJECT ASSIGNMENT
-#
-# ACADEMIC YEAR IS AUTOMATICALLY SELECTED FROM:
-# academic_year WHERE status = 'Current'
 # ===========================================================
 
 @hod_bp.route(
@@ -838,13 +1263,8 @@ def add_teacher_assignment():
             url_for("auth.hod_login")
         )
 
-    teacher_id = request.form.get(
-        "teacher_id"
-    )
-
-    subject_id = request.form.get(
-        "subject_id"
-    )
+    teacher_id = request.form.get("teacher_id")
+    subject_id = request.form.get("subject_id")
 
     if not teacher_id or not subject_id:
         return "Teacher and subject are required."
@@ -856,10 +1276,6 @@ def add_teacher_assignment():
 
         connection = get_connection()
         cursor = connection.cursor()
-
-        # ---------------------------------------------------
-        # GET CURRENT ACADEMIC YEAR
-        # ---------------------------------------------------
 
         cursor.execute("""
             SELECT
@@ -884,13 +1300,7 @@ def add_teacher_assignment():
                 "Please contact the administrator."
             )
 
-        academic_year_id = current_year[
-            "academic_year_id"
-        ]
-
-        # ---------------------------------------------------
-        # CHECK TEACHER
-        # ---------------------------------------------------
+        academic_year_id = current_year["academic_year_id"]
 
         cursor.execute("""
             SELECT
@@ -915,10 +1325,6 @@ def add_teacher_assignment():
                 "Invalid teacher or teacher does not "
                 "belong to your department."
             )
-
-        # ---------------------------------------------------
-        # CHECK SUBJECT
-        # ---------------------------------------------------
 
         cursor.execute("""
             SELECT
@@ -947,10 +1353,6 @@ def add_teacher_assignment():
                 "belong to your department."
             )
 
-        # ---------------------------------------------------
-        # CHECK DUPLICATE ASSIGNMENT
-        # ---------------------------------------------------
-
         cursor.execute("""
             SELECT
                 assignment_id
@@ -975,10 +1377,6 @@ def add_teacher_assignment():
                 "This teacher is already assigned to this "
                 "subject for the current academic year."
             )
-
-        # ---------------------------------------------------
-        # CREATE ASSIGNMENT
-        # ---------------------------------------------------
 
         cursor.execute("""
             INSERT INTO teacher_subject_assignment
@@ -1051,10 +1449,6 @@ def edit_teacher_assignment(assignment_id):
         connection = get_connection()
         cursor = connection.cursor()
 
-        # ---------------------------------------------------
-        # GET ASSIGNMENT
-        # ---------------------------------------------------
-
         cursor.execute("""
             SELECT
                 tsa.assignment_id,
@@ -1088,10 +1482,6 @@ def edit_teacher_assignment(assignment_id):
                 "not belong to your department."
             )
 
-        # ---------------------------------------------------
-        # GET ACTIVE TEACHERS
-        # ---------------------------------------------------
-
         cursor.execute("""
             SELECT
                 teacher_id,
@@ -1110,10 +1500,6 @@ def edit_teacher_assignment(assignment_id):
         ))
 
         teachers = cursor.fetchall()
-
-        # ---------------------------------------------------
-        # GET ACTIVE SUBJECTS
-        # ---------------------------------------------------
 
         cursor.execute("""
             SELECT
@@ -1145,27 +1531,14 @@ def edit_teacher_assignment(assignment_id):
 
         subjects = cursor.fetchall()
 
-        # ---------------------------------------------------
-        # UPDATE ASSIGNMENT
-        # ---------------------------------------------------
-
         if request.method == "POST":
 
-            teacher_id = request.form.get(
-                "teacher_id"
-            )
-
-            subject_id = request.form.get(
-                "subject_id"
-            )
+            teacher_id = request.form.get("teacher_id")
+            subject_id = request.form.get("subject_id")
 
             if not teacher_id or not subject_id:
 
                 return "Teacher and subject are required."
-
-            # -----------------------------------------------
-            # VERIFY TEACHER
-            # -----------------------------------------------
 
             cursor.execute("""
                 SELECT
@@ -1190,10 +1563,6 @@ def edit_teacher_assignment(assignment_id):
                     "Invalid teacher or teacher does not "
                     "belong to your department."
                 )
-
-            # -----------------------------------------------
-            # VERIFY SUBJECT
-            # -----------------------------------------------
 
             cursor.execute("""
                 SELECT
@@ -1222,10 +1591,6 @@ def edit_teacher_assignment(assignment_id):
                     "belong to your department."
                 )
 
-            # -----------------------------------------------
-            # CHECK DUPLICATE
-            # -----------------------------------------------
-
             cursor.execute("""
                 SELECT
                     assignment_id
@@ -1252,10 +1617,6 @@ def edit_teacher_assignment(assignment_id):
                     "This teacher is already assigned to "
                     "this subject for this academic year."
                 )
-
-            # -----------------------------------------------
-            # UPDATE
-            # -----------------------------------------------
 
             cursor.execute("""
                 UPDATE teacher_subject_assignment
@@ -1324,10 +1685,6 @@ def delete_teacher_assignment(assignment_id):
         connection = get_connection()
         cursor = connection.cursor()
 
-        # ---------------------------------------------------
-        # CHECK ASSIGNMENT BELONGS TO HOD DEPARTMENT
-        # ---------------------------------------------------
-
         cursor.execute("""
             SELECT
                 tsa.assignment_id
@@ -1357,10 +1714,6 @@ def delete_teacher_assignment(assignment_id):
                 "not belong to your department."
             )
 
-        # ---------------------------------------------------
-        # CHECK QUESTION PAPERS
-        # ---------------------------------------------------
-
         cursor.execute("""
             SELECT
                 question_paper_id
@@ -1375,19 +1728,13 @@ def delete_teacher_assignment(assignment_id):
             assignment_id,
         ))
 
-        question_paper = cursor.fetchone()
-
-        if question_paper:
+        if cursor.fetchone():
 
             return (
                 "This assignment cannot be deleted because "
                 "question papers are already linked to it. "
                 "Deactivate the assignment instead."
             )
-
-        # ---------------------------------------------------
-        # CHECK STUDY MATERIALS
-        # ---------------------------------------------------
 
         cursor.execute("""
             SELECT
@@ -1403,19 +1750,13 @@ def delete_teacher_assignment(assignment_id):
             assignment_id,
         ))
 
-        study_material = cursor.fetchone()
-
-        if study_material:
+        if cursor.fetchone():
 
             return (
                 "This assignment cannot be deleted because "
                 "study materials are already linked to it. "
                 "Deactivate the assignment instead."
             )
-
-        # ---------------------------------------------------
-        # DELETE ASSIGNMENT
-        # ---------------------------------------------------
 
         cursor.execute("""
             DELETE FROM teacher_subject_assignment
@@ -1463,9 +1804,7 @@ def change_assignment_status(assignment_id):
             url_for("auth.hod_login")
         )
 
-    status = request.form.get(
-        "status"
-    )
+    status = request.form.get("status")
 
     if status not in [
         "Active",
@@ -1491,7 +1830,8 @@ def change_assignment_status(assignment_id):
             INNER JOIN course c
                 ON s.course_id = c.course_id
 
-            SET tsa.status = %s
+            SET
+                tsa.status = %s
 
             WHERE tsa.assignment_id = %s
               AND c.department_id = %s
@@ -1591,7 +1931,8 @@ def approve_papers():
 
             WHERE c.department_id = %s
 
-            ORDER BY qp.upload_date DESC
+            ORDER BY
+                qp.upload_date DESC
 
         """, (
             session["hod_department_id"],
@@ -1652,7 +1993,8 @@ def approve_question_paper(question_paper_id):
             INNER JOIN course c
                 ON s.course_id = c.course_id
 
-            SET qp.approved_by_hod = 1
+            SET
+                qp.approved_by_hod = 1
 
             WHERE qp.question_paper_id = %s
               AND c.department_id = %s
@@ -1747,7 +2089,8 @@ def approve_materials():
 
             WHERE c.department_id = %s
 
-            ORDER BY sm.upload_date DESC
+            ORDER BY
+                sm.upload_date DESC
 
         """, (
             session["hod_department_id"],
@@ -1808,7 +2151,8 @@ def approve_study_material(study_material_id):
             INNER JOIN course c
                 ON s.course_id = c.course_id
 
-            SET sm.approved_by_hod = 1
+            SET
+                sm.approved_by_hod = 1
 
             WHERE sm.study_material_id = %s
               AND c.department_id = %s
@@ -1861,10 +2205,6 @@ def manage_subjects():
         connection = get_connection()
         cursor = connection.cursor()
 
-        # ---------------------------------------------------
-        # GET COURSES
-        # ---------------------------------------------------
-
         cursor.execute("""
             SELECT
                 course_id,
@@ -1882,10 +2222,6 @@ def manage_subjects():
 
         courses = cursor.fetchall()
 
-        # ---------------------------------------------------
-        # GET SEMESTERS
-        # ---------------------------------------------------
-
         cursor.execute("""
             SELECT
                 semester_id,
@@ -1898,10 +2234,6 @@ def manage_subjects():
         """)
 
         semesters = cursor.fetchall()
-
-        # ---------------------------------------------------
-        # GET SUBJECTS
-        # ---------------------------------------------------
 
         cursor.execute("""
             SELECT
@@ -1971,25 +2303,11 @@ def add_subject():
             url_for("auth.hod_login")
         )
 
-    course_id = request.form.get(
-        "course_id"
-    )
-
-    semester_id = request.form.get(
-        "semester_id"
-    )
-
-    subject_code = request.form.get(
-        "subject_code"
-    )
-
-    subject_name = request.form.get(
-        "subject_name"
-    )
-
-    credits = request.form.get(
-        "credits"
-    )
+    course_id = request.form.get("course_id")
+    semester_id = request.form.get("semester_id")
+    subject_code = request.form.get("subject_code")
+    subject_name = request.form.get("subject_name")
+    credits = request.form.get("credits")
 
     if (
         not course_id
@@ -2009,10 +2327,6 @@ def add_subject():
         connection = get_connection()
         cursor = connection.cursor()
 
-        # ---------------------------------------------------
-        # VERIFY COURSE
-        # ---------------------------------------------------
-
         cursor.execute("""
             SELECT
                 course_id
@@ -2027,15 +2341,8 @@ def add_subject():
             session["hod_department_id"]
         ))
 
-        course = cursor.fetchone()
-
-        if not course:
-
+        if not cursor.fetchone():
             return "Invalid course."
-
-        # ---------------------------------------------------
-        # VERIFY SEMESTER
-        # ---------------------------------------------------
 
         cursor.execute("""
             SELECT
@@ -2049,15 +2356,8 @@ def add_subject():
             semester_id,
         ))
 
-        semester = cursor.fetchone()
-
-        if not semester:
-
+        if not cursor.fetchone():
             return "Invalid semester."
-
-        # ---------------------------------------------------
-        # CHECK DUPLICATE SUBJECT CODE
-        # ---------------------------------------------------
 
         cursor.execute("""
             SELECT
@@ -2076,18 +2376,12 @@ def add_subject():
             session["hod_department_id"]
         ))
 
-        existing_subject = cursor.fetchone()
-
-        if existing_subject:
+        if cursor.fetchone():
 
             return (
                 "This subject code already exists "
                 "in your department."
             )
-
-        # ---------------------------------------------------
-        # ADD SUBJECT
-        # ---------------------------------------------------
 
         cursor.execute("""
             INSERT INTO subject
@@ -2155,9 +2449,7 @@ def change_subject_status(subject_id):
             url_for("auth.hod_login")
         )
 
-    status = request.form.get(
-        "status"
-    )
+    status = request.form.get("status")
 
     if status not in [
         "Active",
@@ -2180,7 +2472,8 @@ def change_subject_status(subject_id):
             INNER JOIN course c
                 ON s.course_id = c.course_id
 
-            SET s.status = %s
+            SET
+                s.status = %s
 
             WHERE s.subject_id = %s
               AND c.department_id = %s
@@ -2262,7 +2555,6 @@ def edit_subject(subject_id):
         subject = cursor.fetchone()
 
         if not subject:
-
             return "Subject not found."
 
         cursor.execute("""
@@ -2297,25 +2589,11 @@ def edit_subject(subject_id):
 
         if request.method == "POST":
 
-            course_id = request.form.get(
-                "course_id"
-            )
-
-            semester_id = request.form.get(
-                "semester_id"
-            )
-
-            subject_code = request.form.get(
-                "subject_code"
-            )
-
-            subject_name = request.form.get(
-                "subject_name"
-            )
-
-            credits = request.form.get(
-                "credits"
-            )
+            course_id = request.form.get("course_id")
+            semester_id = request.form.get("semester_id")
+            subject_code = request.form.get("subject_code")
+            subject_name = request.form.get("subject_name")
+            credits = request.form.get("credits")
 
             if (
                 not course_id
@@ -2342,7 +2620,6 @@ def edit_subject(subject_id):
             ))
 
             if not cursor.fetchone():
-
                 return "Invalid course."
 
             cursor.execute("""
@@ -2358,7 +2635,6 @@ def edit_subject(subject_id):
             ))
 
             if not cursor.fetchone():
-
                 return "Invalid semester."
 
             cursor.execute("""
@@ -2486,7 +2762,6 @@ def delete_subject(subject_id):
         subject = cursor.fetchone()
 
         if not subject:
-
             return "Subject not found."
 
         cursor.execute("""
@@ -2543,6 +2818,713 @@ def delete_subject(subject_id):
 
 
 # ===========================================================
+# HOD SYLLABUS MANAGEMENT
+# ===========================================================
+
+
+# ===========================================================
+# VIEW / MANAGE SYLLABI
+# ===========================================================
+
+@hod_bp.route("/syllabus")
+def manage_syllabus():
+
+    if "hod_id" not in session:
+        return redirect(
+            url_for("auth.hod_login")
+        )
+
+    connection = None
+    cursor = None
+
+    try:
+
+        connection = get_connection()
+        cursor = connection.cursor()
+
+        cursor.execute("""
+            SELECT
+                s.syllabus_id,
+                s.department_id,
+                s.title,
+                s.file_name,
+                s.file_path,
+                s.status,
+                s.uploaded_by_hod,
+                s.uploaded_at,
+
+                d.department_name,
+
+                h.full_name AS hod_name
+
+            FROM syllabus s
+
+            INNER JOIN department d
+                ON s.department_id = d.department_id
+
+            LEFT JOIN hod h
+                ON s.uploaded_by_hod = h.hod_id
+
+            WHERE s.department_id = %s
+
+            ORDER BY
+                s.uploaded_at DESC
+
+        """, (
+            session["hod_department_id"],
+        ))
+
+        syllabi = cursor.fetchall()
+
+        cursor.execute("""
+            SELECT
+                department_name
+
+            FROM department
+
+            WHERE department_id = %s
+
+        """, (
+            session["hod_department_id"],
+        ))
+
+        department = cursor.fetchone()
+
+        return render_template(
+            "hod/syllabus.html",
+            syllabi=syllabi,
+            department=department
+        )
+
+    except Exception as e:
+
+        return f"Database Error: {e}"
+
+    finally:
+
+        if cursor:
+            cursor.close()
+
+        if connection:
+            connection.close()
+
+
+# ===========================================================
+# IMPORTANT:
+# SYLLABUS ENDPOINT ALIAS
+#
+# Your dashboard can use:
+#
+#     url_for("hod.syllabus")
+#
+# Existing Python code can still use:
+#
+#     url_for("hod.manage_syllabus")
+#
+# Both point to the same page.
+# ===========================================================
+
+hod_bp.add_url_rule(
+    "/syllabus",
+    endpoint="syllabus",
+    view_func=manage_syllabus
+)
+
+
+# ===========================================================
+# UPLOAD SYLLABUS PDF
+# ===========================================================
+
+@hod_bp.route(
+    "/syllabus/upload",
+    methods=["POST"]
+)
+def upload_syllabus():
+
+    if "hod_id" not in session:
+        return redirect(
+            url_for("auth.hod_login")
+        )
+
+    title = request.form.get(
+        "title",
+        ""
+    ).strip()
+
+    syllabus_file = request.files.get(
+        "syllabus_file"
+    )
+
+    # -------------------------------------------------------
+    # VALIDATE TITLE
+    # -------------------------------------------------------
+
+    if not title:
+
+        return render_template(
+            "hod/syllabus.html",
+            syllabi=[],
+            error="Syllabus title is required."
+        )
+
+    # -------------------------------------------------------
+    # VALIDATE FILE
+    # -------------------------------------------------------
+
+    if not syllabus_file:
+
+        return render_template(
+            "hod/syllabus.html",
+            syllabi=[],
+            error="Please select a PDF file."
+        )
+
+    if syllabus_file.filename == "":
+
+        return render_template(
+            "hod/syllabus.html",
+            syllabi=[],
+            error="Please select a PDF file."
+        )
+
+    if not allowed_syllabus_file(
+        syllabus_file.filename
+    ):
+
+        return render_template(
+            "hod/syllabus.html",
+            syllabi=[],
+            error="Only PDF files are allowed."
+        )
+
+    connection = None
+    cursor = None
+    file_path = None
+
+    try:
+
+        connection = get_connection()
+        cursor = connection.cursor()
+
+        # ---------------------------------------------------
+        # GET HOD DEPARTMENT
+        # ---------------------------------------------------
+
+        cursor.execute("""
+            SELECT
+                department_id
+
+            FROM hod
+
+            WHERE hod_id = %s
+
+        """, (
+            session["hod_id"],
+        ))
+
+        hod = cursor.fetchone()
+
+        if not hod:
+
+            return "HOD account not found."
+
+        hod_department_id = hod[
+            "department_id"
+        ]
+
+        # ---------------------------------------------------
+        # SECURITY:
+        # NEVER TAKE DEPARTMENT ID FROM FORM.
+        # ALWAYS USE HOD'S OWN DEPARTMENT.
+        # ---------------------------------------------------
+
+        original_filename = secure_filename(
+            syllabus_file.filename
+        )
+
+        if not original_filename:
+
+            return "Invalid file name."
+
+        # ---------------------------------------------------
+        # CREATE UPLOAD DIRECTORY
+        # ---------------------------------------------------
+
+        upload_folder = os.path.join(
+            os.getcwd(),
+            SYLLABUS_UPLOAD_FOLDER
+        )
+
+        os.makedirs(
+            upload_folder,
+            exist_ok=True
+        )
+
+        # ---------------------------------------------------
+        # GENERATE UNIQUE FILE NAME
+        # ---------------------------------------------------
+
+        unique_filename = (
+            str(uuid.uuid4())
+            + "_"
+            + original_filename
+        )
+
+        file_path = os.path.join(
+            upload_folder,
+            unique_filename
+        )
+
+        # ---------------------------------------------------
+        # SAVE FILE
+        # ---------------------------------------------------
+
+        syllabus_file.save(
+            file_path
+        )
+
+        # ---------------------------------------------------
+        # DATABASE PATH
+        # ---------------------------------------------------
+
+        database_file_path = os.path.join(
+            "syllabus",
+            unique_filename
+        ).replace("\\", "/")
+
+        # ---------------------------------------------------
+        # INSERT SYLLABUS
+        # ---------------------------------------------------
+
+        cursor.execute("""
+            INSERT INTO syllabus
+            (
+                department_id,
+                title,
+                file_name,
+                file_path,
+                status,
+                uploaded_by_hod
+            )
+
+            VALUES
+            (
+                %s,
+                %s,
+                %s,
+                %s,
+                'Active',
+                %s
+            )
+
+        """, (
+            hod_department_id,
+            title,
+            original_filename,
+            database_file_path,
+            session["hod_id"]
+        ))
+
+        connection.commit()
+
+        return redirect(
+            url_for("hod.manage_syllabus")
+        )
+
+    except Exception as e:
+
+        if connection:
+            connection.rollback()
+
+        # ---------------------------------------------------
+        # REMOVE FILE IF DATABASE INSERT FAILED
+        # ---------------------------------------------------
+
+        try:
+
+            if (
+                file_path
+                and os.path.exists(file_path)
+            ):
+
+                os.remove(file_path)
+
+        except Exception:
+            pass
+
+        return f"Error uploading syllabus: {e}"
+
+    finally:
+
+        if cursor:
+            cursor.close()
+
+        if connection:
+            connection.close()
+
+
+# ===========================================================
+# VIEW SYLLABUS PDF
+# ===========================================================
+
+@hod_bp.route(
+    "/syllabus/view/<int:syllabus_id>"
+)
+def view_syllabus(syllabus_id):
+
+    if "hod_id" not in session:
+        return redirect(
+            url_for("auth.hod_login")
+        )
+
+    connection = None
+    cursor = None
+
+    try:
+
+        connection = get_connection()
+        cursor = connection.cursor()
+
+        cursor.execute("""
+            SELECT
+                syllabus_id,
+                file_name,
+                file_path
+
+            FROM syllabus
+
+            WHERE syllabus_id = %s
+              AND department_id = %s
+
+        """, (
+            syllabus_id,
+            session["hod_department_id"]
+        ))
+
+        syllabus = cursor.fetchone()
+
+        if not syllabus:
+
+            return (
+                "Syllabus not found or you are not "
+                "authorized to view it."
+            )
+
+        stored_file_path = syllabus[
+            "file_path"
+        ]
+
+        filename = os.path.basename(
+            stored_file_path
+        )
+
+        upload_folder = os.path.join(
+            os.getcwd(),
+            SYLLABUS_UPLOAD_FOLDER
+        )
+
+        actual_file = os.path.join(
+            upload_folder,
+            filename
+        )
+
+        if not os.path.exists(actual_file):
+
+            return (
+                "Syllabus PDF file was not found "
+                "on the server."
+            )
+
+        return send_from_directory(
+            upload_folder,
+            filename,
+            as_attachment=False
+        )
+
+    except Exception as e:
+
+        return f"Error viewing syllabus: {e}"
+
+    finally:
+
+        if cursor:
+            cursor.close()
+
+        if connection:
+            connection.close()
+
+
+# ===========================================================
+# DOWNLOAD SYLLABUS PDF
+# ===========================================================
+
+@hod_bp.route(
+    "/syllabus/download/<int:syllabus_id>"
+)
+def download_syllabus(syllabus_id):
+
+    if "hod_id" not in session:
+        return redirect(
+            url_for("auth.hod_login")
+        )
+
+    connection = None
+    cursor = None
+
+    try:
+
+        connection = get_connection()
+        cursor = connection.cursor()
+
+        cursor.execute("""
+            SELECT
+                syllabus_id,
+                file_name,
+                file_path
+
+            FROM syllabus
+
+            WHERE syllabus_id = %s
+              AND department_id = %s
+
+        """, (
+            syllabus_id,
+            session["hod_department_id"]
+        ))
+
+        syllabus = cursor.fetchone()
+
+        if not syllabus:
+
+            return (
+                "Syllabus not found or you are not "
+                "authorized to download it."
+            )
+
+        filename = os.path.basename(
+            syllabus["file_path"]
+        )
+
+        upload_folder = os.path.join(
+            os.getcwd(),
+            SYLLABUS_UPLOAD_FOLDER
+        )
+
+        actual_file = os.path.join(
+            upload_folder,
+            filename
+        )
+
+        if not os.path.exists(actual_file):
+
+            return "Syllabus PDF file was not found."
+
+        return send_from_directory(
+            upload_folder,
+            filename,
+            as_attachment=True,
+            download_name=syllabus["file_name"]
+        )
+
+    except Exception as e:
+
+        return f"Error downloading syllabus: {e}"
+
+    finally:
+
+        if cursor:
+            cursor.close()
+
+        if connection:
+            connection.close()
+
+
+# ===========================================================
+# ACTIVATE / DEACTIVATE SYLLABUS
+# ===========================================================
+
+@hod_bp.route(
+    "/syllabus/status/<int:syllabus_id>",
+    methods=["POST"]
+)
+def change_syllabus_status(syllabus_id):
+
+    if "hod_id" not in session:
+        return redirect(
+            url_for("auth.hod_login")
+        )
+
+    status = request.form.get(
+        "status"
+    )
+
+    if status not in [
+        "Active",
+        "Inactive"
+    ]:
+
+        return "Invalid syllabus status."
+
+    connection = None
+    cursor = None
+
+    try:
+
+        connection = get_connection()
+        cursor = connection.cursor()
+
+        cursor.execute("""
+            UPDATE syllabus
+
+            SET
+                status = %s
+
+            WHERE syllabus_id = %s
+              AND department_id = %s
+
+        """, (
+            status,
+            syllabus_id,
+            session["hod_department_id"]
+        ))
+
+        connection.commit()
+
+        return redirect(
+            url_for("hod.manage_syllabus")
+        )
+
+    except Exception as e:
+
+        if connection:
+            connection.rollback()
+
+        return f"Error changing syllabus status: {e}"
+
+    finally:
+
+        if cursor:
+            cursor.close()
+
+        if connection:
+            connection.close()
+
+
+# ===========================================================
+# DELETE SYLLABUS
+# ===========================================================
+
+@hod_bp.route(
+    "/syllabus/delete/<int:syllabus_id>",
+    methods=["POST"]
+)
+def delete_syllabus(syllabus_id):
+
+    if "hod_id" not in session:
+        return redirect(
+            url_for("auth.hod_login")
+        )
+
+    connection = None
+    cursor = None
+
+    try:
+
+        connection = get_connection()
+        cursor = connection.cursor()
+
+        # ---------------------------------------------------
+        # GET SYLLABUS
+        # ---------------------------------------------------
+
+        cursor.execute("""
+            SELECT
+                syllabus_id,
+                file_path
+
+            FROM syllabus
+
+            WHERE syllabus_id = %s
+              AND department_id = %s
+
+        """, (
+            syllabus_id,
+            session["hod_department_id"]
+        ))
+
+        syllabus = cursor.fetchone()
+
+        if not syllabus:
+
+            return (
+                "Syllabus not found or you are not "
+                "authorized to delete it."
+            )
+
+        # ---------------------------------------------------
+        # DELETE DATABASE RECORD
+        # ---------------------------------------------------
+
+        cursor.execute("""
+            DELETE FROM syllabus
+
+            WHERE syllabus_id = %s
+              AND department_id = %s
+
+        """, (
+            syllabus_id,
+            session["hod_department_id"]
+        ))
+
+        connection.commit()
+
+        # ---------------------------------------------------
+        # DELETE PDF FILE
+        # ---------------------------------------------------
+
+        if syllabus["file_path"]:
+
+            filename = os.path.basename(
+                syllabus["file_path"]
+            )
+
+            upload_folder = os.path.join(
+                os.getcwd(),
+                SYLLABUS_UPLOAD_FOLDER
+            )
+
+            actual_file = os.path.join(
+                upload_folder,
+                filename
+            )
+
+            if os.path.exists(actual_file):
+
+                os.remove(
+                    actual_file
+                )
+
+        return redirect(
+            url_for("hod.manage_syllabus")
+        )
+
+    except Exception as e:
+
+        if connection:
+            connection.rollback()
+
+        return f"Error deleting syllabus: {e}"
+
+    finally:
+
+        if cursor:
+            cursor.close()
+
+        if connection:
+            connection.close()
+
+
+# ===========================================================
 # HOD PROFILE
 # ===========================================================
 
@@ -2587,7 +3569,6 @@ def profile():
         hod = cursor.fetchone()
 
         if not hod:
-
             return "HOD profile not found."
 
         return render_template(
@@ -2740,7 +3721,8 @@ def change_password():
         cursor.execute("""
             UPDATE hod
 
-            SET password = %s
+            SET
+                password = %s
 
             WHERE hod_id = %s
 
@@ -2773,4 +3755,3 @@ def change_password():
 
         if connection:
             connection.close()
-

@@ -540,7 +540,273 @@ def my_subjects():
 
 
 # ===========================================================
-# 5. TEACHER UPLOAD QUESTION PAPER
+# 5. TEACHER VIEW STUDENTS
+# ===========================================================
+
+@teacher_bp.route("/teacher/students")
+def view_students():
+
+    login_check = teacher_required()
+
+    if login_check:
+        return login_check
+
+    teacher_id = session.get("teacher_id")
+
+    # -------------------------------------------------------
+    # FILTER VALUES
+    # -------------------------------------------------------
+
+    search = request.args.get(
+        "search",
+        ""
+    ).strip()
+
+    course_id = request.args.get(
+        "course_id",
+        ""
+    ).strip()
+
+    semester_id = request.args.get(
+        "semester_id",
+        ""
+    ).strip()
+
+    connection = None
+    cursor = None
+
+    try:
+
+        connection = get_connection()
+        cursor = connection.cursor()
+
+        # ===================================================
+        # GET STUDENTS
+        # ===================================================
+
+        query = """
+            SELECT
+                st.student_id,
+                st.register_number,
+                st.full_name,
+                st.email,
+                st.phone,
+                st.account_status,
+
+                c.course_id,
+                c.course_name,
+
+                sem.semester_id,
+                sem.semester_number,
+
+                d.department_name
+
+            FROM student st
+
+            INNER JOIN course c
+                ON st.course_id = c.course_id
+
+            INNER JOIN semester sem
+                ON st.semester_id = sem.semester_id
+
+            INNER JOIN department d
+                ON c.department_id = d.department_id
+
+            WHERE EXISTS (
+
+                SELECT 1
+
+                FROM subject s
+
+                INNER JOIN teacher_subject_assignment tsa
+                    ON tsa.subject_id = s.subject_id
+
+                WHERE s.course_id = st.course_id
+                  AND s.semester_id = st.semester_id
+                  AND tsa.teacher_id = %s
+                  AND tsa.status = 'Active'
+
+            )
+        """
+
+        params = [teacher_id]
+
+        # ===================================================
+        # SEARCH
+        # ===================================================
+
+        if search:
+
+            query += """
+                AND (
+                    st.full_name LIKE %s
+                    OR st.register_number LIKE %s
+                    OR st.email LIKE %s
+                )
+            """
+
+            search_value = f"%{search}%"
+
+            params.extend([
+                search_value,
+                search_value,
+                search_value
+            ])
+
+        # ===================================================
+        # COURSE FILTER
+        # ===================================================
+
+        if course_id:
+
+            query += """
+                AND st.course_id = %s
+            """
+
+            params.append(course_id)
+
+        # ===================================================
+        # SEMESTER FILTER
+        # ===================================================
+
+        if semester_id:
+
+            query += """
+                AND st.semester_id = %s
+            """
+
+            params.append(semester_id)
+
+        # ===================================================
+        # ORDER
+        # ===================================================
+
+        query += """
+            ORDER BY
+                st.register_number ASC
+        """
+
+        # ===================================================
+        # EXECUTE
+        # ===================================================
+
+        cursor.execute(
+            query,
+            tuple(params)
+        )
+
+        students = cursor.fetchall()
+
+        # ===================================================
+        # GET COURSES AVAILABLE TO THIS TEACHER
+        # ===================================================
+
+        cursor.execute(
+            """
+            SELECT
+                c.course_id,
+                c.course_name
+
+            FROM teacher_subject_assignment tsa
+
+            INNER JOIN subject s
+                ON tsa.subject_id = s.subject_id
+
+            INNER JOIN course c
+                ON s.course_id = c.course_id
+
+            WHERE tsa.teacher_id = %s
+              AND tsa.status = 'Active'
+
+            GROUP BY
+                c.course_id,
+                c.course_name
+
+            ORDER BY
+                c.course_name ASC
+            """,
+            (teacher_id,)
+        )
+
+        courses = cursor.fetchall()
+
+        # ===================================================
+        # GET SEMESTERS AVAILABLE TO THIS TEACHER
+        # ===================================================
+
+        cursor.execute(
+            """
+            SELECT
+                sem.semester_id,
+                sem.semester_number,
+                c.course_id
+
+            FROM teacher_subject_assignment tsa
+
+            INNER JOIN subject s
+                ON tsa.subject_id = s.subject_id
+
+            INNER JOIN semester sem
+                ON s.semester_id = sem.semester_id
+
+            INNER JOIN course c
+                ON s.course_id = c.course_id
+
+            WHERE tsa.teacher_id = %s
+              AND tsa.status = 'Active'
+
+            GROUP BY
+                sem.semester_id,
+                sem.semester_number,
+                c.course_id
+
+            ORDER BY
+                c.course_id ASC,
+                sem.semester_number ASC
+            """,
+            (teacher_id,)
+        )
+
+        semesters = cursor.fetchall()
+
+        # ===================================================
+        # RENDER PAGE
+        # ===================================================
+
+        return render_template(
+            "teacher/students.html",
+            students=students,
+            courses=courses,
+            semesters=semesters,
+            search=search,
+            selected_course=course_id,
+            selected_semester=semester_id
+        )
+
+    except Exception as e:
+
+        return render_template(
+            "teacher/students.html",
+            students=[],
+            courses=[],
+            semesters=[],
+            search=search,
+            selected_course=course_id,
+            selected_semester=semester_id,
+            error=f"Database Error: {e}"
+        )
+
+    finally:
+
+        if cursor:
+            cursor.close()
+
+        if connection:
+            connection.close()
+
+
+# ===========================================================
+# 6. TEACHER UPLOAD QUESTION PAPER
 # ===========================================================
 
 @teacher_bp.route(
@@ -811,7 +1077,7 @@ def upload_question_paper():
 
 
 # ===========================================================
-# 6. TEACHER MY QUESTION PAPERS
+# 7. TEACHER MY QUESTION PAPERS
 # ===========================================================
 
 @teacher_bp.route("/teacher/my-question-papers")
@@ -894,7 +1160,7 @@ def my_question_papers():
 
 
 # ===========================================================
-# 7. TEACHER UPLOAD ANSWER KEY
+# 8. TEACHER UPLOAD ANSWER KEY
 # ===========================================================
 
 @teacher_bp.route(
@@ -1110,7 +1376,7 @@ def upload_answer_key():
 
 
 # ===========================================================
-# 8. TEACHER UPLOAD STUDY MATERIAL
+# 9. TEACHER UPLOAD STUDY MATERIAL
 # ===========================================================
 
 @teacher_bp.route(
@@ -1343,7 +1609,7 @@ def upload_study_material():
 
 
 # ===========================================================
-# 9. TEACHER MY MATERIALS
+# 10. TEACHER MY MATERIALS
 # ===========================================================
 
 @teacher_bp.route("/teacher/my-materials")
@@ -1426,7 +1692,7 @@ def my_materials():
 
 
 # ===========================================================
-# 10. TEACHER STUDENT DOUBTS
+# 11. TEACHER STUDENT DOUBTS
 # ===========================================================
 
 @teacher_bp.route("/teacher/doubt-list")
@@ -1506,7 +1772,7 @@ def doubt_list():
 
 
 # ===========================================================
-# 11. TEACHER REPLY TO STUDENT DOUBT
+# 12. TEACHER REPLY TO STUDENT DOUBT
 # ===========================================================
 
 @teacher_bp.route(
@@ -1660,7 +1926,7 @@ def reply_doubt(doubt_id):
 
 
 # ===========================================================
-# TEACHER LOGOUT
+# 13. TEACHER LOGOUT
 # ===========================================================
 
 @teacher_bp.route("/teacher/logout")

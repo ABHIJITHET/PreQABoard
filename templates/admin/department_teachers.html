@@ -1,170 +1,51 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
 
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Department-wise Teachers</title>
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
-    <style>
+    <title>
+        {{ department.department_name }} - Teachers
+    </title>
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: Arial, sans-serif;
-        }
-
-        body {
-            background: #f4f6f9;
-            color: #333;
-        }
-
-        .container {
-            width: 95%;
-            max-width: 1300px;
-            margin: 30px auto;
-        }
-
-        .header {
-            background: white;
-            padding: 25px;
-            border-radius: 10px;
-            margin-bottom: 25px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        }
-
-        .header h1 {
-            margin-bottom: 8px;
-            color: #222;
-        }
-
-        .header p {
-            color: #666;
-        }
-
-        .back-btn {
-            display: inline-block;
-            margin-top: 15px;
-            padding: 10px 18px;
-            background: #333;
-            color: white;
-            text-decoration: none;
-            border-radius: 6px;
-        }
-
-        .back-btn:hover {
-            background: #555;
-        }
-
-        .department {
-            background: white;
-            margin-bottom: 25px;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        }
-
-        .department-header {
-            background: #16a34a;
-            color: white;
-            padding: 18px 20px;
-
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .department-header h2 {
-            font-size: 20px;
-        }
-
-        .teacher-count {
-            background: white;
-            color: #16a34a;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-weight: bold;
-        }
-
-        .table-container {
-            overflow-x: auto;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th,
-        td {
-            padding: 13px 15px;
-            text-align: left;
-            border-bottom: 1px solid #eee;
-        }
-
-        th {
-            background: #f8fafc;
-            font-weight: bold;
-        }
-
-        tr:hover {
-            background: #f9fafb;
-        }
-
-        .no-teachers {
-            padding: 25px;
-            text-align: center;
-            color: #777;
-        }
-
-        .status {
-            padding: 5px 10px;
-            border-radius: 15px;
-            font-size: 13px;
-            font-weight: bold;
-        }
-
-        .active {
-            background: #dcfce7;
-            color: #166534;
-        }
-
-        .inactive {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-
-        .pending {
-            background: #fef3c7;
-            color: #92400e;
-        }
-
-    </style>
+    <!-- Main CSS -->
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/dashboard.css') }}"
+    >
 
 </head>
 
+
 <body>
+
 
 <div class="container">
 
 
-    <!-- PAGE HEADER -->
+    <!-- =====================================================
+         HEADER
+    ====================================================== -->
 
     <div class="header">
 
         <h1>
-            Department-wise Teachers
+            {{ department.department_name }}
         </h1>
 
         <p>
-            View all teachers grouped according to their departments.
+            Department-wise Teacher Details
         </p>
 
         <a
             href="{{ url_for('admin.dashboard') }}"
-            class="back-btn"
+            class="back"
         >
             ← Back to Dashboard
         </a>
@@ -172,31 +53,18 @@
     </div>
 
 
-    <!-- DEPARTMENTS -->
+    <!-- =====================================================
+         TEACHERS
+    ====================================================== -->
 
-    {% for department in departments %}
+    <div class="section">
 
-    <div class="department">
-
-
-        <!-- DEPARTMENT HEADER -->
-
-        <div class="department-header">
-
-            <h2>
-                {{ department.department_name }}
-            </h2>
-
-            <span class="teacher-count">
-                {{ department.teachers|length }} Teachers
-            </span>
-
-        </div>
+        <h2>
+            Teachers ({{ teachers|length }})
+        </h2>
 
 
-        <!-- TEACHERS -->
-
-        {% if department.teachers %}
+        {% if teachers %}
 
         <div class="table-container">
 
@@ -206,14 +74,33 @@
 
                     <tr>
 
-                        <th>#</th>
-                        <th>Teacher ID</th>
-                        <th>Employee ID</th>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Phone</th>
-                        <th>Username</th>
-                        <th>Status</th>
+                        <th>
+                            #
+                        </th>
+
+                        <th>
+                            Employee ID
+                        </th>
+
+                        <th>
+                            Name
+                        </th>
+
+                        <th>
+                            Email
+                        </th>
+
+                        <th>
+                            Phone
+                        </th>
+
+                        <th>
+                            Username
+                        </th>
+
+                        <th>
+                            Status
+                        </th>
 
                     </tr>
 
@@ -222,7 +109,7 @@
 
                 <tbody>
 
-                    {% for teacher in department.teachers %}
+                    {% for teacher in teachers %}
 
                     <tr>
 
@@ -231,19 +118,17 @@
                         </td>
 
                         <td>
-                            {{ teacher.teacher_id }}
-                        </td>
-
-                        <td>
                             {{ teacher.employee_id }}
                         </td>
 
                         <td>
-                            {{ teacher.full_name }}
+                            <strong>
+                                {{ teacher.full_name }}
+                            </strong>
                         </td>
 
                         <td>
-                            {{ teacher.email }}
+                            {{ teacher.email or '-' }}
                         </td>
 
                         <td>
@@ -256,13 +141,13 @@
 
                         <td>
 
-                            {% if teacher.account_status == 'Active' %}
+                            {% if teacher.account_status == "Active" %}
 
                                 <span class="status active">
                                     Active
                                 </span>
 
-                            {% elif teacher.account_status == 'Pending' %}
+                            {% elif teacher.account_status == "Pending" %}
 
                                 <span class="status pending">
                                     Pending
@@ -288,34 +173,30 @@
 
         </div>
 
+
         {% else %}
 
-            <div class="no-teachers">
-                No teachers found in this department.
-            </div>
+        <div class="empty">
 
-        {% endif %}
+            <h3>
+                No Teachers Found
+            </h3>
 
-
-    </div>
-
-    {% endfor %}
-
-
-    {% if not departments %}
-
-        <div class="department">
-
-            <div class="no-teachers">
-                No departments found.
-            </div>
+            <p>
+                There are no teachers assigned to
+                this department.
+            </p>
 
         </div>
 
-    {% endif %}
+        {% endif %}
+
+    </div>
 
 
 </div>
 
+
 </body>
+
 </html>

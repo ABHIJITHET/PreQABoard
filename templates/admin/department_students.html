@@ -1,181 +1,70 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Department-wise Students</title>
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: Arial, sans-serif;
-        }
+    <title>
+        {{ department.department_name }} - Students
+    </title>
 
-        body {
-            background: #f4f6f9;
-            color: #333;
-        }
+    <!-- Main Admin CSS -->
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/dashboard.css') }}"
+    >
 
-        .container {
-            width: 95%;
-            max-width: 1300px;
-            margin: 30px auto;
-        }
-
-        .header {
-            background: #ffffff;
-            padding: 25px;
-            border-radius: 10px;
-            margin-bottom: 25px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        }
-
-        .header h1 {
-            margin-bottom: 8px;
-            color: #222;
-        }
-
-        .header p {
-            color: #666;
-        }
-
-        .back-btn {
-            display: inline-block;
-            margin-top: 15px;
-            padding: 10px 18px;
-            background: #333;
-            color: white;
-            text-decoration: none;
-            border-radius: 6px;
-        }
-
-        .back-btn:hover {
-            background: #555;
-        }
-
-        .department {
-            background: white;
-            margin-bottom: 25px;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        }
-
-        .department-header {
-            background: #2563eb;
-            color: white;
-            padding: 18px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .department-header h2 {
-            font-size: 20px;
-        }
-
-        .student-count {
-            background: white;
-            color: #2563eb;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-weight: bold;
-        }
-
-        .table-container {
-            overflow-x: auto;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th,
-        td {
-            padding: 13px 15px;
-            text-align: left;
-            border-bottom: 1px solid #eee;
-        }
-
-        th {
-            background: #f8fafc;
-            font-weight: bold;
-        }
-
-        tr:hover {
-            background: #f9fafb;
-        }
-
-        .no-students {
-            padding: 25px;
-            text-align: center;
-            color: #777;
-        }
-
-        .status {
-            padding: 5px 10px;
-            border-radius: 15px;
-            font-size: 13px;
-            font-weight: bold;
-        }
-
-        .active {
-            background: #dcfce7;
-            color: #166534;
-        }
-
-        .inactive {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-    </style>
 </head>
+
 
 <body>
 
+
 <div class="container">
 
-    <!-- PAGE HEADER -->
+
+    <!-- =====================================================
+         PAGE HEADER
+    ====================================================== -->
 
     <div class="header">
 
-        <h1>Department-wise Students</h1>
+        <h1>
+            {{ department.department_name }}
+        </h1>
 
         <p>
-            View all students grouped according to their departments.
+            Department-wise Student Details
         </p>
 
-        <a href="{{ url_for('admin.dashboard') }}" class="back-btn">
+        <a
+            href="{{ url_for('admin.dashboard') }}"
+            class="back-btn"
+        >
             ← Back to Dashboard
         </a>
 
     </div>
 
 
-    <!-- DEPARTMENTS -->
+    <!-- =====================================================
+         STUDENTS
+    ====================================================== -->
 
-    {% for department in departments %}
+    <div class="section">
 
-    <div class="department">
-
-        <div class="department-header">
-
-            <h2>
-                {{ department.department_name }}
-            </h2>
-
-            <span class="student-count">
-                {{ department.students|length }} Students
-            </span>
-
-        </div>
+        <h2>
+            Students ({{ students|length }})
+        </h2>
 
 
-        {% if department.students %}
+        {% if students %}
 
         <div class="table-container">
 
@@ -184,21 +73,55 @@
                 <thead>
 
                     <tr>
-                        <th>#</th>
-                        <th>Student ID</th>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Phone</th>
-                        <th>Course</th>
-                        <th>Semester</th>
-                        <th>Status</th>
+
+                        <th>
+                            #
+                        </th>
+
+                        <th>
+                            Student ID
+                        </th>
+
+                        <th>
+                            Register Number
+                        </th>
+
+                        <th>
+                            Name
+                        </th>
+
+                        <th>
+                            Email
+                        </th>
+
+                        <th>
+                            Phone
+                        </th>
+
+                        <th>
+                            Course
+                        </th>
+
+                        <th>
+                            Semester
+                        </th>
+
+                        <th>
+                            Username
+                        </th>
+
+                        <th>
+                            Status
+                        </th>
+
                     </tr>
 
                 </thead>
 
+
                 <tbody>
 
-                    {% for student in department.students %}
+                    {% for student in students %}
 
                     <tr>
 
@@ -211,11 +134,17 @@
                         </td>
 
                         <td>
-                            {{ student.full_name }}
+                            {{ student.register_number }}
                         </td>
 
                         <td>
-                            {{ student.email }}
+                            <strong>
+                                {{ student.full_name }}
+                            </strong>
+                        </td>
+
+                        <td>
+                            {{ student.email or '-' }}
                         </td>
 
                         <td>
@@ -231,17 +160,27 @@
                         </td>
 
                         <td>
+                            {{ student.username or '-' }}
+                        </td>
 
-                            {% if student.status == 'Active' %}
+                        <td>
+
+                            {% if student.account_status == "Active" %}
 
                                 <span class="status active">
                                     Active
                                 </span>
 
+                            {% elif student.account_status == "Pending" %}
+
+                                <span class="status pending">
+                                    Pending
+                                </span>
+
                             {% else %}
 
                                 <span class="status inactive">
-                                    {{ student.status }}
+                                    {{ student.account_status }}
                                 </span>
 
                             {% endif %}
@@ -258,32 +197,30 @@
 
         </div>
 
+
         {% else %}
 
-            <div class="no-students">
-                No students found in this department.
-            </div>
+        <div class="empty">
+
+            <h3>
+                No Students Found
+            </h3>
+
+            <p>
+                There are no students assigned to
+                {{ department.department_name }}.
+            </p>
+
+        </div>
 
         {% endif %}
 
     </div>
 
-    {% endfor %}
-
-
-    {% if not departments %}
-
-        <div class="department">
-
-            <div class="no-students">
-                No departments found.
-            </div>
-
-        </div>
-
-    {% endif %}
 
 </div>
 
+
 </body>
+
 </html>

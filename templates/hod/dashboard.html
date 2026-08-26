@@ -56,6 +56,13 @@
 
     <h3>HOD Management</h3>
 
+    <!-- Manage Syllabus -->
+    <p>
+        <a href="{{ url_for('hod.manage_syllabus') }}">
+            Manage Syllabus
+        </a>
+    </p>
+
     <!-- Manage Teachers -->
     <p>
         <a href="{{ url_for('hod.manage_teachers') }}">
@@ -74,6 +81,13 @@
     <p>
         <a href="{{ url_for('hod.teacher_assignments') }}">
             Assign Teachers
+        </a>
+    </p>
+
+    <!--Students approve-->
+    <p>
+        <a href="{{ url_for('hod.student_approvals') }}">
+            Student Approvals
         </a>
     </p>
 

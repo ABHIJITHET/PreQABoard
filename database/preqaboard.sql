@@ -1,10 +1,12 @@
 -- ===========================================================
 -- PREQABOARD DATABASE
--- COMPLETE DATABASE SQL
--- 20 TABLES
+-- COMPLETE CORRECTED DATABASE
+-- 21 TABLES
 -- ===========================================================
 
-CREATE DATABASE IF NOT EXISTS preqaboard;
+DROP DATABASE IF EXISTS preqaboard;
+
+CREATE DATABASE preqaboard;
 
 USE preqaboard;
 
@@ -13,7 +15,7 @@ USE preqaboard;
 -- TABLE 1 : DEPARTMENT
 -- ===========================================================
 
-CREATE TABLE IF NOT EXISTS department (
+CREATE TABLE department (
 
     department_id INT AUTO_INCREMENT PRIMARY KEY,
 
@@ -33,7 +35,7 @@ CREATE TABLE IF NOT EXISTS department (
 -- TABLE 2 : COURSE
 -- ===========================================================
 
-CREATE TABLE IF NOT EXISTS course (
+CREATE TABLE course (
 
     course_id INT AUTO_INCREMENT PRIMARY KEY,
 
@@ -51,7 +53,8 @@ CREATE TABLE IF NOT EXISTS course (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         ON UPDATE CURRENT_TIMESTAMP,
 
-    FOREIGN KEY (department_id)
+    CONSTRAINT fk_course_department
+        FOREIGN KEY (department_id)
         REFERENCES department(department_id)
         ON DELETE CASCADE
         ON UPDATE CASCADE,
@@ -64,7 +67,7 @@ CREATE TABLE IF NOT EXISTS course (
 -- TABLE 3 : SEMESTER
 -- ===========================================================
 
-CREATE TABLE IF NOT EXISTS semester (
+CREATE TABLE semester (
 
     semester_id INT AUTO_INCREMENT PRIMARY KEY,
 
@@ -80,7 +83,8 @@ CREATE TABLE IF NOT EXISTS semester (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         ON UPDATE CURRENT_TIMESTAMP,
 
-    FOREIGN KEY (course_id)
+    CONSTRAINT fk_semester_course
+        FOREIGN KEY (course_id)
         REFERENCES course(course_id)
         ON DELETE CASCADE
         ON UPDATE CASCADE,
@@ -93,7 +97,7 @@ CREATE TABLE IF NOT EXISTS semester (
 -- TABLE 4 : ADMIN
 -- ===========================================================
 
-CREATE TABLE IF NOT EXISTS admin (
+CREATE TABLE admin (
 
     admin_id INT AUTO_INCREMENT PRIMARY KEY,
 
@@ -116,12 +120,30 @@ CREATE TABLE IF NOT EXISTS admin (
         ON UPDATE CURRENT_TIMESTAMP
 );
 
+INSERT INTO admin
+(
+    username,
+    password,
+    full_name,
+    email,
+    phone,
+    status
+)
+VALUES
+(
+    'admin',
+    'scrypt:32768:8:1$CNPLf3pAYT8rSzpg$eb7734e66c7609257af2c7605e6df894464dd2147edf7ed626e0def6c4a67b0e29b362bd8ac1e5067d07c1f1d94ff64a7e8215459eb54a6d74f76c89f45cf392',
+    'System Administrator',
+    'admin@preqaboard.com',
+    NULL,
+    'Active'
+);
 
 -- ===========================================================
 -- TABLE 5 : HOD
 -- ===========================================================
 
-CREATE TABLE IF NOT EXISTS hod (
+CREATE TABLE hod (
 
     hod_id INT AUTO_INCREMENT PRIMARY KEY,
 
@@ -150,7 +172,8 @@ CREATE TABLE IF NOT EXISTS hod (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         ON UPDATE CURRENT_TIMESTAMP,
 
-    FOREIGN KEY (department_id)
+    CONSTRAINT fk_hod_department
+        FOREIGN KEY (department_id)
         REFERENCES department(department_id)
         ON DELETE CASCADE
         ON UPDATE CASCADE
@@ -161,7 +184,7 @@ CREATE TABLE IF NOT EXISTS hod (
 -- TABLE 6 : TEACHER
 -- ===========================================================
 
-CREATE TABLE IF NOT EXISTS teacher (
+CREATE TABLE teacher (
 
     teacher_id INT AUTO_INCREMENT PRIMARY KEY,
 
@@ -190,7 +213,8 @@ CREATE TABLE IF NOT EXISTS teacher (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         ON UPDATE CURRENT_TIMESTAMP,
 
-    FOREIGN KEY (department_id)
+    CONSTRAINT fk_teacher_department
+        FOREIGN KEY (department_id)
         REFERENCES department(department_id)
         ON DELETE SET NULL
         ON UPDATE CASCADE
@@ -201,7 +225,7 @@ CREATE TABLE IF NOT EXISTS teacher (
 -- TABLE 7 : STUDENT
 -- ===========================================================
 
-CREATE TABLE IF NOT EXISTS student (
+CREATE TABLE student (
 
     student_id INT AUTO_INCREMENT PRIMARY KEY,
 
@@ -232,12 +256,14 @@ CREATE TABLE IF NOT EXISTS student (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         ON UPDATE CURRENT_TIMESTAMP,
 
-    FOREIGN KEY (course_id)
+    CONSTRAINT fk_student_course
+        FOREIGN KEY (course_id)
         REFERENCES course(course_id)
         ON DELETE CASCADE
         ON UPDATE CASCADE,
 
-    FOREIGN KEY (semester_id)
+    CONSTRAINT fk_student_semester
+        FOREIGN KEY (semester_id)
         REFERENCES semester(semester_id)
         ON DELETE CASCADE
         ON UPDATE CASCADE
@@ -248,7 +274,7 @@ CREATE TABLE IF NOT EXISTS student (
 -- TABLE 8 : ACADEMIC YEAR
 -- ===========================================================
 
-CREATE TABLE IF NOT EXISTS academic_year (
+CREATE TABLE academic_year (
 
     academic_year_id INT AUTO_INCREMENT PRIMARY KEY,
 
@@ -272,10 +298,106 @@ CREATE TABLE IF NOT EXISTS academic_year (
 
 
 -- ===========================================================
--- TABLE 9 : SUBJECT
+-- TABLE 9 : SYLLABUS
+-- ===========================================================
+--
+-- Compatible fields:
+--
+-- s.department_id
+-- s.course_id
+-- s.academic_year_id
+-- s.title
+-- s.file_name
+-- s.file_path
+-- s.uploaded_by_hod
+-- s.uploaded_at
+-- s.status
+-- s.created_at
+-- s.updated_at
+--
 -- ===========================================================
 
-CREATE TABLE IF NOT EXISTS subject (
+CREATE TABLE syllabus (
+
+    syllabus_id INT AUTO_INCREMENT PRIMARY KEY,
+
+    department_id INT NOT NULL,
+
+    course_id INT NOT NULL,
+
+    academic_year_id INT NOT NULL,
+
+    title VARCHAR(255) NOT NULL,
+
+    file_name VARCHAR(255) NOT NULL,
+
+    file_path VARCHAR(500) NOT NULL,
+
+    uploaded_by_hod INT NOT NULL,
+
+    uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    status ENUM(
+        'Active',
+        'Inactive'
+    ) DEFAULT 'Active',
+
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP,
+
+
+    CONSTRAINT fk_syllabus_department
+
+        FOREIGN KEY (department_id)
+
+        REFERENCES department(department_id)
+
+        ON DELETE CASCADE
+
+        ON UPDATE CASCADE,
+
+
+    CONSTRAINT fk_syllabus_course
+
+        FOREIGN KEY (course_id)
+
+        REFERENCES course(course_id)
+
+        ON DELETE CASCADE
+
+        ON UPDATE CASCADE,
+
+
+    CONSTRAINT fk_syllabus_academic_year
+
+        FOREIGN KEY (academic_year_id)
+
+        REFERENCES academic_year(academic_year_id)
+
+        ON DELETE CASCADE
+
+        ON UPDATE CASCADE,
+
+
+    CONSTRAINT fk_syllabus_hod
+
+        FOREIGN KEY (uploaded_by_hod)
+
+        REFERENCES hod(hod_id)
+
+        ON DELETE CASCADE
+
+        ON UPDATE CASCADE
+);
+
+
+-- ===========================================================
+-- TABLE 10 : SUBJECT
+-- ===========================================================
+
+CREATE TABLE subject (
 
     subject_id INT AUTO_INCREMENT PRIMARY KEY,
 
@@ -299,23 +421,35 @@ CREATE TABLE IF NOT EXISTS subject (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         ON UPDATE CURRENT_TIMESTAMP,
 
-    FOREIGN KEY (course_id)
+
+    CONSTRAINT fk_subject_course
+
+        FOREIGN KEY (course_id)
+
         REFERENCES course(course_id)
+
         ON DELETE CASCADE
+
         ON UPDATE CASCADE,
 
-    FOREIGN KEY (semester_id)
+
+    CONSTRAINT fk_subject_semester
+
+        FOREIGN KEY (semester_id)
+
         REFERENCES semester(semester_id)
+
         ON DELETE CASCADE
+
         ON UPDATE CASCADE
 );
 
 
 -- ===========================================================
--- TABLE 10 : TEACHER SUBJECT ASSIGNMENT
+-- TABLE 11 : TEACHER SUBJECT ASSIGNMENT
 -- ===========================================================
 
-CREATE TABLE IF NOT EXISTS teacher_subject_assignment (
+CREATE TABLE teacher_subject_assignment (
 
     assignment_id INT AUTO_INCREMENT PRIMARY KEY,
 
@@ -334,25 +468,50 @@ CREATE TABLE IF NOT EXISTS teacher_subject_assignment (
         'Inactive'
     ) DEFAULT 'Active',
 
-    FOREIGN KEY (teacher_id)
+
+    CONSTRAINT fk_tsa_teacher
+
+        FOREIGN KEY (teacher_id)
+
         REFERENCES teacher(teacher_id)
+
         ON DELETE CASCADE
+
         ON UPDATE CASCADE,
 
-    FOREIGN KEY (subject_id)
+
+    CONSTRAINT fk_tsa_subject
+
+        FOREIGN KEY (subject_id)
+
         REFERENCES subject(subject_id)
+
         ON DELETE CASCADE
+
         ON UPDATE CASCADE,
 
-    FOREIGN KEY (academic_year_id)
+
+    CONSTRAINT fk_tsa_academic_year
+
+        FOREIGN KEY (academic_year_id)
+
         REFERENCES academic_year(academic_year_id)
+
         ON DELETE CASCADE
+
         ON UPDATE CASCADE,
 
-    FOREIGN KEY (assigned_by_hod)
+
+    CONSTRAINT fk_tsa_hod
+
+        FOREIGN KEY (assigned_by_hod)
+
         REFERENCES hod(hod_id)
+
         ON DELETE CASCADE
+
         ON UPDATE CASCADE,
+
 
     UNIQUE (
         teacher_id,
@@ -363,10 +522,10 @@ CREATE TABLE IF NOT EXISTS teacher_subject_assignment (
 
 
 -- ===========================================================
--- TABLE 11 : EXAM TYPE
+-- TABLE 12 : EXAM TYPE
 -- ===========================================================
 
-CREATE TABLE IF NOT EXISTS exam_type (
+CREATE TABLE exam_type (
 
     exam_type_id INT AUTO_INCREMENT PRIMARY KEY,
 
@@ -382,10 +541,10 @@ CREATE TABLE IF NOT EXISTS exam_type (
 
 
 -- ===========================================================
--- TABLE 12 : QUESTION PAPER
+-- TABLE 13 : QUESTION PAPER
 -- ===========================================================
 
-CREATE TABLE IF NOT EXISTS question_paper (
+CREATE TABLE question_paper (
 
     question_paper_id INT AUTO_INCREMENT PRIMARY KEY,
 
@@ -405,33 +564,57 @@ CREATE TABLE IF NOT EXISTS question_paper (
 
     upload_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-    FOREIGN KEY (assignment_id)
+
+    CONSTRAINT fk_question_assignment
+
+        FOREIGN KEY (assignment_id)
+
         REFERENCES teacher_subject_assignment(assignment_id)
+
         ON DELETE CASCADE
+
         ON UPDATE CASCADE,
 
-    FOREIGN KEY (exam_type_id)
+
+    CONSTRAINT fk_question_exam_type
+
+        FOREIGN KEY (exam_type_id)
+
         REFERENCES exam_type(exam_type_id)
+
         ON DELETE CASCADE
+
         ON UPDATE CASCADE,
 
-    FOREIGN KEY (academic_year_id)
+
+    CONSTRAINT fk_question_academic_year
+
+        FOREIGN KEY (academic_year_id)
+
         REFERENCES academic_year(academic_year_id)
+
         ON DELETE CASCADE
+
         ON UPDATE CASCADE,
 
-    FOREIGN KEY (uploaded_by)
+
+    CONSTRAINT fk_question_teacher
+
+        FOREIGN KEY (uploaded_by)
+
         REFERENCES teacher(teacher_id)
+
         ON DELETE CASCADE
+
         ON UPDATE CASCADE
 );
 
 
 -- ===========================================================
--- TABLE 13 : STUDY MATERIAL
+-- TABLE 14 : STUDY MATERIAL
 -- ===========================================================
 
-CREATE TABLE IF NOT EXISTS study_material (
+CREATE TABLE study_material (
 
     study_material_id INT AUTO_INCREMENT PRIMARY KEY,
 
@@ -447,23 +630,35 @@ CREATE TABLE IF NOT EXISTS study_material (
 
     upload_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-    FOREIGN KEY (assignment_id)
+
+    CONSTRAINT fk_material_assignment
+
+        FOREIGN KEY (assignment_id)
+
         REFERENCES teacher_subject_assignment(assignment_id)
+
         ON DELETE CASCADE
+
         ON UPDATE CASCADE,
 
-    FOREIGN KEY (uploaded_by)
+
+    CONSTRAINT fk_material_teacher
+
+        FOREIGN KEY (uploaded_by)
+
         REFERENCES teacher(teacher_id)
+
         ON DELETE CASCADE
+
         ON UPDATE CASCADE
 );
 
 
 -- ===========================================================
--- TABLE 14 : ANSWER KEY
+-- TABLE 15 : ANSWER KEY
 -- ===========================================================
 
-CREATE TABLE IF NOT EXISTS answer_key (
+CREATE TABLE answer_key (
 
     answer_key_id INT AUTO_INCREMENT PRIMARY KEY,
 
@@ -475,23 +670,35 @@ CREATE TABLE IF NOT EXISTS answer_key (
 
     upload_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-    FOREIGN KEY (question_paper_id)
+
+    CONSTRAINT fk_answer_question
+
+        FOREIGN KEY (question_paper_id)
+
         REFERENCES question_paper(question_paper_id)
+
         ON DELETE CASCADE
+
         ON UPDATE CASCADE,
 
-    FOREIGN KEY (uploaded_by)
+
+    CONSTRAINT fk_answer_teacher
+
+        FOREIGN KEY (uploaded_by)
+
         REFERENCES teacher(teacher_id)
+
         ON DELETE CASCADE
+
         ON UPDATE CASCADE
 );
 
 
 -- ===========================================================
--- TABLE 15 : EXTRACTED QUESTION
+-- TABLE 16 : EXTRACTED QUESTION
 -- ===========================================================
 
-CREATE TABLE IF NOT EXISTS extracted_question (
+CREATE TABLE extracted_question (
 
     extracted_question_id INT AUTO_INCREMENT PRIMARY KEY,
 
@@ -505,18 +712,24 @@ CREATE TABLE IF NOT EXISTS extracted_question (
 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-    FOREIGN KEY (question_paper_id)
+
+    CONSTRAINT fk_extracted_question_paper
+
+        FOREIGN KEY (question_paper_id)
+
         REFERENCES question_paper(question_paper_id)
+
         ON DELETE CASCADE
+
         ON UPDATE CASCADE
 );
 
 
 -- ===========================================================
--- TABLE 16 : REPEATED QUESTION
+-- TABLE 17 : REPEATED QUESTION
 -- ===========================================================
 
-CREATE TABLE IF NOT EXISTS repeated_question (
+CREATE TABLE repeated_question (
 
     repeated_question_id INT AUTO_INCREMENT PRIMARY KEY,
 
@@ -528,18 +741,24 @@ CREATE TABLE IF NOT EXISTS repeated_question (
 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-    FOREIGN KEY (subject_id)
+
+    CONSTRAINT fk_repeated_subject
+
+        FOREIGN KEY (subject_id)
+
         REFERENCES subject(subject_id)
+
         ON DELETE CASCADE
+
         ON UPDATE CASCADE
 );
 
 
 -- ===========================================================
--- TABLE 17 : STUDENT DOUBT
+-- TABLE 18 : STUDENT DOUBT
 -- ===========================================================
 
-CREATE TABLE IF NOT EXISTS student_doubt (
+CREATE TABLE student_doubt (
 
     doubt_id INT AUTO_INCREMENT PRIMARY KEY,
 
@@ -553,23 +772,35 @@ CREATE TABLE IF NOT EXISTS student_doubt (
 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-    FOREIGN KEY (student_id)
+
+    CONSTRAINT fk_doubt_student
+
+        FOREIGN KEY (student_id)
+
         REFERENCES student(student_id)
+
         ON DELETE CASCADE
+
         ON UPDATE CASCADE,
 
-    FOREIGN KEY (subject_id)
+
+    CONSTRAINT fk_doubt_subject
+
+        FOREIGN KEY (subject_id)
+
         REFERENCES subject(subject_id)
+
         ON DELETE CASCADE
+
         ON UPDATE CASCADE
 );
 
 
 -- ===========================================================
--- TABLE 18 : TEACHER REPLY
+-- TABLE 19 : TEACHER REPLY
 -- ===========================================================
 
-CREATE TABLE IF NOT EXISTS teacher_reply (
+CREATE TABLE teacher_reply (
 
     reply_id INT AUTO_INCREMENT PRIMARY KEY,
 
@@ -581,39 +812,35 @@ CREATE TABLE IF NOT EXISTS teacher_reply (
 
     replied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-    FOREIGN KEY (doubt_id)
+
+    CONSTRAINT fk_reply_doubt
+
+        FOREIGN KEY (doubt_id)
+
         REFERENCES student_doubt(doubt_id)
+
         ON DELETE CASCADE
+
         ON UPDATE CASCADE,
 
-    FOREIGN KEY (teacher_id)
+
+    CONSTRAINT fk_reply_teacher
+
+        FOREIGN KEY (teacher_id)
+
         REFERENCES teacher(teacher_id)
+
         ON DELETE CASCADE
+
         ON UPDATE CASCADE
 );
 
 
 -- ===========================================================
--- TABLE 19 : ASSIGNMENT
--- ===========================================================
---
--- This is the actual assignment uploaded/created by teacher.
---
--- teacher_subject_assignment tells us:
---
--- Teacher
---     ↓
--- Subject
---     ↓
--- Course
---     ↓
--- Semester
---
--- Therefore the assignment automatically belongs
--- to the correct class/semester.
+-- TABLE 20 : ASSIGNMENT
 -- ===========================================================
 
-CREATE TABLE IF NOT EXISTS assignment (
+CREATE TABLE assignment (
 
     assignment_id INT AUTO_INCREMENT PRIMARY KEY,
 
@@ -646,34 +873,46 @@ CREATE TABLE IF NOT EXISTS assignment (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         ON UPDATE CURRENT_TIMESTAMP,
 
-    FOREIGN KEY (teacher_subject_assignment_id)
+
+    CONSTRAINT fk_assignment_tsa
+
+        FOREIGN KEY (teacher_subject_assignment_id)
+
         REFERENCES teacher_subject_assignment(assignment_id)
+
         ON DELETE CASCADE
+
         ON UPDATE CASCADE,
 
-    FOREIGN KEY (academic_year_id)
+
+    CONSTRAINT fk_assignment_academic_year
+
+        FOREIGN KEY (academic_year_id)
+
         REFERENCES academic_year(academic_year_id)
+
         ON DELETE CASCADE
+
         ON UPDATE CASCADE,
 
-    FOREIGN KEY (uploaded_by)
+
+    CONSTRAINT fk_assignment_teacher
+
+        FOREIGN KEY (uploaded_by)
+
         REFERENCES teacher(teacher_id)
+
         ON DELETE CASCADE
+
         ON UPDATE CASCADE
 );
 
 
 -- ===========================================================
--- TABLE 20 : ASSIGNMENT SUBMISSION
--- ===========================================================
---
--- Stores the assignment submitted by students.
---
--- One student can have only ONE submission record
--- for one assignment.
+-- TABLE 21 : ASSIGNMENT SUBMISSION
 -- ===========================================================
 
-CREATE TABLE IF NOT EXISTS assignment_submission (
+CREATE TABLE assignment_submission (
 
     submission_id INT AUTO_INCREMENT PRIMARY KEY,
 
@@ -698,15 +937,28 @@ CREATE TABLE IF NOT EXISTS assignment_submission (
         'Returned'
     ) DEFAULT 'Submitted',
 
-    FOREIGN KEY (assignment_id)
+
+    CONSTRAINT fk_submission_assignment
+
+        FOREIGN KEY (assignment_id)
+
         REFERENCES assignment(assignment_id)
+
         ON DELETE CASCADE
+
         ON UPDATE CASCADE,
 
-    FOREIGN KEY (student_id)
+
+    CONSTRAINT fk_submission_student
+
+        FOREIGN KEY (student_id)
+
         REFERENCES student(student_id)
+
         ON DELETE CASCADE
+
         ON UPDATE CASCADE,
+
 
     UNIQUE (
         assignment_id,
@@ -722,77 +974,150 @@ CREATE TABLE IF NOT EXISTS assignment_submission (
 CREATE INDEX idx_course_department
 ON course(department_id);
 
-
 CREATE INDEX idx_semester_course
 ON semester(course_id);
 
+CREATE INDEX idx_hod_department
+ON hod(department_id);
 
 CREATE INDEX idx_teacher_department
 ON teacher(department_id);
 
-
 CREATE INDEX idx_student_course
 ON student(course_id);
-
 
 CREATE INDEX idx_student_semester
 ON student(semester_id);
 
 
+-- SYLLABUS
+
+CREATE INDEX idx_syllabus_department
+ON syllabus(department_id);
+
+CREATE INDEX idx_syllabus_course
+ON syllabus(course_id);
+
+CREATE INDEX idx_syllabus_academic_year
+ON syllabus(academic_year_id);
+
+CREATE INDEX idx_syllabus_hod
+ON syllabus(uploaded_by_hod);
+
+CREATE INDEX idx_syllabus_uploaded_at
+ON syllabus(uploaded_at);
+
+CREATE INDEX idx_syllabus_status
+ON syllabus(status);
+
+
+-- SUBJECT
+
 CREATE INDEX idx_subject_course
 ON subject(course_id);
-
 
 CREATE INDEX idx_subject_semester
 ON subject(semester_id);
 
 
-CREATE INDEX idx_teacher_subject_teacher
+-- TEACHER SUBJECT ASSIGNMENT
+
+CREATE INDEX idx_tsa_teacher
 ON teacher_subject_assignment(teacher_id);
 
-
-CREATE INDEX idx_teacher_subject_subject
+CREATE INDEX idx_tsa_subject
 ON teacher_subject_assignment(subject_id);
 
+CREATE INDEX idx_tsa_hod
+ON teacher_subject_assignment(assigned_by_hod);
+
+
+-- QUESTION PAPER
 
 CREATE INDEX idx_question_paper_teacher
 ON question_paper(uploaded_by);
 
+CREATE INDEX idx_question_paper_assignment
+ON question_paper(assignment_id);
+
+
+-- STUDY MATERIAL
 
 CREATE INDEX idx_study_material_teacher
 ON study_material(uploaded_by);
 
+CREATE INDEX idx_study_material_assignment
+ON study_material(assignment_id);
+
+
+-- ASSIGNMENT
 
 CREATE INDEX idx_assignment_teacher
 ON assignment(uploaded_by);
 
-
 CREATE INDEX idx_assignment_tsa
 ON assignment(teacher_subject_assignment_id);
 
+CREATE INDEX idx_assignment_academic_year
+ON assignment(academic_year_id);
 
-CREATE INDEX idx_assignment_submission_assignment
+
+-- SUBMISSION
+
+CREATE INDEX idx_submission_assignment
 ON assignment_submission(assignment_id);
 
-
-CREATE INDEX idx_assignment_submission_student
+CREATE INDEX idx_submission_student
 ON assignment_submission(student_id);
 
 
+-- DOUBT
+
 CREATE INDEX idx_doubt_student
 ON student_doubt(student_id);
-
 
 CREATE INDEX idx_doubt_subject
 ON student_doubt(subject_id);
 
 
+-- REPLY
+
 CREATE INDEX idx_reply_teacher
 ON teacher_reply(teacher_id);
 
+CREATE INDEX idx_reply_doubt
+ON teacher_reply(doubt_id);
+
 
 -- ===========================================================
--- CHECK ALL TABLES
+-- VERIFY DATABASE
 -- ===========================================================
 
 SHOW TABLES;
+
+
+-- ===========================================================
+-- VERIFY SYLLABUS
+-- ===========================================================
+
+DESCRIBE syllabus;
+
+
+-- ===========================================================
+-- VERIFY IMPORTANT SYLLABUS COLUMNS
+-- ===========================================================
+
+SELECT
+    syllabus_id,
+    department_id,
+    course_id,
+    academic_year_id,
+    title,
+    file_name,
+    file_path,
+    uploaded_by_hod,
+    uploaded_at,
+    status,
+    created_at,
+    updated_at
+FROM syllabus;
