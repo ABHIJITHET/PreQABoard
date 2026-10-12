@@ -2,109 +2,272 @@
 <html lang="en">
 
 <head>
-
     <meta charset="UTF-8">
-
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
-
-    <title>Students - PreQABoard</title>
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Students - PreQABoard</title>
 </head>
 
 <body>
 
-    <h1>PreQABoard</h1>
+    <h1>PreQABoard - HOD</h1>
 
-    <h2>Registered Students</h2>
+    <nav>
+        <a href="{{ url_for('hod.dashboard') }}">Dashboard</a> |
+        <a href="{{ url_for('hod.student_approvals') }}">Student Approvals</a> |
+        <a href="{{ url_for('hod.students') }}">View Students</a> |
+        <a href="{{ url_for('hod.logout') }}">Logout</a>
+    </nav>
 
     <hr>
 
+    <h2>View Students</h2>
+
     <p>
-        <a href="{{ url_for('hod.dashboard') }}">
-            ← Back to Dashboard
-        </a>
+        This page is only for viewing students belonging to your department.
     </p>
 
-    {% if students %}
+    <p>
+        <strong>Note:</strong>
+        Student editing, approval and rejection are available only on the
+        Student Approvals page.
+    </p>
 
-        <table border="1" cellpadding="10">
+    <hr>
 
-            <thead>
+    <!-- SEARCH AND FILTER -->
 
-                <tr>
+    <h3>Search & Filter</h3>
 
-                    <th>No.</th>
-                    <th>Register Number</th>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Phone</th>
-                    <th>Course</th>
-                    <th>Semester</th>
-                    <th>Status</th>
+    <form method="GET" action="{{ url_for('hod.students') }}">
 
-                </tr>
+        <label for="search">Search:</label>
 
-            </thead>
+        <input
+            type="text"
+            id="search"
+            name="search"
+            placeholder="Register number, name, email or username"
+            value="{{ search or '' }}"
+        >
 
-            <tbody>
+        <br><br>
 
-                {% for student in students %}
 
-                    <tr>
+        <label for="course_id">Course:</label>
 
-                        <td>
-                            {{ loop.index }}
-                        </td>
+        <select id="course_id" name="course_id">
 
-                        <td>
-                            {{ student.register_number }}
-                        </td>
+            <option value="">
+                All Courses
+            </option>
 
-                        <td>
-                            {{ student.full_name }}
-                        </td>
+            {% for course in courses %}
 
-                        <td>
-                            {{ student.email }}
-                        </td>
+            <option
+                value="{{ course.course_id }}"
+                {% if selected_course_id|string == course.course_id|string %}
+                    selected
+                {% endif %}
+            >
+                {{ course.course_name }}
+            </option>
 
-                        <td>
-                            {{ student.phone or '-' }}
-                        </td>
+            {% endfor %}
 
-                        <td>
-                            {{ student.course_name }}
-                        </td>
+        </select>
 
-                        <td>
-                            Semester {{ student.semester_number }}
-                        </td>
+        <br><br>
 
-                        <td>
-                            {{ student.account_status }}
-                        </td>
 
-                    </tr>
+        <label for="semester_id">Semester:</label>
 
-                {% endfor %}
+        <select id="semester_id" name="semester_id">
 
-            </tbody>
+            <option value="">
+                All Semesters
+            </option>
 
-        </table>
+            {% for semester in semesters %}
+
+            <option
+                value="{{ semester.semester_id }}"
+                {% if selected_semester_id|string == semester.semester_id|string %}
+                    selected
+                {% endif %}
+            >
+                {{ semester.course_name }}
+                - Semester {{ semester.semester_number }}
+            </option>
+
+            {% endfor %}
+
+        </select>
+
+        <br><br>
+
+
+        <label for="approval_status">
+            Approval Status:
+        </label>
+
+        <select
+            id="approval_status"
+            name="approval_status"
+        >
+
+            <option value="">
+                All
+            </option>
+
+            <option
+                value="Pending"
+                {% if selected_approval_status == "Pending" %}
+                    selected
+                {% endif %}
+            >
+                Pending
+            </option>
+
+            <option
+                value="Approved"
+                {% if selected_approval_status == "Approved" %}
+                    selected
+                {% endif %}
+            >
+                Approved
+            </option>
+
+            <option
+                value="Rejected"
+                {% if selected_approval_status == "Rejected" %}
+                    selected
+                {% endif %}
+            >
+                Rejected
+            </option>
+
+        </select>
+
+        <br><br>
+
+
+        <button type="submit">
+            Search / Filter
+        </button>
+
+        <a href="{{ url_for('hod.students') }}">
+            Reset
+        </a>
+
+    </form>
+
+    <hr>
+
+
+    <!-- STUDENTS -->
+
+    {% if grouped_students %}
+
+        {% for group in grouped_students %}
+
+            <h3>
+                {{ group.course_name }}
+                - Semester {{ group.semester_number }}
+            </h3>
+
+            {% if group.students %}
+
+                <table border="1" cellpadding="8" cellspacing="0">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>No.</th>
+                            <th>Register Number</th>
+                            <th>Full Name</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Username</th>
+                            <th>Approval Status</th>
+                            <th>Account Status</th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                        {% for student in group.students %}
+
+                        <tr>
+
+                            <td>
+                                {{ loop.index }}
+                            </td>
+
+                            <td>
+                                {{ student.register_number }}
+                            </td>
+
+                            <td>
+                                {{ student.full_name }}
+                            </td>
+
+                            <td>
+                                {{ student.email }}
+                            </td>
+
+                            <td>
+                                {{ student.phone or "-" }}
+                            </td>
+
+                            <td>
+                                {{ student.username }}
+                            </td>
+
+                            <td>
+                                {{ student.approval_status }}
+                            </td>
+
+                            <td>
+                                {{ student.account_status }}
+                            </td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            {% endif %}
+
+            <br>
+
+        {% endfor %}
 
     {% else %}
 
         <p>
-            No students are registered in your department.
+            <strong>No students found.</strong>
         </p>
 
     {% endif %}
 
-    <br>
 
-    <a href="{{ url_for('hod.logout') }}">
-        Logout
+    <hr>
+
+    <a href="{{ url_for('hod.student_approvals') }}">
+        Go to Student Approvals
+    </a>
+
+    <br><br>
+
+    <a href="{{ url_for('hod.dashboard') }}">
+        Back to Dashboard
     </a>
 
 </body>

@@ -7,6 +7,7 @@ from routes.auth_routes import auth_bp
 from routes.admin_routes import admin_bp
 from routes.hod_routes import hod_bp
 from routes.teacher_routes import teacher_bp
+from routes.student_routes import student_bp
 
 
 def create_app():
@@ -75,17 +76,39 @@ window.addEventListener("pageshow", function (event) {
     # REGISTER BLUEPRINTS
     # ===========================================================
 
+    # -----------------------------------------------------------
     # Authentication routes
+    # -----------------------------------------------------------
+
     app.register_blueprint(auth_bp)
 
+
+    # -----------------------------------------------------------
     # Admin routes
+    # -----------------------------------------------------------
+
     app.register_blueprint(admin_bp)
 
+
+    # -----------------------------------------------------------
     # HOD routes
+    # -----------------------------------------------------------
+
     app.register_blueprint(hod_bp)
 
+
+    # -----------------------------------------------------------
     # Teacher routes
+    # -----------------------------------------------------------
+
     app.register_blueprint(teacher_bp)
+
+
+    # -----------------------------------------------------------
+    # Student routes
+    # -----------------------------------------------------------
+
+    app.register_blueprint(student_bp)
 
 
     # ===========================================================
@@ -95,63 +118,228 @@ window.addEventListener("pageshow", function (event) {
     @app.route("/")
     def home():
 
+        connection = None
+        cursor = None
+
         try:
 
             connection = get_connection()
             cursor = connection.cursor()
 
+
+            # ---------------------------------------------------
+            # GET TOTAL DEPARTMENTS
+            # ---------------------------------------------------
+
             cursor.execute(
-                "SELECT COUNT(*) AS total FROM department"
+                """
+                SELECT COUNT(*) AS total
+                FROM department
+                """
             )
 
             result = cursor.fetchone()
 
-            cursor.close()
-            connection.close()
+            total_departments = result["total"]
+
+
+            # ---------------------------------------------------
+            # HOME PAGE
+            # ---------------------------------------------------
 
             return f"""
-                <h1>Welcome to PreQABoard</h1>
+                <!DOCTYPE html>
 
-                <p>Flask is working successfully.</p>
+                <html lang="en">
 
-                <p>MySQL is connected successfully.</p>
+                <head>
 
-                <p>Total Departments: {result['total']}</p>
+                    <meta charset="UTF-8">
 
-                <br>
+                    <meta name="viewport"
+                          content="width=device-width, initial-scale=1.0">
 
-                <a href="/admin/login">
-                    Admin Login
-                </a>
+                    <title>PreQABoard</title>
 
-                <br><br>
+                </head>
 
-                <a href="/hod/login">
-                    HOD Login
-                </a>
 
-                <br><br>
+                <body>
 
-                <a href="/teacher/login">
-                    Teacher Login
-                </a>
+                    <h1>Welcome to PreQABoard</h1>
+
+                    <p>
+                        Flask is working successfully.
+                    </p>
+
+                    <p>
+                        MySQL is connected successfully.
+                    </p>
+
+                    <p>
+                        Total Departments:
+                        {total_departments}
+                    </p>
+
+
+                    <hr>
+
+
+                    <!-- =========================================
+                         ADMIN
+                         ========================================= -->
+
+                    <h3>Admin</h3>
+
+                    <a href="/admin/login">
+                        Admin Login
+                    </a>
+
+
+                    <br><br>
+
+
+                    <!-- =========================================
+                         HOD
+                         ========================================= -->
+
+                    <h3>HOD</h3>
+
+                    <a href="/hod/login">
+                        HOD Login
+                    </a>
+
+
+                    <br><br>
+
+
+                    <!-- =========================================
+                         TEACHER
+                         ========================================= -->
+
+                    <h3>Teacher</h3>
+
+                    <a href="/teacher/login">
+                        Teacher Login
+                    </a>
+
+                    <br><br>
+
+                    <a href="/teacher/register">
+                        Teacher Registration
+                    </a>
+
+
+                    <br><br>
+
+
+                    <!-- =========================================
+                         STUDENT
+                         ========================================= -->
+
+                    <h3>Student</h3>
+
+                    <a href="/student/login">
+                        Student Login
+                    </a>
+
+                    <br><br>
+
+                    <a href="/student/register">
+                        Student Registration
+                    </a>
+
+
+                </body>
+
+                </html>
             """
+
 
         except Exception as e:
 
             return f"""
-                <h1>Database Connection Failed</h1>
+                <!DOCTYPE html>
 
-                <p>{e}</p>
+                <html lang="en">
+
+                <head>
+
+                    <meta charset="UTF-8">
+
+                    <title>Database Error</title>
+
+                </head>
+
+
+                <body>
+
+                    <h1>
+                        Database Connection Failed
+                    </h1>
+
+                    <p>
+                        {e}
+                    </p>
+
+                </body>
+
+                </html>
             """
 
+
+        finally:
+
+            if cursor:
+
+                cursor.close()
+
+            if connection:
+
+                connection.close()
+
+
+    # ===========================================================
+    # PRINT REGISTERED ROUTES
+    # ===========================================================
+    #
+    # This helps us verify that Student routes are registered.
+    #
+    # ===========================================================
+
+    print("\n==============================================")
+    print("        PREQABOARD REGISTERED ROUTES")
+    print("==============================================")
+
+    for rule in app.url_map.iter_rules():
+
+        print(
+            f"{rule.methods}  ->  {rule}"
+        )
+
+    print("==============================================\n")
+
+
+    # ===========================================================
+    # RETURN APPLICATION
+    # ===========================================================
 
     return app
 
 
+# ===========================================================
+# CREATE APPLICATION
+# ===========================================================
+
 app = create_app()
 
 
+# ===========================================================
+# RUN APPLICATION
+# ===========================================================
+
 if __name__ == "__main__":
 
-    app.run(debug=True)
+    app.run(
+        debug=True
+    )

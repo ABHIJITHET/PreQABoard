@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Student Registration - PreQABoard</title>
+</head>
+
+<body>
+
+    <h1>Student Registration</h1>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+
+        {% if messages %}
+
+            {% for category, message in messages %}
+
+                <p>{{ message }}</p>
+
+            {% endfor %}
+
+        {% endif %}
+
+    {% endwith %}
+
+
+    <form method="POST"
+          action="{{ url_for('student.register') }}">
+
+        <label>Department:</label>
+        <br>
+
+        <select name="department_id" id="department_id" required>
+
+            <option value="">Select Department</option>
+
+            {% for department in departments %}
+
+                <option
+                    value="{{ department.department_id }}"
+                    data-department="{{ department.department_id }}"
+                >
+                    {{ department.department_name }}
+                </option>
+
+            {% endfor %}
+
+        </select>
+
+        <br><br>
+
+
+        <label>Course:</label>
+        <br>
+
+        <select name="course_id" id="course_id" required>
+
+            <option value="">Select Course</option>
+
+            {% for course in courses %}
+
+                <option
+                    value="{{ course.course_id }}"
+                    data-department="{{ course.department_id }}"
+                >
+                    {{ course.course_name }}
+                </option>
+
+            {% endfor %}
+
+        </select>
+
+        <br><br>
+
+
+        <label>Semester:</label>
+        <br>
+
+        <select name="semester_id" id="semester_id" required>
+
+            <option value="">Select Semester</option>
+
+            {% for semester in semesters %}
+
+                <option
+                    value="{{ semester.semester_id }}"
+                    data-course="{{ semester.course_id }}"
+                >
+                    Semester {{ semester.semester_number }}
+                </option>
+
+            {% endfor %}
+
+        </select>
+
+        <br><br>
+
+
+        <label>Register Number:</label>
+        <br>
+
+        <input
+            type="text"
+            name="register_number"
+            required
+        >
+
+        <br><br>
+
+
+        <label>Full Name:</label>
+        <br>
+
+        <input
+            type="text"
+            name="full_name"
+            required
+        >
+
+        <br><br>
+
+
+        <label>Email:</label>
+        <br>
+
+        <input
+            type="email"
+            name="email"
+            required
+        >
+
+        <br><br>
+
+
+        <label>Phone:</label>
+        <br>
+
+        <input
+            type="text"
+            name="phone"
+        >
+
+        <br><br>
+
+
+        <label>Username:</label>
+        <br>
+
+        <input
+            type="text"
+            name="username"
+            required
+        >
+
+        <br><br>
+
+
+        <label>Password:</label>
+        <br>
+
+        <input
+            type="password"
+            name="password"
+            required
+        >
+
+        <br><br>
+
+
+        <label>Confirm Password:</label>
+        <br>
+
+        <input
+            type="password"
+            name="confirm_password"
+            required
+        >
+
+        <br><br>
+
+
+        <button type="submit">
+            Register
+        </button>
+
+    </form>
+
+
+    <br>
+
+    <p>
+        Already have an account?
+        <a href="{{ url_for('student.login') }}">
+            Student Login
+        </a>
+    </p>
+
+
+    <p>
+        <a href="/">
+            Back to Home
+        </a>
+    </p>
+
+
+    <script>
+
+        const departmentSelect =
+            document.getElementById("department_id");
+
+        const courseSelect =
+            document.getElementById("course_id");
+
+        const semesterSelect =
+            document.getElementById("semester_id");
+
+
+        departmentSelect.addEventListener("change", function () {
+
+            const departmentId = this.value;
+
+            const courseOptions =
+                courseSelect.querySelectorAll("option");
+
+            courseSelect.value = "";
+            semesterSelect.value = "";
+
+
+            courseOptions.forEach(function (option) {
+
+                if (option.value === "") {
+                    return;
+                }
+
+                if (
+                    option.dataset.department === departmentId
+                ) {
+
+                    option.hidden = false;
+
+                } else {
+
+                    option.hidden = true;
+
+                }
+
+            });
+
+
+            semesterSelect
+                .querySelectorAll("option")
+                .forEach(function (option) {
+
+                    if (option.value !== "") {
+                        option.hidden = true;
+                    }
+
+                });
+
+        });
+
+
+        courseSelect.addEventListener("change", function () {
+
+            const courseId = this.value;
+
+            const semesterOptions =
+                semesterSelect.querySelectorAll("option");
+
+            semesterSelect.value = "";
+
+
+            semesterOptions.forEach(function (option) {
+
+                if (option.value === "") {
+                    return;
+                }
+
+                if (
+                    option.dataset.course === courseId
+                ) {
+
+                    option.hidden = false;
+
+                } else {
+
+                    option.hidden = true;
+
+                }
+
+            });
+
+        });
+
+    </script>
+
+</body>
+
+</html>
+

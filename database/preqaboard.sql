@@ -1,7 +1,7 @@
 -- ===========================================================
 -- PREQABOARD DATABASE
--- COMPLETE CORRECTED DATABASE
--- 21 TABLES
+-- COMPLETE DATABASE
+-- HOD STUDENT MANAGEMENT INCLUDED
 -- ===========================================================
 
 DROP DATABASE IF EXISTS preqaboard;
@@ -54,12 +54,19 @@ CREATE TABLE course (
         ON UPDATE CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_course_department
+
         FOREIGN KEY (department_id)
+
         REFERENCES department(department_id)
+
         ON DELETE CASCADE
+
         ON UPDATE CASCADE,
 
-    UNIQUE (department_id, course_name)
+    UNIQUE (
+        department_id,
+        course_name
+    )
 );
 
 
@@ -84,12 +91,19 @@ CREATE TABLE semester (
         ON UPDATE CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_semester_course
+
         FOREIGN KEY (course_id)
+
         REFERENCES course(course_id)
+
         ON DELETE CASCADE
+
         ON UPDATE CASCADE,
 
-    UNIQUE (course_id, semester_number)
+    UNIQUE (
+        course_id,
+        semester_number
+    )
 );
 
 
@@ -111,14 +125,21 @@ CREATE TABLE admin (
 
     phone VARCHAR(15),
 
-    status ENUM('Active','Inactive')
-        DEFAULT 'Active',
+    status ENUM(
+        'Active',
+        'Inactive'
+    ) DEFAULT 'Active',
 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         ON UPDATE CURRENT_TIMESTAMP
 );
+
+
+-- ===========================================================
+-- DEFAULT ADMIN
+-- ===========================================================
 
 INSERT INTO admin
 (
@@ -132,12 +153,18 @@ INSERT INTO admin
 VALUES
 (
     'admin',
+
     'scrypt:32768:8:1$CNPLf3pAYT8rSzpg$eb7734e66c7609257af2c7605e6df894464dd2147edf7ed626e0def6c4a67b0e29b362bd8ac1e5067d07c1f1d94ff64a7e8215459eb54a6d74f76c89f45cf392',
+
     'System Administrator',
+
     'admin@preqaboard.com',
+
     NULL,
+
     'Active'
 );
+
 
 -- ===========================================================
 -- TABLE 5 : HOD
@@ -173,9 +200,13 @@ CREATE TABLE hod (
         ON UPDATE CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_hod_department
+
         FOREIGN KEY (department_id)
+
         REFERENCES department(department_id)
+
         ON DELETE CASCADE
+
         ON UPDATE CASCADE
 );
 
@@ -214,9 +245,13 @@ CREATE TABLE teacher (
         ON UPDATE CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_teacher_department
+
         FOREIGN KEY (department_id)
+
         REFERENCES department(department_id)
+
         ON DELETE SET NULL
+
         ON UPDATE CASCADE
 );
 
@@ -229,9 +264,14 @@ CREATE TABLE student (
 
     student_id INT AUTO_INCREMENT PRIMARY KEY,
 
+    department_id INT NOT NULL,
+
     course_id INT NOT NULL,
 
     semester_id INT NOT NULL,
+
+    -- CLASS / SECTION
+    class_name VARCHAR(50) NOT NULL,
 
     register_number VARCHAR(30) NOT NULL UNIQUE,
 
@@ -245,6 +285,12 @@ CREATE TABLE student (
 
     password VARCHAR(255) NOT NULL,
 
+    approval_status ENUM(
+        'Pending',
+        'Approved',
+        'Rejected'
+    ) DEFAULT 'Pending',
+
     account_status ENUM(
         'Pending',
         'Active',
@@ -256,16 +302,37 @@ CREATE TABLE student (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         ON UPDATE CURRENT_TIMESTAMP,
 
-    CONSTRAINT fk_student_course
-        FOREIGN KEY (course_id)
-        REFERENCES course(course_id)
+
+    CONSTRAINT fk_student_department
+
+        FOREIGN KEY (department_id)
+
+        REFERENCES department(department_id)
+
         ON DELETE CASCADE
+
         ON UPDATE CASCADE,
 
-    CONSTRAINT fk_student_semester
-        FOREIGN KEY (semester_id)
-        REFERENCES semester(semester_id)
+
+    CONSTRAINT fk_student_course
+
+        FOREIGN KEY (course_id)
+
+        REFERENCES course(course_id)
+
         ON DELETE CASCADE
+
+        ON UPDATE CASCADE,
+
+
+    CONSTRAINT fk_student_semester
+
+        FOREIGN KEY (semester_id)
+
+        REFERENCES semester(semester_id)
+
+        ON DELETE CASCADE
+
         ON UPDATE CASCADE
 );
 
@@ -299,22 +366,6 @@ CREATE TABLE academic_year (
 
 -- ===========================================================
 -- TABLE 9 : SYLLABUS
--- ===========================================================
---
--- Compatible fields:
---
--- s.department_id
--- s.course_id
--- s.academic_year_id
--- s.title
--- s.file_name
--- s.file_path
--- s.uploaded_by_hod
--- s.uploaded_at
--- s.status
--- s.created_at
--- s.updated_at
---
 -- ===========================================================
 
 CREATE TABLE syllabus (
@@ -971,129 +1022,291 @@ CREATE TABLE assignment_submission (
 -- INDEXES
 -- ===========================================================
 
+
+-- COURSE
+
 CREATE INDEX idx_course_department
 ON course(department_id);
+
+
+-- SEMESTER
 
 CREATE INDEX idx_semester_course
 ON semester(course_id);
 
+
+-- HOD
+
 CREATE INDEX idx_hod_department
 ON hod(department_id);
+
+
+-- TEACHER
 
 CREATE INDEX idx_teacher_department
 ON teacher(department_id);
 
+
+-- ===========================================================
+-- STUDENT INDEXES
+-- ===========================================================
+
+CREATE INDEX idx_student_department
+ON student(department_id);
+
+
 CREATE INDEX idx_student_course
 ON student(course_id);
+
 
 CREATE INDEX idx_student_semester
 ON student(semester_id);
 
 
--- SYLLABUS
+CREATE INDEX idx_student_class
+ON student(class_name);
+
+
+CREATE INDEX idx_student_approval
+ON student(approval_status);
+
+
+CREATE INDEX idx_student_account_status
+ON student(account_status);
+
+
+CREATE INDEX idx_student_name
+ON student(full_name);
+
+
+CREATE INDEX idx_student_register
+ON student(register_number);
+
+
+CREATE INDEX idx_student_department_course_semester_class
+ON student(
+    department_id,
+    course_id,
+    semester_id,
+    class_name
+);
+
+
+-- ===========================================================
+-- SYLLABUS INDEXES
+-- ===========================================================
 
 CREATE INDEX idx_syllabus_department
 ON syllabus(department_id);
 
+
 CREATE INDEX idx_syllabus_course
 ON syllabus(course_id);
+
 
 CREATE INDEX idx_syllabus_academic_year
 ON syllabus(academic_year_id);
 
+
 CREATE INDEX idx_syllabus_hod
 ON syllabus(uploaded_by_hod);
 
+
 CREATE INDEX idx_syllabus_uploaded_at
 ON syllabus(uploaded_at);
+
 
 CREATE INDEX idx_syllabus_status
 ON syllabus(status);
 
 
--- SUBJECT
+-- ===========================================================
+-- SUBJECT INDEXES
+-- ===========================================================
 
 CREATE INDEX idx_subject_course
 ON subject(course_id);
+
 
 CREATE INDEX idx_subject_semester
 ON subject(semester_id);
 
 
--- TEACHER SUBJECT ASSIGNMENT
+-- ===========================================================
+-- TEACHER SUBJECT ASSIGNMENT INDEXES
+-- ===========================================================
 
 CREATE INDEX idx_tsa_teacher
 ON teacher_subject_assignment(teacher_id);
 
+
 CREATE INDEX idx_tsa_subject
 ON teacher_subject_assignment(subject_id);
+
 
 CREATE INDEX idx_tsa_hod
 ON teacher_subject_assignment(assigned_by_hod);
 
 
--- QUESTION PAPER
+-- ===========================================================
+-- QUESTION PAPER INDEXES
+-- ===========================================================
 
 CREATE INDEX idx_question_paper_teacher
 ON question_paper(uploaded_by);
+
 
 CREATE INDEX idx_question_paper_assignment
 ON question_paper(assignment_id);
 
 
--- STUDY MATERIAL
+-- ===========================================================
+-- STUDY MATERIAL INDEXES
+-- ===========================================================
 
 CREATE INDEX idx_study_material_teacher
 ON study_material(uploaded_by);
+
 
 CREATE INDEX idx_study_material_assignment
 ON study_material(assignment_id);
 
 
--- ASSIGNMENT
+-- ===========================================================
+-- ASSIGNMENT INDEXES
+-- ===========================================================
 
 CREATE INDEX idx_assignment_teacher
 ON assignment(uploaded_by);
 
+
 CREATE INDEX idx_assignment_tsa
 ON assignment(teacher_subject_assignment_id);
+
 
 CREATE INDEX idx_assignment_academic_year
 ON assignment(academic_year_id);
 
 
--- SUBMISSION
+-- ===========================================================
+-- SUBMISSION INDEXES
+-- ===========================================================
 
 CREATE INDEX idx_submission_assignment
 ON assignment_submission(assignment_id);
+
 
 CREATE INDEX idx_submission_student
 ON assignment_submission(student_id);
 
 
--- DOUBT
+-- ===========================================================
+-- DOUBT INDEXES
+-- ===========================================================
 
 CREATE INDEX idx_doubt_student
 ON student_doubt(student_id);
+
 
 CREATE INDEX idx_doubt_subject
 ON student_doubt(subject_id);
 
 
--- REPLY
+-- ===========================================================
+-- REPLY INDEXES
+-- ===========================================================
 
 CREATE INDEX idx_reply_teacher
 ON teacher_reply(teacher_id);
+
 
 CREATE INDEX idx_reply_doubt
 ON teacher_reply(doubt_id);
 
 
 -- ===========================================================
--- VERIFY DATABASE
+-- SAMPLE / OPTIONAL DATA
+-- ===========================================================
+
+-- You can add your actual departments later.
+
+-- Example:
+
+-- INSERT INTO department
+-- (department_name)
+-- VALUES
+-- ('Computer Applications');
+
+
+-- ===========================================================
+-- VERIFICATION
 -- ===========================================================
 
 SHOW TABLES;
+
+
+-- ===========================================================
+-- VERIFY STUDENT TABLE
+-- ===========================================================
+
+DESCRIBE student;
+
+
+-- ===========================================================
+-- VERIFY STUDENT DATA
+-- ===========================================================
+
+SELECT
+    s.student_id,
+    d.department_name,
+    c.course_name,
+    sem.semester_number,
+    s.class_name,
+    s.register_number,
+    s.full_name,
+    s.email,
+    s.phone,
+    s.username,
+    s.approval_status,
+    s.account_status,
+    s.created_at,
+    s.updated_at
+
+FROM student s
+
+INNER JOIN department d
+    ON s.department_id = d.department_id
+
+INNER JOIN course c
+    ON s.course_id = c.course_id
+
+INNER JOIN semester sem
+    ON s.semester_id = sem.semester_id
+
+ORDER BY
+    c.course_name,
+    sem.semester_number,
+    s.class_name,
+    s.full_name;
+
+
+-- ===========================================================
+-- VERIFY HOD -> DEPARTMENT
+-- ===========================================================
+
+SELECT
+    h.hod_id,
+    h.employee_id,
+    h.full_name,
+    h.email,
+    h.username,
+    d.department_name,
+    h.account_status
+
+FROM hod h
+
+INNER JOIN department d
+    ON h.department_id = d.department_id;
 
 
 -- ===========================================================
@@ -1104,7 +1317,7 @@ DESCRIBE syllabus;
 
 
 -- ===========================================================
--- VERIFY IMPORTANT SYLLABUS COLUMNS
+-- VERIFY SYLLABUS DATA
 -- ===========================================================
 
 SELECT
@@ -1120,4 +1333,10 @@ SELECT
     status,
     created_at,
     updated_at
+
 FROM syllabus;
+
+
+-- ===========================================================
+-- END OF DATABASE
+-- ===========================================================

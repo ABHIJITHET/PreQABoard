@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Student</title>
+</head>
+<body>
+
+    <h1>Edit Student</h1>
+
+    <p>
+        <a href="{{ url_for('hod.student_approvals') }}">Back to Student Approvals</a>
+    </p>
+
+    <form method="POST"
+          action="{{ url_for('hod.edit_student', student_id=student.student_id) }}">
+
+        <label>Register Number:</label><br>
+        <input type="text"
+               name="register_number"
+               value="{{ student.register_number or '' }}"
+               required>
+        <br><br>
+
+        <label>Full Name:</label><br>
+        <input type="text"
+               name="full_name"
+               value="{{ student.full_name or '' }}"
+               required>
+        <br><br>
+
+        <label>Email:</label><br>
+        <input type="email"
+               name="email"
+               value="{{ student.email or '' }}"
+               required>
+        <br><br>
+
+        <label>Phone:</label><br>
+        <input type="text"
+               name="phone"
+               value="{{ student.phone or '' }}">
+        <br><br>
+
+        <label>Username:</label><br>
+        <input type="text"
+               name="username"
+               value="{{ student.username or '' }}"
+               required>
+        <br><br>
+
+        <label>Course:</label><br>
+        <select name="course_id" required>
+
+            <option value="">Select Course</option>
+
+            {% for course in courses %}
+                <option value="{{ course.course_id }}"
+                    {% if course.course_id == student.course_id %}
+                        selected
+                    {% endif %}>
+                    {{ course.course_name }}
+                </option>
+            {% endfor %}
+
+        </select>
+        <br><br>
+
+        <label>Semester:</label><br>
+        <select name="semester_id" required>
+
+            <option value="">Select Semester</option>
+
+            {% for semester in semesters %}
+                <option value="{{ semester.semester_id }}"
+                    {% if semester.semester_id == student.semester_id %}
+                        selected
+                    {% endif %}>
+                    Semester {{ semester.semester_number }}
+                </option>
+            {% endfor %}
+
+        </select>
+        <br><br>
+
+        <button type="submit">Save Changes</button>
+
+    </form>
+
+</body>
+</html>
