@@ -113,10 +113,11 @@
 
                 <td>
 
-                    <a href="{{ url_for(
-                        'static',
-                        filename='uploads/question_papers/' + paper.file_name
-                    ) }}"
+                    <a
+                       href="{{ url_for(
+                            'hod.view_question_paper',
+                            question_paper_id=paper.question_paper_id
+                       ) }}"
                        target="_blank">
 
                         View Paper

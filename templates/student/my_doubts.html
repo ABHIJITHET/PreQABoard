@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Doubts - PreQABoard</title>
+</head>
+<body>
+
+    <h2>My Doubts</h2>
+
+    <p>
+        <a href="{{ url_for('student.dashboard') }}">← Dashboard</a> |
+        <a href="{{ url_for('student.post_doubt') }}">Post Doubt</a> |
+        <a href="{{ url_for('student.logout') }}">Logout</a>
+    </p>
+
+    <hr>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <p>{{ message }}</p>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    {% if doubts %}
+
+        <table border="1" cellpadding="8" cellspacing="0">
+            <thead>
+                <tr>
+                    <th>No.</th>
+                    <th>Date</th>
+                    <th>Subject</th>
+                    <th>Title</th>
+                    <th>Description</th>
+                    <th>Replies</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for d in doubts %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ d.created_at }}</td>
+                    <td>{{ d.subject_code }} - {{ d.subject_name }}</td>
+                    <td>{{ d.doubt_title or '-' }}</td>
+                    <td>{{ d.doubt_description }}</td>
+                    <td>{{ d.reply_count }}</td>
+                    <td>
+                        <a href="{{ url_for('student.view_doubt', doubt_id=d.doubt_id) }}">
+                            Open
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+    {% else %}
+        <p><strong>No doubts posted yet.</strong></p>
+    {% endif %}
+
+</body>
+</html>

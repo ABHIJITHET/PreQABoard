@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Post Doubt - PreQABoard</title>
+</head>
+<body>
+
+    <h2>Post a Doubt</h2>
+
+    <p>
+        <a href="{{ url_for('student.dashboard') }}">← Dashboard</a> |
+        <a href="{{ url_for('student.my_doubts') }}">My Doubts</a> |
+        <a href="{{ url_for('student.logout') }}">Logout</a>
+    </p>
+
+    <hr>
+
+    {% if error %}
+        <p style="color:red;"><strong>{{ error }}</strong></p>
+    {% endif %}
+
+    <form method="POST" action="{{ url_for('student.post_doubt') }}">
+
+        <label>Subject:</label><br>
+        <select name="subject_id" required>
+            <option value="">Select Subject</option>
+            {% for s in subjects %}
+                <option value="{{ s.subject_id }}">
+                    {{ s.subject_code }} - {{ s.subject_name }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <br><br>
+
+        <label>Title (optional):</label><br>
+        <input type="text" name="doubt_title">
+
+        <br><br>
+
+        <label>Description:</label><br>
+        <textarea name="doubt_description" rows="6" cols="60" required></textarea>
+
+        <br><br>
+
+        <button type="submit">Submit Doubt</button>
+
+    </form>
+
+</body>
+</html>

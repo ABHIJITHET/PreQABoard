@@ -149,7 +149,7 @@
 
                     <option value="{{ year.academic_year_id }}">
 
-                        {{ year.academic_year_name }}
+                        {{ year.academic_year_name }} ({{ year.status }})
 
                     </option>
 
@@ -185,6 +185,68 @@
     ====================================================== -->
 
     <h3>Current Teacher Assignments</h3>
+
+
+    <!-- =====================================================
+         SEARCH / FILTER ASSIGNMENTS (ADDED)
+    ====================================================== -->
+
+    <form method="GET"
+          action="{{ url_for('hod.teacher_assignments') }}">
+
+        <label for="search">
+            Search:
+        </label>
+
+        <input type="text"
+               id="search"
+               name="search"
+               value="{{ search or '' }}"
+               placeholder="Teacher / Employee ID / Subject / Course">
+
+        <br><br>
+
+        <label for="academic_year_id">
+            Academic Year:
+        </label>
+
+        <select id="academic_year_id" name="academic_year_id">
+
+            <option value="">
+                -- All --
+            </option>
+
+            {% if academic_years %}
+
+                {% for year in academic_years %}
+
+                    <option value="{{ year.academic_year_id }}"
+                        {% if (selected_academic_year_id|string) == (year.academic_year_id|string) %}selected{% endif %}>
+
+                        {{ year.academic_year_name }} ({{ year.status }})
+
+                    </option>
+
+                {% endfor %}
+
+            {% endif %}
+
+        </select>
+
+        <br><br>
+
+        <button type="submit">
+            Search
+        </button>
+
+        <a href="{{ url_for('hod.teacher_assignments') }}">
+            Reset
+        </a>
+
+    </form>
+
+    <br>
+
 
     {% if assignments %}
 

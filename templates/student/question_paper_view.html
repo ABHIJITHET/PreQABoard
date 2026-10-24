@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Question Paper View - PreQABoard</title>
+</head>
+<body>
+
+    <h1>PreQABoard - Student</h1>
+
+    <p>
+        <a href="{{ url_for('student.dashboard') }}">Dashboard</a> |
+        <a href="{{ url_for('student.question_papers') }}">Question Papers</a> |
+        <a href="{{ url_for('student.logout') }}">Logout</a>
+    </p>
+
+    <hr>
+
+    <h2>Question Paper Details</h2>
+
+    {% if error %}
+        <p style="color:red;"><strong>{{ error }}</strong></p>
+    {% endif %}
+
+    {% if paper %}
+
+        <table border="1" cellpadding="8" cellspacing="0">
+            <tr>
+                <th>Title</th>
+                <td>{{ paper.title }}</td>
+            </tr>
+
+            <tr>
+                <th>Subject</th>
+                <td>
+                    {% if paper.subject_code is defined %}
+                        {{ paper.subject_code }} -
+                    {% endif %}
+                    {% if paper.subject_name is defined %}
+                        {{ paper.subject_name }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+            </tr>
+
+            <tr>
+                <th>Academic Year</th>
+                <td>{{ paper.academic_year_name if paper.academic_year_name is defined else '-' }}</td>
+            </tr>
+
+            <tr>
+                <th>Exam Type</th>
+                <td>{{ paper.exam_type_name if paper.exam_type_name is defined else '-' }}</td>
+            </tr>
+
+            <tr>
+                <th>Uploaded At</th>
+                <td>{{ paper.upload_date if paper.upload_date is defined else '-' }}</td>
+            </tr>
+
+            <tr>
+                <th>Download</th>
+                <td>
+                    <a href="{{ url_for('student.download_question_paper', question_paper_id=paper.question_paper_id) }}">
+                        Download Question Paper
+                    </a>
+                </td>
+            </tr>
+        </table>
+
+        <hr>
+
+        <h3>Answer Keys (if available)</h3>
+
+        {% if answer_keys is defined and answer_keys %}
+            <table border="1" cellpadding="8" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>No.</th>
+                        <th>File</th>
+                        <th>Date</th>
+                        <th>Download</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ak in answer_keys %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ ak.file_name }}</td>
+                        <td>{{ ak.upload_date }}</td>
+                        <td>
+                            {% if 'download_teacher_answer' in globals() %}
+                                <!-- if you implement answer-key download by id -->
+                                <a href="{{ url_for('student.download_teacher_answer', answer_key_id=ak.answer_key_id) }}">Download</a>
+                            {% else %}
+                                <em>Download route not configured</em>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p><strong>No answer keys listed.</strong></p>
+        {% endif %}
+
+    {% else %}
+        <p><strong>Paper not found.</strong></p>
+    {% endif %}
+
+</body>
+</html>

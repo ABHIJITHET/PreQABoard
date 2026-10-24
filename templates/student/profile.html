@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Profile - PreQABoard</title>
+</head>
+<body>
+
+    <h1>PreQABoard - Student</h1>
+
+    <p>
+        <a href="{{ url_for('student.dashboard') }}">← Dashboard</a> |
+        <a href="{{ url_for('student.logout') }}">Logout</a>
+    </p>
+
+    <hr>
+
+    <h2>My Profile</h2>
+
+    {% if error %}
+        <p style="color:red;"><strong>{{ error }}</strong></p>
+    {% endif %}
+
+    {% if student %}
+        <table border="1" cellpadding="8" cellspacing="0">
+            <tr>
+                <th>Register Number</th>
+                <td>{{ student.register_number or '-' }}</td>
+            </tr>
+            <tr>
+                <th>Full Name</th>
+                <td>{{ student.full_name or '-' }}</td>
+            </tr>
+            <tr>
+                <th>Email</th>
+                <td>{{ student.email or '-' }}</td>
+            </tr>
+            <tr>
+                <th>Phone</th>
+                <td>{{ student.phone or '-' }}</td>
+            </tr>
+            <tr>
+                <th>Username</th>
+                <td>{{ student.username or '-' }}</td>
+            </tr>
+            <tr>
+                <th>Department</th>
+                <td>{{ student.department_name or '-' }}</td>
+            </tr>
+            <tr>
+                <th>Course</th>
+                <td>{{ student.course_name or '-' }}</td>
+            </tr>
+            <tr>
+                <th>Semester</th>
+                <td>{{ student.semester_number or '-' }}</td>
+            </tr>
+            <tr>
+                <th>Approval Status</th>
+                <td>{{ student.approval_status or '-' }}</td>
+            </tr>
+            <tr>
+                <th>Account Status</th>
+                <td>{{ student.account_status or '-' }}</td>
+            </tr>
+        </table>
+    {% else %}
+        <p><strong>Profile not available.</strong></p>
+    {% endif %}
+
+</body>
+</html>

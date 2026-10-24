@@ -1,91 +1,108 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
     <meta charset="UTF-8">
 
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>Student Login - PreQABoard</title>
 
+    <!-- Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/student_login.css') }}">
 </head>
 
 <body>
+    <!-- Background -->
+    <div class="bg" aria-hidden="true">
+        <div class="bg__glow bg__glow--one"></div>
+        <div class="bg__glow bg__glow--two"></div>
+        <div class="bg__noise"></div>
+    </div>
 
-    <h1>Student Login</h1>
+    <!-- Top bar -->
+    <header class="topbar">
+        <div class="topbar__inner">
+            <a class="brand" href="/">
+                <span class="brand__dot" aria-hidden="true"></span>
+                <span class="brand__text">
+                    <span class="brand__highlight">PreQABoard</span>
+                </span>
+            </a>
 
-    {% with messages = get_flashed_messages(with_categories=true) %}
+            <nav class="topbar__nav" aria-label="Top navigation">
+                <a class="topbar__link" href="/">Home</a>
+                <a class="topbar__link topbar__link--active" href="{{ url_for('student.login') }}">Student</a>
+                <a class="topbar__link" href="{{ url_for('teacher.logout') }}">Teacher</a>
+            </nav>
+        </div>
+    </header>
 
-        {% if messages %}
+    <!-- Center Card -->
+    <main class="page">
+        <section class="card" aria-label="Student login form">
+            <div class="card__header">
+                <h1 class="card__title">Student Login</h1>
+                <p class="card__hint">Sign in to access approved materials and question papers.</p>
+            </div>
 
-            {% for category, message in messages %}
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="alerts">
+                        {% for category, message in messages %}
+                            <div class="alert" role="alert" data-category="{{ category }}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
 
-                <p>{{ message }}</p>
+            <form class="form" method="POST" action="{{ url_for('student.login') }}" autocomplete="on">
+                <div class="field">
+                    <label class="label" for="username">Username</label>
+                    <input
+                        class="input"
+                        id="username"
+                        type="text"
+                        name="username"
+                        required
+                        autocomplete="username"
+                        placeholder="Enter your username"
+                    >
+                </div>
 
-            {% endfor %}
+                <div class="field">
+                    <label class="label" for="password">Password</label>
+                    <input
+                        class="input"
+                        id="password"
+                        type="password"
+                        name="password"
+                        required
+                        autocomplete="current-password"
+                        placeholder="Enter your password"
+                    >
+                </div>
 
-        {% endif %}
+                <button class="btn btn--primary" type="submit">
+                    Login
+                </button>
 
-    {% endwith %}
+                <div class="form__footer">
+                    <span class="muted">Don’t have an account?</span>
+                    <a class="link" href="{{ url_for('student.register') }}">Register as Student</a>
+                </div>
 
-
-    <form method="POST"
-          action="{{ url_for('student.login') }}">
-
-        <label>Username:</label>
-
-        <br>
-
-        <input
-            type="text"
-            name="username"
-            required
-        >
-
-        <br><br>
-
-
-        <label>Password:</label>
-
-        <br>
-
-        <input
-            type="password"
-            name="password"
-            required
-        >
-
-        <br><br>
-
-
-        <button type="submit">
-            Login
-        </button>
-
-    </form>
-
-
-    <br>
-
-
-    <p>
-        Don't have an account?
-
-        <a href="{{ url_for('student.register') }}">
-            Register as Student
-        </a>
-    </p>
-
-
-    <p>
-        <a href="/">
-            Back to Home
-        </a>
-    </p>
-
+                <div class="form__footer form__footer--secondary">
+                    <a class="link link--muted" href="/">← Back to Home</a>
+                </div>
+            </form>
+        </section>
+    </main>
 </body>
-
 </html>
-

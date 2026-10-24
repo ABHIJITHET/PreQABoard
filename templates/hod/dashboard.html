@@ -55,6 +55,12 @@
     <hr>
 
     <h3>HOD Management</h3>
+    <!-- Manage sem calendar -->
+    <p>
+        <a href="{{ url_for('hod.semester_calendar') }}">
+            Semester Calendar
+        </a>
+    </p>
 
     <!-- Manage Syllabus -->
     <p>
@@ -114,7 +120,7 @@
 
     <!-- Student Doubts -->
     <p>
-        <a href="#">
+        <a href="{{ url_for('hod.view_doubts') }}">
             Student Doubts
         </a>
     </p>

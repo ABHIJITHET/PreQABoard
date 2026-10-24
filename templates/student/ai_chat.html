@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Chat - PreQABoard</title>
+</head>
+<body>
+
+    <h1>PreQABoard - Student</h1>
+
+    <p>
+        <a href="{{ url_for('student.dashboard') }}">← Dashboard</a> |
+        <a href="{{ url_for('student.ai_chat', clear=1) }}">Clear Chat</a> |
+        <a href="{{ url_for('student.logout') }}">Logout</a>
+    </p>
+
+    <hr>
+
+    <h2>AI Chat</h2>
+
+    {% if error %}
+        <p style="color:red;"><strong>{{ error }}</strong></p>
+    {% endif %}
+
+    <!-- Chat history -->
+    {% if messages %}
+        <div style="border:1px solid #000; padding:10px;">
+            {% for m in messages %}
+                <p>
+                    <strong>{{ m.role|capitalize }}:</strong>
+                    {{ m.content }}
+                </p>
+                <hr>
+            {% endfor %}
+        </div>
+        <br>
+    {% else %}
+        <p><em>No messages yet.</em></p>
+    {% endif %}
+
+    <!-- Chat form -->
+    <form method="POST" action="{{ url_for('student.ai_chat') }}">
+
+        <label for="message">Type your message:</label><br>
+
+        <textarea id="message"
+                  name="message"
+                  rows="4"
+                  cols="70"
+                  required></textarea>
+
+        <br><br>
+
+        <button type="submit">Send</button>
+
+    </form>
+
+</body>
+</html>

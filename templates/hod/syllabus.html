@@ -122,9 +122,15 @@
 
                     {% for semester in semesters %}
 
-                        <option value="{{ semester.semester_id }}">
+                        <option
+                            value="{{ semester.semester_id }}"
+                            data-course-id="{{ semester.course_id }}"
+                        >
 
                             Semester {{ semester.semester_number }}
+                            {% if semester.course_name %}
+                                ({{ semester.course_name }})
+                            {% endif %}
 
                         </option>
 
@@ -133,6 +139,45 @@
                 </select>
 
             </div>
+
+
+            <br>
+
+
+            <!-- ===================== ADDED ===================== -->
+            <div>
+
+                <label for="academic_year_id">
+                    Academic Year:
+                </label>
+
+                <select
+                    name="academic_year_id"
+                    id="academic_year_id"
+                    required
+                >
+
+                    <option value="">
+                        Select Academic Year
+                    </option>
+
+                    {% for ay in academic_years %}
+
+                        <option value="{{ ay.academic_year_id }}">
+
+                            {{ ay.academic_year_name }}
+                            {% if ay.status %}
+                                ({{ ay.status }})
+                            {% endif %}
+
+                        </option>
+
+                    {% endfor %}
+
+                </select>
+
+            </div>
+            <!-- ================================================= -->
 
 
             <br>
@@ -160,14 +205,15 @@
 
             <div>
 
-                <label for="file">
+                <!-- ✅ CHANGED: label for + input name/id to match route -->
+                <label for="syllabus_file">
                     Syllabus PDF:
                 </label>
 
                 <input
                     type="file"
-                    name="file"
-                    id="file"
+                    name="syllabus_file"
+                    id="syllabus_file"
                     accept=".pdf,application/pdf"
                     required
                 >
@@ -183,6 +229,31 @@
             </button>
 
         </form>
+
+        <!-- ===================== ADDED (Optional) ===================== -->
+        <script>
+            // Filter semester dropdown by selected course (optional but useful)
+            const courseSelect = document.getElementById("course_id");
+            const semesterSelect = document.getElementById("semester_id");
+
+            function filterSemestersByCourse() {
+                const selectedCourseId = courseSelect.value;
+                const options = semesterSelect.querySelectorAll("option");
+
+                // reset selection
+                semesterSelect.value = "";
+
+                options.forEach((opt, idx) => {
+                    if (idx === 0) return; // "Select Semester"
+                    const courseId = opt.getAttribute("data-course-id");
+                    opt.style.display = (!selectedCourseId || courseId === selectedCourseId) ? "" : "none";
+                });
+            }
+
+            courseSelect.addEventListener("change", filterSemestersByCourse);
+            filterSemestersByCourse();
+        </script>
+        <!-- =========================================================== -->
 
     </section>
 
@@ -265,8 +336,11 @@
 
 
                             <td>
-                                Semester
-                                {{ syllabus.semester_number }}
+                                {% if syllabus.semester_number %}
+                                    Semester {{ syllabus.semester_number }}
+                                {% else %}
+                                    -
+                                {% endif %}
                             </td>
 
 

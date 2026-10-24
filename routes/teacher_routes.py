@@ -4,7 +4,8 @@ from flask import (
     redirect,
     url_for,
     session,
-    request
+    request,
+    send_from_directory
 )
 
 from database.db_connection import get_connection
@@ -22,6 +23,29 @@ import os
 teacher_bp = Blueprint(
     "teacher",
     __name__
+)
+
+
+# ===========================================================
+# (ADDED) UPLOAD FOLDERS
+# ===========================================================
+
+QUESTION_PAPER_UPLOAD_FOLDER = os.path.join(
+    os.getcwd(),
+    "uploads",
+    "question_papers"
+)
+
+STUDY_MATERIAL_UPLOAD_FOLDER = os.path.join(
+    os.getcwd(),
+    "uploads",
+    "study_materials"
+)
+
+ANSWER_KEY_UPLOAD_FOLDER = os.path.join(
+    os.getcwd(),
+    "uploads",
+    "answer_keys"
 )
 
 
@@ -1090,6 +1114,65 @@ def my_question_papers():
 
     teacher_id = session.get("teacher_id")
 
+    # ======================= (ADDED) =======================
+    # If query parameter question_paper_id is provided,
+    # show the PDF file instead of list (so existing HTML works).
+    qp_id = (request.args.get("question_paper_id") or "").strip()
+    if qp_id.isdigit():
+
+        connection = None
+        cursor = None
+
+        try:
+
+            connection = get_connection()
+            cursor = connection.cursor()
+
+            cursor.execute(
+                """
+                SELECT
+                    question_paper_id,
+                    file_name
+                FROM question_paper
+                WHERE question_paper_id = %s
+                  AND uploaded_by = %s
+                """,
+                (
+                    int(qp_id),
+                    teacher_id
+                )
+            )
+
+            row = cursor.fetchone()
+
+            if not row:
+                return "Question paper not found or not authorized."
+
+            filename = os.path.basename(row["file_name"] or "")
+            actual_file = os.path.join(QUESTION_PAPER_UPLOAD_FOLDER, filename)
+
+            if not filename or not os.path.exists(actual_file):
+                return "Question paper file not found on server."
+
+            return send_from_directory(
+                QUESTION_PAPER_UPLOAD_FOLDER,
+                filename,
+                as_attachment=False
+            )
+
+        except Exception as e:
+
+            return f"Error viewing question paper: {e}"
+
+        finally:
+
+            if cursor:
+                cursor.close()
+
+            if connection:
+                connection.close()
+    # =======================================================
+
     connection = None
     cursor = None
 
@@ -1609,6 +1692,74 @@ def upload_study_material():
 
 
 # ===========================================================
+# (ADDED) TEACHER VIEW / DOWNLOAD STUDY MATERIAL PDF
+# Endpoint used by your my_materials.html
+# ===========================================================
+
+@teacher_bp.route("/teacher/study-material/download/<int:study_material_id>")
+def download_study_material(study_material_id):
+
+    login_check = teacher_required()
+
+    if login_check:
+        return login_check
+
+    teacher_id = session.get("teacher_id")
+
+    connection = None
+    cursor = None
+
+    try:
+
+        connection = get_connection()
+        cursor = connection.cursor()
+
+        cursor.execute(
+            """
+            SELECT
+                study_material_id,
+                file_name
+            FROM study_material
+            WHERE study_material_id = %s
+              AND uploaded_by = %s
+            """,
+            (
+                study_material_id,
+                teacher_id
+            )
+        )
+
+        row = cursor.fetchone()
+
+        if not row:
+            return "Study material not found or not authorized."
+
+        filename = os.path.basename(row["file_name"] or "")
+        actual_file = os.path.join(STUDY_MATERIAL_UPLOAD_FOLDER, filename)
+
+        if not filename or not os.path.exists(actual_file):
+            return "Study material file not found on server."
+
+        return send_from_directory(
+            STUDY_MATERIAL_UPLOAD_FOLDER,
+            filename,
+            as_attachment=False
+        )
+
+    except Exception as e:
+
+        return f"Error viewing study material: {e}"
+
+    finally:
+
+        if cursor:
+            cursor.close()
+
+        if connection:
+            connection.close()
+
+
+# ===========================================================
 # 10. TEACHER MY MATERIALS
 # ===========================================================
 
@@ -1671,7 +1822,8 @@ def my_materials():
 
         return render_template(
             "teacher/my_materials.html",
-            study_materials=study_materials
+            study_materials=study_materials,
+            materials=study_materials
         )
 
     except Exception as e:
@@ -1679,6 +1831,7 @@ def my_materials():
         return render_template(
             "teacher/my_materials.html",
             study_materials=[],
+            materials=[],
             error=f"Database Error: {e}"
         )
 

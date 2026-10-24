@@ -10,11 +10,14 @@
         content="width=device-width, initial-scale=1.0"
     >
 
-    <title>All Students - Admin</title>
+    <title>
+        All Students - Admin
+    </title>
 
+    <!-- Admin Students CSS -->
     <link
         rel="stylesheet"
-        href="{{ url_for('static', filename='css/dashboard.css') }}"
+        href="{{ url_for('static', filename='css/admin_students.css') }}"
     >
 
 </head>
@@ -22,203 +25,265 @@
 
 <body>
 
-
-<!-- =====================================================
-     SIDEBAR
-===================================================== -->
-
-<div class="sidebar">
-
-    <h2>Admin Panel</h2>
-
-    <a href="{{ url_for('admin.dashboard') }}">
-        Dashboard
-    </a>
-
-    <a href="{{ url_for('admin.departments') }}">
-        Departments
-    </a>
-
-    <a href="{{ url_for('admin.courses') }}">
-        Courses
-    </a>
-
-    <a href="{{ url_for('admin.semesters') }}">
-        Semesters
-    </a>
-
-    <a href="{{ url_for('admin.academic_years') }}">
-        Academic Years
-    </a>
-
-    <a href="{{ url_for('admin.exam_types') }}">
-        Exam Types
-    </a>
-
-    <a href="{{ url_for('admin.hod_accounts') }}">
-        HOD Accounts
-    </a>
-
-    <a href="{{ url_for('admin.all_students') }}">
-        Students
-    </a>
-
-    <a href="{{ url_for('admin.all_teachers') }}">
-        Teachers
-    </a>
-
-    <a
-        href="{{ url_for('admin.logout') }}"
-        class="logout"
-    >
-        Logout
-    </a>
-
-</div>
-
-
-
-<!-- =====================================================
-     MAIN CONTENT
-===================================================== -->
-
-<div class="main">
-
-
-    <div class="topbar">
-
-        <h1>
-            All Students
-        </h1>
-
-        <p>
-            View all students registered in the system.
-        </p>
-
+    <!-- Background (visual only) -->
+    <div class="bg" aria-hidden="true">
+        <div class="bg__grid"></div>
+        <div class="bg__glow bg__glow--a"></div>
+        <div class="bg__glow bg__glow--b"></div>
     </div>
 
 
+    <!-- =====================================================
+         SIDEBAR
+    ===================================================== -->
 
-    <div class="section">
+    <div class="sidebar">
 
-
-        <div class="section-header">
-
-            <h2>
-                Student List
-            </h2>
-
+        <div class="sidebar__brand">
+            <div class="brandmark" aria-hidden="true"></div>
+            <div class="sidebar__brandText">
+                <h2>Admin Panel</h2>
+                <p>PreQABoard Control</p>
+            </div>
         </div>
 
 
+        <nav class="nav" aria-label="Admin Navigation">
 
-        <div class="table-container">
+            <a href="{{ url_for('admin.dashboard') }}">
+                Dashboard
+            </a>
 
-            <table>
+            <a href="{{ url_for('admin.departments') }}">
+                Departments
+            </a>
 
-                <thead>
+            <a href="{{ url_for('admin.courses') }}">
+                Courses
+            </a>
 
-                    <tr>
+            <a href="{{ url_for('admin.semesters') }}">
+                Semesters
+            </a>
 
-                        <th>#</th>
+            <a href="{{ url_for('admin.academic_years') }}">
+                Academic Years
+            </a>
 
-                        <th>Register Number</th>
+            <a href="{{ url_for('admin.exam_types') }}">
+                Exam Types
+            </a>
 
-                        <th>Student Name</th>
+            <a href="{{ url_for('admin.hod_accounts') }}">
+                HOD Accounts
+            </a>
 
-                        <th>Department</th>
+            <a href="{{ url_for('admin.all_students') }}">
+                Students
+            </a>
 
-                        <th>Course</th>
+            <a href="{{ url_for('admin.all_teachers') }}">
+                Teachers
+            </a>
 
-                        <th>Semester</th>
-
-                        <th>Email</th>
-
-                        <th>Phone</th>
-
-                        <th>Status</th>
-
-                    </tr>
-
-                </thead>
+        </nav>
 
 
-                <tbody>
+        <div class="sidebar__footer">
 
-                    {% if students %}
+            <a
+                href="{{ url_for('admin.logout') }}"
+                class="logout"
+            >
+                Logout
+            </a>
 
-                        {% for student in students %}
-
-                        <tr>
-
-                            <td>
-                                {{ loop.index }}
-                            </td>
-
-                            <td>
-                                <strong>
-                                    {{ student.register_number }}
-                                </strong>
-                            </td>
-
-                            <td>
-                                {{ student.full_name }}
-                            </td>
-
-                            <td>
-                                {{ student.department_name }}
-                            </td>
-
-                            <td>
-                                {{ student.course_name }}
-                            </td>
-
-                            <td>
-                                Semester
-                                {{ student.semester_number }}
-                            </td>
-
-                            <td>
-                                {{ student.email }}
-                            </td>
-
-                            <td>
-                                {{ student.phone or '-' }}
-                            </td>
-
-                            <td>
-                                {{ student.account_status }}
-                            </td>
-
-                        </tr>
-
-                        {% endfor %}
-
-                    {% else %}
-
-                        <tr>
-
-                            <td
-                                colspan="9"
-                                class="no-data"
-                            >
-                                No students found.
-                            </td>
-
-                        </tr>
-
-                    {% endif %}
-
-                </tbody>
-
-            </table>
+            <div class="sidebar__hint">
+                Logged in as
+                <strong>{{ session.get("admin_username") or "Admin" }}</strong>
+            </div>
 
         </div>
 
     </div>
 
 
-</div>
+
+    <!-- =====================================================
+         MAIN CONTENT
+    ===================================================== -->
+
+    <div class="main">
+
+        <div class="topbar">
+
+            <div class="topbar__title">
+                <h1>
+                    All Students
+                </h1>
+
+                <p>
+                    System-wide student list across all departments, courses, and semesters.
+                </p>
+            </div>
+
+            <div class="topbar__actions">
+                <a
+                    href="{{ url_for('admin.dashboard') }}"
+                    class="back-btn"
+                >
+                    ← Back to Dashboard
+                </a>
+            </div>
+
+        </div>
+
+
+        <div class="section">
+
+            <div class="section-header">
+                <h2>
+                    Students ({{ students|length if students else 0 }})
+                </h2>
+
+                <p class="section-subtitle">
+                    This page is different from <em>Department-wise Students</em>.
+                </p>
+            </div>
+
+
+            {% if students %}
+
+                <div class="table-container">
+
+                    <table>
+
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Student ID</th>
+                                <th>Register Number</th>
+                                <th>Name</th>
+                                <th>Department</th>
+                                <th>Course</th>
+                                <th>Semester</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Username</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+
+
+                        <tbody>
+
+                            {% for student in students %}
+
+                                <tr>
+
+                                    <td class="col--index">
+                                        {{ loop.index }}
+                                    </td>
+
+                                    <td>
+                                        {{ student.student_id or '-' }}
+                                    </td>
+
+                                    <td>
+                                        {{ student.register_number or '-' }}
+                                    </td>
+
+                                    <td>
+                                        <strong class="person-name">
+                                            {{ student.full_name or '-' }}
+                                        </strong>
+                                    </td>
+
+                                    <td>
+                                        {{ student.department_name or '-' }}
+                                    </td>
+
+                                    <td>
+                                        {{ student.course_name or '-' }}
+                                    </td>
+
+                                    <td>
+                                        {{ student.semester_number or '-' }}
+                                    </td>
+
+                                    <td>
+                                        {{ student.email or '-' }}
+                                    </td>
+
+                                    <td>
+                                        {{ student.phone or '-' }}
+                                    </td>
+
+                                    <td>
+                                        {{ student.username or '-' }}
+                                    </td>
+
+                                    <td>
+                                        {% if student.account_status == "Active" %}
+                                            <span class="status status--active">Active</span>
+                                        {% elif student.account_status == "Pending" %}
+                                            <span class="status status--pending">Pending</span>
+                                        {% else %}
+                                            <span class="status status--inactive">
+                                                {{ student.account_status or "Inactive" }}
+                                            </span>
+                                        {% endif %}
+                                    </td>
+
+                                </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            {% else %}
+
+                <div class="empty">
+
+                    <h3>
+                        No Students Found
+                    </h3>
+
+                    <p>
+                        There are no student records available in the system.
+                    </p>
+
+                </div>
+
+            {% endif %}
+
+        </div>
+
+
+        <div class="page-footer">
+            <span>PreQABoard • Admin</span>
+        </div>
+
+    </div>
+
+
+    <script>
+        // Highlight current page link in sidebar
+        (function () {
+            const links = document.querySelectorAll(".nav a");
+            const current = window.location.pathname;
+            links.forEach(a => {
+                try{
+                    const url = new URL(a.href);
+                    if (url.pathname === current) a.classList.add("is-active");
+                }catch(e){}
+            });
+        })();
+    </script>
 
 
 </body>

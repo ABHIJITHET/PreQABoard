@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Semester Calendar - HOD</title>
+</head>
+<body>
+
+    <h1>PreQABoard - HOD</h1>
+
+    <p>
+        <a href="{{ url_for('hod.dashboard') }}">← Back to Dashboard</a>
+        |
+        <a href="{{ url_for('hod.logout') }}">Logout</a>
+    </p>
+
+    <hr>
+
+    <h2>Semester Academic Calendar</h2>
+
+    <p>
+        HOD can enter start and end dates for each semester.
+        These dates will be used for automatic semester increment for students.
+    </p>
+
+    {% if success %}
+        <p style="color: green;"><strong>{{ success }}</strong></p>
+    {% endif %}
+
+    {% if error %}
+        <p style="color: red;"><strong>{{ error }}</strong></p>
+    {% endif %}
+
+    <hr>
+
+    <label for="course_filter"><strong>Filter by Course:</strong></label>
+    <select id="course_filter">
+        <option value="">-- All Courses --</option>
+        {% for c in courses %}
+            <option value="{{ c.course_id }}">{{ c.course_name }}</option>
+        {% endfor %}
+    </select>
+
+    <br><br>
+
+    {% if semesters %}
+
+        <table border="1" cellpadding="8" cellspacing="0">
+            <thead>
+                <tr>
+                    <th>No.</th>
+                    <th>Course</th>
+                    <th>Semester</th>
+                    <th>Start Date</th>
+                    <th>End Date</th>
+                    <th>Update</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for sem in semesters %}
+                <tr class="sem-row" data-course="{{ sem.course_id }}">
+                    <td>{{ loop.index }}</td>
+                    <td>{{ sem.course_name }}</td>
+                    <td>{{ sem.semester_number }}</td>
+
+                    <td>
+                        <form method="POST"
+                              action="{{ url_for('hod.update_semester_calendar', semester_id=sem.semester_id) }}">
+
+                            <input type="date"
+                                   name="start_date"
+                                   value="{{ sem.start_date or '' }}"
+                                   required>
+                    </td>
+
+                    <td>
+                            <input type="date"
+                                   name="end_date"
+                                   value="{{ sem.end_date or '' }}"
+                                   required>
+                    </td>
+
+                    <td>
+                            <button type="submit">Save</button>
+                        </form>
+                    </td>
+
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+    {% else %}
+        <p><strong>No semesters found.</strong></p>
+    {% endif %}
+
+    <script>
+        const courseFilter = document.getElementById("course_filter");
+
+        courseFilter.addEventListener("change", function () {
+            const courseId = this.value;
+            document.querySelectorAll(".sem-row").forEach(function (row) {
+                if (!courseId) {
+                    row.hidden = false;
+                } else {
+                    row.hidden = (row.dataset.course !== courseId);
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>

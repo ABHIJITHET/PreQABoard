@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Doubt - PreQABoard</title>
+</head>
+<body>
+
+    <h2>View Doubt</h2>
+
+    <p>
+        <a href="{{ url_for('student.my_doubts') }}">← My Doubts</a> |
+        <a href="{{ url_for('student.dashboard') }}">Dashboard</a> |
+        <a href="{{ url_for('student.logout') }}">Logout</a>
+    </p>
+
+    <hr>
+
+    <h3>{{ doubt.subject_code }} - {{ doubt.subject_name }}</h3>
+
+    <p><strong>Title:</strong> {{ doubt.doubt_title or '-' }}</p>
+    <p><strong>Description:</strong><br>{{ doubt.doubt_description }}</p>
+    <p><small>Posted: {{ doubt.created_at }}</small></p>
+
+    <hr>
+
+    <!-- ===================== (ADDED) AI REPLY SECTION ===================== -->
+
+    <h3>AI Reply</h3>
+
+    {% if ai_reply %}
+        <p><strong>Model:</strong> {{ ai_reply.model }}</p>
+        <p>{{ ai_reply.reply }}</p>
+        <p><small>{{ ai_reply.created_at }}</small></p>
+    {% else %}
+        <p><strong>No AI reply yet.</strong></p>
+    {% endif %}
+
+    <!-- =================================================================== -->
+
+    <hr>
+
+    <h3>Teacher Replies</h3>
+
+    {% if replies %}
+        <ul>
+            {% for r in replies %}
+                <li>
+                    <strong>{{ r.teacher_name }} ({{ r.employee_id }})</strong><br>
+                    {{ r.reply }}<br>
+                    <small>{{ r.replied_at }}</small>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p><strong>No replies yet.</strong></p>
+    {% endif %}
+
+</body>
+</html>

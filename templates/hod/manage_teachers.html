@@ -48,6 +48,36 @@
 
 
     <!-- =====================================================
+         SEARCH TEACHER (ADDED)
+    ====================================================== -->
+
+    <form method="GET"
+          action="{{ url_for('hod.manage_teachers') }}">
+
+        <label for="search">
+            Search Teacher:
+        </label>
+
+        <input type="text"
+               id="search"
+               name="search"
+               value="{{ search or '' }}"
+               placeholder="Name / Employee ID / Email / Username">
+
+        <button type="submit">
+            Search
+        </button>
+
+        <a href="{{ url_for('hod.manage_teachers') }}">
+            Reset
+        </a>
+
+    </form>
+
+    <br>
+
+
+    <!-- =====================================================
          TEACHER LIST
     ====================================================== -->
 

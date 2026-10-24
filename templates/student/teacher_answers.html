@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Answers - PreQABoard</title>
+</head>
+<body>
+
+    <h1>PreQABoard - Student</h1>
+
+    <p>
+        <a href="{{ url_for('student.dashboard') }}">← Dashboard</a> |
+        <a href="{{ url_for('student.logout') }}">Logout</a>
+    </p>
+
+    <hr>
+
+    <h2>Teacher Answers / Answer Keys</h2>
+
+    {% if error %}
+        <p style="color:red;"><strong>{{ error }}</strong></p>
+    {% endif %}
+
+    {% if answer_keys %}
+        <table border="1" cellpadding="8" cellspacing="0">
+            <thead>
+                <tr>
+                    <th>No.</th>
+                    <th>Paper Title</th>
+                    <th>Subject</th>
+                    <th>Academic Year</th>
+                    <th>Exam Type</th>
+                    <th>Uploaded At</th>
+                    <th>Download</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ak in answer_keys %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ ak.paper_title or '-' }}</td>
+                    <td>{{ ak.subject_code }} - {{ ak.subject_name }}</td>
+                    <td>{{ ak.academic_year_name or '-' }}</td>
+                    <td>{{ ak.exam_type_name or '-' }}</td>
+                    <td>{{ ak.upload_date or '-' }}</td>
+                    <td>
+                        <a href="{{ url_for('student.download_teacher_answer', answer_key_id=ak.answer_key_id) }}">
+                            Download
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p><strong>No answer keys found.</strong></p>
+    {% endif %}
+
+</body>
+</html>

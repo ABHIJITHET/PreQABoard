@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
 
     <meta charset="UTF-8">
@@ -10,215 +9,206 @@
 
     <title>Teacher Registration - PreQABoard</title>
 
+    <!-- Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/teacher_register.css') }}">
+
 </head>
 
 <body>
 
-    <h1>PreQABoard</h1>
-
-    <h2>Teacher Registration</h2>
-
-    <hr>
-
-
-    {% if error %}
-
-    <p style="color: red;">
-        {{ error }}
-    </p>
-
-    {% endif %}
-
-
-    {% if success %}
-
-    <p style="color: green;">
-        {{ success }}
-    </p>
-
-    {% endif %}
-
-
-    <h3>Create Teacher Account</h3>
-
-
-    <form method="POST"
-          action="{{ url_for('auth.teacher_register') }}">
-
-
-        <!-- EMPLOYEE ID -->
-
-        <label>
-            Employee ID:
-        </label>
-
-        <br>
-
-        <input
-            type="text"
-            name="employee_id"
-            required
-        >
-
-        <br><br>
-
-
-        <!-- FULL NAME -->
-
-        <label>
-            Full Name:
-        </label>
-
-        <br>
-
-        <input
-            type="text"
-            name="full_name"
-            required
-        >
-
-        <br><br>
-
-
-        <!-- EMAIL -->
-
-        <label>
-            Email:
-        </label>
-
-        <br>
-
-        <input
-            type="email"
-            name="email"
-            required
-        >
-
-        <br><br>
-
-
-        <!-- PHONE -->
-
-        <label>
-            Phone:
-        </label>
-
-        <br>
-
-        <input
-            type="text"
-            name="phone"
-        >
-
-        <br><br>
-
-
-        <!-- DEPARTMENT -->
-
-        <label>
-            Department:
-        </label>
-
-        <br>
-
-        <select name="department_id" required>
-
-            <option value="">
-                -- Select Department --
-            </option>
-
-            {% for department in departments %}
-
-            <option value="{{ department.department_id }}">
-                {{ department.department_name }}
-            </option>
-
-            {% endfor %}
-
-        </select>
-
-        <br><br>
-
-
-        <!-- USERNAME -->
-
-        <label>
-            Username:
-        </label>
-
-        <br>
-
-        <input
-            type="text"
-            name="username"
-            required
-        >
-
-        <br><br>
-
-
-        <!-- PASSWORD -->
-
-        <label>
-            Password:
-        </label>
-
-        <br>
-
-        <input
-            type="password"
-            name="password"
-            required
-        >
-
-        <br><br>
-
-
-        <!-- CONFIRM PASSWORD -->
-
-        <label>
-            Confirm Password:
-        </label>
-
-        <br>
-
-        <input
-            type="password"
-            name="confirm_password"
-            required
-        >
-
-        <br><br>
-
-
-        <button type="submit">
-            Register
-        </button>
-
-    </form>
-
-
-    <br>
-
-    <hr>
-
-
-    <p>
-        Already have an account?
-    </p>
-
-    <p>
-        <a href="{{ url_for('auth.teacher_login') }}">
-            Teacher Login
-        </a>
-    </p>
-
-
-    <p>
-        <a href="/">
-            ← Back to Home
-        </a>
-    </p>
+    <!-- Background -->
+    <div class="bg" aria-hidden="true">
+        <div class="bg__glow bg__glow--one"></div>
+        <div class="bg__glow bg__glow--two"></div>
+        <div class="bg__noise"></div>
+    </div>
+
+    <!-- Topbar -->
+    <header class="topbar">
+        <div class="topbar__inner">
+            <a class="brand" href="/">
+                <span class="brand__dot" aria-hidden="true"></span>
+                <span class="brand__text">
+                    <span class="brand__highlight">PreQABoard</span>
+                </span>
+            </a>
+
+            <nav class="topbar__nav" aria-label="Top navigation">
+                <a class="topbar__link" href="/">Home</a>
+                <a class="topbar__link" href="{{ url_for('auth.teacher_login') }}">Teacher Login</a>
+                <a class="topbar__link topbar__link--active" href="{{ url_for('auth.teacher_register') }}">Teacher Register</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Center Card -->
+    <main class="page">
+        <section class="card" aria-label="Teacher registration form">
+
+            <div class="card__header">
+                <h1 class="card__title">Teacher Registration</h1>
+                <p class="card__hint">Create a teacher account. Approval is required before you can login.</p>
+            </div>
+
+            {% if error %}
+                <div class="alert alert--danger" role="alert">
+                    {{ error }}
+                </div>
+            {% endif %}
+
+            {% if success %}
+                <div class="status status--success" role="status">
+                    <div class="status__icon" aria-hidden="true">✓</div>
+                    <div class="status__body">
+                        <div class="status__title">Successfully Registered</div>
+                        <div class="status__text">
+                            Your account is created and is <strong>waiting for HOD approval</strong>.
+                            Please login after approval.
+                        </div>
+                        <div class="status__actions">
+                            <a class="btn btn--primary" href="{{ url_for('auth.teacher_login') }}">
+                                Go to Teacher Login
+                            </a>
+                            <a class="btn btn--ghost" href="/">
+                                Back to Home
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+
+                <form class="form" method="POST" action="{{ url_for('auth.teacher_register') }}" autocomplete="on">
+
+                    <!-- EMPLOYEE ID -->
+                    <div class="field">
+                        <label class="label" for="employee_id">Employee ID</label>
+                        <input
+                            class="input"
+                            id="employee_id"
+                            type="text"
+                            name="employee_id"
+                            required
+                            placeholder="Enter employee ID"
+                        >
+                    </div>
+
+                    <!-- FULL NAME -->
+                    <div class="field">
+                        <label class="label" for="full_name">Full Name</label>
+                        <input
+                            class="input"
+                            id="full_name"
+                            type="text"
+                            name="full_name"
+                            required
+                            placeholder="Enter full name"
+                        >
+                    </div>
+
+                    <!-- EMAIL -->
+                    <div class="field">
+                        <label class="label" for="email">Email</label>
+                        <input
+                            class="input"
+                            id="email"
+                            type="email"
+                            name="email"
+                            required
+                            placeholder="Enter email address"
+                        >
+                    </div>
+
+                    <!-- PHONE -->
+                    <div class="field">
+                        <label class="label" for="phone">Phone</label>
+                        <input
+                            class="input"
+                            id="phone"
+                            type="text"
+                            name="phone"
+                            placeholder="Enter phone number (optional)"
+                        >
+                    </div>
+
+                    <!-- DEPARTMENT -->
+                    <div class="field">
+                        <label class="label" for="department_id">Department</label>
+                        <select class="select" id="department_id" name="department_id" required>
+                            <option value="">-- Select Department --</option>
+                            {% for department in departments %}
+                                <option value="{{ department.department_id }}">
+                                    {{ department.department_name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- USERNAME -->
+                    <div class="field">
+                        <label class="label" for="username">Username</label>
+                        <input
+                            class="input"
+                            id="username"
+                            type="text"
+                            name="username"
+                            required
+                            autocomplete="username"
+                            placeholder="Create a username"
+                        >
+                    </div>
+
+                    <!-- PASSWORD -->
+                    <div class="field">
+                        <label class="label" for="password">Password</label>
+                        <input
+                            class="input"
+                           id="password"
+                            type="password"
+                            name="password"
+                            required
+                            autocomplete="new-password"
+                            placeholder="Create a password"
+                        >
+                    </div>
+
+                    <!-- CONFIRM PASSWORD -->
+                    <div class="field">
+                        <label class="label" for="confirm_password">Confirm Password</label>
+                        <input
+                            class="input"
+                            id="confirm_password"
+                            type="password"
+                            name="confirm_password"
+                            required
+                            autocomplete="new-password"
+                            placeholder="Re-enter password"
+                        >
+                    </div>
+
+                    <button class="btn btn--primary" type="submit">
+                        Register
+                    </button>
+
+                    <div class="form__footer">
+                        <span class="muted">Already have an account?</span>
+                        <a class="link" href="{{ url_for('auth.teacher_login') }}">Teacher Login</a>
+                    </div>
+
+                    <div class="form__footer form__footer--secondary">
+                        <a class="link link--muted" href="/">← Back to Home</a>
+                    </div>
+
+                </form>
+
+            {% endif %}
+
+        </section>
+    </main>
 
 </body>
 

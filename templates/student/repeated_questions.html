@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Repeated & Important Questions (AI) | Student</title>
+</head>
+
+<body>
+
+    <header>
+        <h1>Repeated & Important Questions (AI)</h1>
+
+        <p>
+            Select a subject and generate repeated + important questions from approved question papers.
+        </p>
+
+        <a href="{{ url_for('student.dashboard') }}">
+            Back to Dashboard
+        </a>
+    </header>
+
+    <hr>
+
+    {% if error %}
+        <div>
+            <strong>Error:</strong> {{ error }}
+        </div>
+        <hr>
+    {% endif %}
+
+    <section>
+        <h2>Generate</h2>
+
+        <form method="POST" action="{{ url_for('student.repeated_questions') }}">
+
+            <div>
+                <label for="subject_id">Subject:</label>
+
+                <select name="subject_id" id="subject_id" required>
+                    <option value="">Select Subject</option>
+
+                    {% for s in subjects %}
+                        <option
+                            value="{{ s.subject_id }}"
+                            {% if selected_subject_id == (s.subject_id|string) %}selected{% endif %}
+                        >
+                            {{ s.subject_code }} - {{ s.subject_name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <br>
+
+            <div>
+                <label for="limit_papers">Use last N papers (1 to 15):</label>
+                <input type="number" id="limit_papers" name="limit_papers" min="1" max="15" value="8" required>
+            </div>
+
+            <br>
+
+            <button type="submit">Generate</button>
+
+        </form>
+
+        <br>
+
+        <div>
+            <strong>Used Papers:</strong> {{ used_papers or 0 }} <br>
+            <strong>Extracted Questions:</strong> {{ extracted_question_count or 0 }} <br>
+            <strong>Failed Extraction Papers:</strong> {{ failed_extract or 0 }}
+        </div>
+
+    </section>
+
+
+    <hr>
+
+    <section>
+        <h2>AI Output (Same style like expected answer)</h2>
+
+        {% if ai_output %}
+            <pre style="white-space: pre-wrap;">{{ ai_output }}</pre>
+        {% else %}
+            <p>Generate to see AI formatted output.</p>
+        {% endif %}
+    </section>
+
+    <hr>
+
+    <footer>
+        <a href="{{ url_for('student.dashboard') }}">Dashboard</a>
+        |
+        <a href="{{ url_for('student.logout') }}">Logout</a>
+    </footer>
+
+</body>
+
+</html>

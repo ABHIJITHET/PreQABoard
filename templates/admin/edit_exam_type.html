@@ -1,51 +1,185 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Edit Exam Type - PreQABoard</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/admin_edit_exam_type.css') }}"
+    >
+
 </head>
+
 <body>
 
-<h1>PreQABoard - Edit Exam Type</h1>
+    <!-- Background (visual only) -->
+    <div class="bg" aria-hidden="true">
+        <div class="bg__grid"></div>
+        <div class="bg__glow bg__glow--a"></div>
+        <div class="bg__glow bg__glow--b"></div>
+    </div>
 
-<hr>
 
-<form
-    method="POST"
-    action="{{ url_for(
-        'admin.edit_exam_type',
-        exam_type_id=exam_type.exam_type_id
-    ) }}"
->
-    <label for="exam_type_name">Exam Type:</label>
-    <br><br>
-    <input
-        type="text"
-        id="exam_type_name"
-        name="exam_type_name"
-        value="{{ exam_type.exam_type_name }}"
-        required
-    >
-    <br><br>
+    <!-- =====================================================
+         SIDEBAR
+    ===================================================== -->
 
-    <label for="status">Status:</label>
-    <br><br>
-    <select id="status" name="status" required>
-        <option value="Active" {% if exam_type.status =="Active" %}selected{% endif %}>
-            Active
-        </option>
-        <option value="Inactive" {% if exam_type.status =="Inactive" %}selected{% endif %}>
-            Inactive
-        </option>
-    </select>
+    <div class="sidebar">
 
-    <br><br>
-    <button type="submit">Update Exam Type</button>
-</form>
+        <div class="sidebar__brand">
+            <div class="brandmark" aria-hidden="true"></div>
+            <div class="sidebar__brandText">
+                <h2>Admin Panel</h2>
+                <p>PreQABoard Control</p>
+            </div>
+        </div>
 
-<br>
-<a href="{{ url_for('admin.exam_types') }}">Back to Exam Types</a>
+        <nav class="nav" aria-label="Admin Navigation">
+            <a href="{{ url_for('admin.dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('admin.departments') }}">Departments</a>
+            <a href="{{ url_for('admin.courses') }}">Courses</a>
+            <a href="{{ url_for('admin.semesters') }}">Semesters</a>
+            <a href="{{ url_for('admin.academic_years') }}">Academic Years</a>
+            <a href="{{ url_for('admin.exam_types') }}">Exam Types</a>
+            <a href="{{ url_for('admin.hod_accounts') }}">HOD Accounts</a>
+            <a href="{{ url_for('admin.all_students') }}">Students</a>
+            <a href="{{ url_for('admin.all_teachers') }}">Teachers</a>
+        </nav>
+
+        <div class="sidebar__footer">
+            <a href="{{ url_for('admin.logout') }}" class="logout">
+                Logout
+            </a>
+
+            <div class="sidebar__hint">
+                Logged in as
+                <strong>{{ session.get("admin_username") or "Admin" }}</strong>
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         MAIN
+    ===================================================== -->
+
+    <div class="main">
+
+        <div class="topbar">
+
+            <div class="topbar__title">
+                <h1>Edit Exam Type</h1>
+                <p>Update exam type name and status.</p>
+            </div>
+
+            <div class="topbar__actions">
+                <a class="btn btn--ghost" href="{{ url_for('admin.exam_types') }}">
+                    Back to Exam Types
+                </a>
+            </div>
+
+        </div>
+
+
+        <div class="section">
+
+            <div class="section-header">
+                <h2>Exam Type Details</h2>
+                <p class="section-subtitle">
+                    Keep statuses consistent to avoid selection issues in uploads.
+                </p>
+            </div>
+
+
+            <form
+                class="form"
+                method="POST"
+                action="{{ url_for(
+                    'admin.edit_exam_type',
+                    exam_type_id=exam_type.exam_type_id
+                ) }}"
+            >
+
+                <div class="form__grid">
+
+                    <div class="field field--full">
+                        <label class="field__label" for="exam_type_name">
+                            Exam Type
+                        </label>
+
+                        <input
+                            class="field__input"
+                            type="text"
+                            id="exam_type_name"
+                            name="exam_type_name"
+                            value="{{ exam_type.exam_type_name }}"
+                            required
+                        >
+                    </div>
+
+
+                    <div class="field field--full">
+                        <label class="field__label" for="status">
+                            Status
+                        </label>
+
+                        <select
+                            class="field__select"
+                            id="status"
+                            name="status"
+                            required
+                        >
+                            <option value="Active" {% if exam_type.status == "Active" %}selected{% endif %}>
+                                Active
+                            </option>
+                            <option value="Inactive" {% if exam_type.status == "Inactive" %}selected{% endif %}>
+                                Inactive
+                            </option>
+                        </select>
+                    </div>
+
+                </div>
+
+
+                <div class="form__actions">
+                    <button class="btn btn--primary" type="submit">
+                        Update Exam Type
+                    </button>
+
+                    <a class="btn btn--ghost" href="{{ url_for('admin.exam_types') }}">
+                        Cancel
+                    </a>
+                </div>
+
+            </form>
+
+        </div>
+
+
+        <div class="page-footer">
+            <span>PreQABoard • Admin</span>
+        </div>
+
+    </div>
+
+
+    <script>
+        (function () {
+            const links = document.querySelectorAll(".nav a");
+            const current = window.location.pathname;
+            links.forEach(a => {
+                try{
+                    const url = new URL(a.href);
+                    if (url.pathname === current) a.classList.add("is-active");
+                }catch(e){}
+            });
+        })();
+    </script>
 
 </body>
 </html>

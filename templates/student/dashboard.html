@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard - PreQABoard</title>
+</head>
+<body>
+
+    <h1>PreQABoard - Student</h1>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <p>{{ message }}</p>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <p>
+        Welcome, <strong>{{ student.full_name }}</strong>
+        ({{ student.register_number }})
+    </p>
+
+    <p>
+        Course: <strong>{{ student.course_name }}</strong> |
+        Semester: <strong>{{ student.semester_number }}</strong>
+    </p>
+
+    <p>
+        Semester Start: <strong>{{ student.start_date or '-' }}</strong> |
+        Semester End: <strong>{{ student.end_date or '-' }}</strong>
+    </p>
+
+    <p>
+        <a href="{{ url_for('student.logout') }}">Logout</a>
+    </p>
+
+    <hr>
+
+    <h2>Quick Links</h2>
+    <ul>
+        <li><a href="{{ url_for('student.profile') }}">My Profile</a></li>
+        <li><a href="{{ url_for('student.syllabus') }}">Syllabus</a></li>
+        <li><a href="{{ url_for('student.question_papers') }}">Question Papers</a></li>
+        <li><a href="{{ url_for('student.repeated_questions') }}">Repeated Questions</a></li>
+        <li><a href="{{ url_for('student.study_materials') }}">Study Materials</a></li>
+        <li><a href="{{ url_for('student.teacher_answers') }}">Teacher Answers</a></li>
+        <li><a href="{{ url_for('student.ai_chat') }}">AI Chat</a></li>
+        <li><a href="{{ url_for('student.post_doubt') }}">Post Doubt</a></li>
+        <li><a href="{{ url_for('student.my_doubts') }}">My Doubts</a></li>
+
+
+    </ul>
+
+    <hr>
+
+    <h2>My Subjects</h2>
+
+    {% if subjects %}
+        <table border="1" cellpadding="8" cellspacing="0">
+            <thead>
+                <tr>
+                    <th>No.</th>
+                    <th>Subject Code</th>
+                    <th>Subject Name</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sub in subjects %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ sub.subject_code }}</td>
+                    <td>{{ sub.subject_name }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p><strong>No subjects found for your course/semester.</strong></p>
+    {% endif %}
+
+</body>
+</html>

@@ -1,155 +1,237 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    />
     <title>Manage Courses - PreQABoard</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/admin_manage_course.css') }}"
+    />
 </head>
 <body>
-    <h1>Manage Courses</h1>
-    <h2>
-        Welcome, {{ session.get("admin_username") }}
-    </h2>
-    <hr>
+
+    <div class="layout">
+
+        <!-- =======================
+             SIDEBAR
+             ======================= -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-mark">PQ</div>
+                <div class="brand-text">
+                    <div class="brand-title">PreQABoard</div>
+                    <div class="brand-subtitle">Admin Panel</div>
+                </div>
+            </div>
+
+            <nav class="nav">
+                <a class="nav-link" href="{{ url_for('admin.dashboard') }}" data-endpoint="admin.dashboard">
+                    Dashboard
+                </a>
+
+                <a class="nav-link" href="{{ url_for('admin.all_students') }}" data-endpoint="admin.all_students">
+                    Students
+                </a>
+
+                <a class="nav-link" href="{{ url_for('admin.all_teachers') }}" data-endpoint="admin.all_teachers">
+                    Teachers
+                </a>
+
+                <a class="nav-link" href="{{ url_for('admin.add_academic_year') }}" data-endpoint="'admin.add_academic_year">
+                    Academic Years
+                </a>
+
+                <!-- Current page (safe even if your manage endpoint name differs) -->
+                <a class="nav-link active" href="#" aria-current="page">
+                    Courses
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <a class="btn btn-ghost w-100" href="{{ url_for('admin.logout') }}">Logout</a>
+            </div>
+        </aside>
 
 
-    <!-- =====================================================
-         ADD COURSE
-         ===================================================== -->
+        <!-- =======================
+             MAIN
+             ======================= -->
+        <main class="main">
 
-    <h2>Add New Course</h2>
-    <form
-        method="POST"
-        action="{{ url_for('admin.add_course') }}"
-    >
+            <!-- Topbar -->
+            <header class="topbar">
+                <div class="topbar-left">
+                    <h1 class="page-title">Manage Courses</h1>
+                    <p class="page-subtitle">
+                        Welcome, <span class="strong">{{ session.get("admin_username") }}</span>
+                    </p>
+                </div>
 
-        <label>
-            Department:
-        </label>
-        <br><br>
-        <select
-            name="department_id"
-            required
-        >
-            <option value="">
-                Select Department
-            </option>
-            {% for department in departments %}
+                <div class="topbar-right">
+                    <a class="btn btn-secondary" href="{{ url_for('admin.dashboard') }}">Back to Dashboard</a>
+                    <a class="btn btn-primary" href="{{ url_for('admin.logout') }}">Logout</a>
+                </div>
+            </header>
 
-                <option value="{{ department.department_id }}">
+            <!-- Flash messages -->
+            <section class="alerts">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category|lower }}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+            </section>
 
-                    {{ department.department_name }}
-                </option>
-            {% endfor %}
-        </select>
+            <section class="content-grid">
 
-        <br><br>
-        <label>
-            Course Name:
-        </label>
-        <br><br>
-        <input
-            type="text"
-            name="course_name"
-            placeholder="Enter course name"
-            required
-        >
-        <br><br>
-        <label>
-            Duration (Years):
-        </label>
-        <br><br>
-        <input
-            type="number"
-            name="duration_years"
-            min="1"
-            required
-        >
+                <!-- =======================
+                     ADD COURSE
+                     ======================= -->
+                <section class="card">
+                    <div class="card-head">
+                        <h2 class="card-title">Add New Course</h2>
+                        <p class="card-subtitle">Create a course under a department.</p>
+                    </div>
 
-        <br><br>
-        <button type="submit">
-            Add Course
-        </button>
-    </form>
-    <hr>
+                    <form
+                        class="form"
+                        method="POST"
+                        action="{{ url_for('admin.add_course') }}"
+                    >
+                        <div class="field">
+                            <label class="label">Department</label>
+                            <select class="control" name="department_id" required>
+                                <option value="">Select Department</option>
+                                {% for department in departments %}
+                                    <option value="{{ department.department_id }}">
+                                        {{ department.department_name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="field">
+                            <label class="label">Course Name</label>
+                            <input
+                                class="control"
+                                type="text"
+                                name="course_name"
+                                placeholder="Enter course name"
+                                required
+                            />
+                        </div>
+
+                        <div class="field">
+                            <label class="label">Duration (Years)</label>
+                            <input
+                                class="control"
+                                type="number"
+                                name="duration_years"
+                                min="1"
+                                placeholder="e.g., 3"
+                                required
+                            />
+                        </div>
+
+                        <div class="form-actions">
+                            <button class="btn btn-primary" type="submit">Add Course</button>
+                            <a class="btn btn-ghost" href="{{ url_for('admin.dashboard') }}">Cancel</a>
+                        </div>
+                    </form>
+                </section>
 
 
-    <!-- =====================================================
-         EXISTING COURSES
-         ===================================================== -->
-    <h2>Existing Courses</h2>
-    {% if courses %}
-        <table border="1" cellpadding="10">
-            <tr>
-                <th>ID</th>
-                <th>Department</th>
-                <th>Course Name</th>
-                <th>Duration</th>
-                <th>Created At</th>
-                <th>Action</th>
-            </tr>
-            {% for course in courses %}
-                <tr>
-                    <td>
-                        {{ course.course_id }}
-                    </td>
-                    <td>
-                        {{ course.department_name }}
-                    </td>
-                    <td>
-                        {{ course.course_name }}
-                    </td>
-                    <td>
-                        {{ course.duration_years }} year(s)
-                    </td>
-                    <td>
-                        {{ course.created_at }}
-                    </td>
-                    <td>
-                        <a href="{{ url_for(
-                            'admin.edit_course',
-                            course_id=course.course_id
-                        ) }}">
-                            <button>Edit</button>
-                        </a>
-                        <br><br>
-                        <form
-                            method="POST"
-                            action="{{ url_for(
-                                'admin.delete_course',
-                                course_id=course.course_id
-                            ) }}"
-                            onsubmit="
-                                return confirm(
-                                    'Are you sure you want to delete this course?'
-                                );
-                            "
-                        >
-                            <button type="submit">
-                                Delete
-                            </button>
-                        </form>
-                    </td>
-                </tr>
-            {% endfor %}
-        </table>
+                <!-- =======================
+                     EXISTING COURSES
+                     ======================= -->
+                <section class="card card-wide">
+                    <div class="card-head">
+                        <h2 class="card-title">Existing Courses</h2>
+                        <p class="card-subtitle">Edit or delete courses.</p>
+                    </div>
 
-    {% else %}
+                    {% if courses %}
+                        <div class="table-wrap">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th class="col-id">ID</th>
+                                        <th>Department</th>
+                                        <th>Course Name</th>
+                                        <th class="col-duration">Duration</th>
+                                        <th class="col-created">Created At</th>
+                                        <th class="col-actions">Action</th>
+                                    </tr>
+                                </thead>
 
-        <p>No courses found.</p>
-    {% endif %}
+                                <tbody>
+                                    {% for course in courses %}
+                                        <tr>
+                                            <td class="mono">{{ course.course_id }}</td>
+                                            <td>{{ course.department_name }}</td>
+                                            <td class="strong">{{ course.course_name }}</td>
+                                            <td>{{ course.duration_years }} year(s)</td>
+                                            <td class="muted">{{ course.created_at }}</td>
+                                            <td>
+                                                <div class="row-actions">
+                                                    <a
+                                                        class="btn btn-secondary btn-sm"
+                                                        href="{{ url_for('admin.edit_course', course_id=course.course_id) }}"
+                                                    >
+                                                        Edit
+                                                    </a>
 
-    <br>
+                                                    <form
+                                                        method="POST"
+                                                        action="{{ url_for('admin.delete_course', course_id=course.course_id) }}"
+                                                        onsubmit="return confirm('Are you sure you want to delete this course?');"
+                                                    >
+                                                        <button class="btn btn-danger btn-sm" type="submit">
+                                                            Delete
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="empty">
+                            <div class="empty-title">No courses found</div>
+                            <div class="empty-subtitle">Add a course using the form on the left.</div>
+                        </div>
+                    {% endif %}
+                </section>
 
-    <a href="{{ url_for('admin.dashboard') }}">
-        Back to Dashboard
-    </a>
+            </section>
 
-    &nbsp;&nbsp;
+            <footer class="footer">
+                <span>PreQABoard • Admin</span>
+            </footer>
 
-    <a href="{{ url_for('admin.logout') }}">
-        Logout
-    </a>
+        </main>
+    </div>
+
+    <script>
+        // Optional: highlight sidebar links when endpoint matches
+        (function () {
+            const endpoint = "{{ request.endpoint }}";
+            document.querySelectorAll(".nav-link[data-endpoint]").forEach(a => {
+                if (a.dataset.endpoint === endpoint) a.classList.add("active");
+            });
+        })();
+    </script>
+
 </body>
 </html>

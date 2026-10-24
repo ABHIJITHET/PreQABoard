@@ -1,444 +1,352 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
-    <meta charset="UTF-8">
-
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
-
+    <meta charset="UTF-8" />
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    />
     <title>Manage HOD Accounts - PreQABoard</title>
 
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/admin_manage_hod.css') }}"
+    />
 </head>
 
 <body>
 
-<h1>PreQABoard - Manage HOD Accounts</h1>
-
-<h2>
-    Welcome, {{ session.get("admin_username") }}
-</h2>
-
-<hr>
-
-
-<!-- =====================================================
-     ADD HOD
-     ===================================================== -->
-
-<h2>Add New HOD</h2>
-
-<form
-    method="POST"
-    action="{{ url_for('admin.add_hod') }}"
->
-
-    <!-- DEPARTMENT -->
-
-    <label for="department_id">
-        Department:
-    </label>
-
-    <br><br>
-
-    <select
-        id="department_id"
-        name="department_id"
-        required
-    >
-
-        <option value="">
-            -- Select Department --
-        </option>
-
-        {% for department in departments %}
-
-            <option value="{{ department.department_id }}">
-
-                {{ department.department_name }}
-
-            </option>
-
-        {% endfor %}
-
-    </select>
-
-    <br><br>
-
-
-    <!-- EMPLOYEE ID -->
-
-    <label for="employee_id">
-        Employee ID:
-    </label>
-
-    <br><br>
-
-    <input
-        type="text"
-        id="employee_id"
-        name="employee_id"
-        placeholder="Example: HOD001"
-        required
-    >
-
-    <br><br>
-
-
-    <!-- FULL NAME -->
-
-    <label for="full_name">
-        Full Name:
-    </label>
-
-    <br><br>
-
-    <input
-        type="text"
-        id="full_name"
-        name="full_name"
-        placeholder="Enter HOD name"
-        required
-    >
-
-    <br><br>
-
-
-    <!-- EMAIL -->
-
-    <label for="email">
-        Email:
-    </label>
-
-    <br><br>
-
-    <input
-        type="email"
-        id="email"
-        name="email"
-        placeholder="hod@example.com"
-        required
-    >
-
-    <br><br>
-
-
-    <!-- PHONE -->
-
-    <label for="phone">
-        Phone:
-    </label>
-
-    <br><br>
-
-    <input
-        type="text"
-        id="phone"
-        name="phone"
-        placeholder="Enter phone number"
-    >
-
-    <br><br>
-
-
-    <!-- USERNAME -->
-
-    <label for="username">
-        Username:
-    </label>
-
-    <br><br>
-
-    <input
-        type="text"
-        id="username"
-        name="username"
-        placeholder="Enter username"
-        required
-    >
-
-    <br><br>
-
-
-    <!-- PASSWORD -->
-
-    <label for="password">
-        Password:
-    </label>
-
-    <br><br>
-
-    <input
-        type="password"
-        id="password"
-        name="password"
-        placeholder="Enter password"
-        required
-    >
-
-    <br><br>
-
-
-    <button type="submit">
-        Add HOD
-    </button>
-
-</form>
-
-
-<hr>
-
-
-<!-- =====================================================
-     EXISTING HOD ACCOUNTS
-     ===================================================== -->
-
-<h2>Existing HOD Accounts</h2>
-
-{% if hods %}
-
-<table
-    border="1"
-    cellpadding="10"
-    cellspacing="0"
->
-
-    <thead>
-
-        <tr>
-
-            <th>ID</th>
-
-            <th>Department</th>
-
-            <th>Employee ID</th>
-
-            <th>Full Name</th>
-
-            <th>Email</th>
-
-            <th>Phone</th>
-
-            <th>Username</th>
-
-            <th>Status</th>
-
-            <th>Created At</th>
-
-            <th>Actions</th>
-
-        </tr>
-
-    </thead>
-
-
-    <tbody>
-
-        {% for hod in hods %}
-
-        <tr>
-
-            <!-- ID -->
-
-            <td>
-                {{ hod.hod_id }}
-            </td>
-
-
-            <!-- DEPARTMENT -->
-
-            <td>
-                {{ hod.department_name }}
-            </td>
-
-
-            <!-- EMPLOYEE ID -->
-
-            <td>
-                {{ hod.employee_id }}
-            </td>
-
-
-            <!-- NAME -->
-
-            <td>
-                {{ hod.full_name }}
-            </td>
-
-
-            <!-- EMAIL -->
-
-            <td>
-                {{ hod.email }}
-            </td>
-
-
-            <!-- PHONE -->
-
-            <td>
-                {{ hod.phone }}
-            </td>
-
-
-            <!-- USERNAME -->
-
-            <td>
-                {{ hod.username }}
-            </td>
-
-
-            <!-- STATUS -->
-
-            <td>
-                {{ hod.account_status }}
-            </td>
-
-
-            <!-- CREATED -->
-
-            <td>
-                {{ hod.created_at }}
-            </td>
-
-
-            <!-- ACTIONS -->
-
-            <td>
-
-                <!-- EDIT -->
-
-                <a href="{{ url_for(
-                    'admin.edit_hod',
-                    hod_id=hod.hod_id
-                ) }}">
-
-                    <button type="button">
-                        Edit
-                    </button>
-
+    <div class="layout">
+
+        <!-- =======================
+             SIDEBAR
+             ======================= -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-mark">PQ</div>
+                <div class="brand-text">
+                    <div class="brand-title">PreQABoard</div>
+                    <div class="brand-subtitle">Admin Panel</div>
+                </div>
+            </div>
+
+            <nav class="nav">
+                <a class="nav-link" href="{{ url_for('admin.dashboard') }}" data-endpoint="admin.dashboard">
+                    Dashboard
                 </a>
 
+                <a class="nav-link" href="{{ url_for('admin.all_students') }}" data-endpoint="admin.all_students">
+                    Students
+                </a>
 
-                <br>
-                <br>
+                <a class="nav-link" href="{{ url_for('admin.all_teachers') }}" data-endpoint="admin.all_teachers">
+                    Teachers
+                </a>
 
+                <a class="nav-link" href="{{ url_for('admin.add_academic_year') }}" data-endpoint="admin.manage_academic_year">
+                    Academic Years
+                </a>
 
-                <!-- DELETE -->
+                <a class="nav-link active" href="#" aria-current="page">
+                    HOD Accounts
+                </a>
+            </nav>
 
-                <form
-                    method="POST"
-                    action="{{ url_for(
-                        'admin.delete_hod',
-                        hod_id=hod.hod_id
-                    ) }}"
-                    onsubmit="
-                        return confirm(
-                            'Are you sure you want to delete this HOD account?'
-                        );
-                    "
-                >
-
-                    <button type="submit">
-                        Delete
-                    </button>
-
-                </form>
+            <div class="sidebar-footer">
+                <a class="btn btn-ghost w-100" href="{{ url_for('admin.logout') }}">Logout</a>
+            </div>
+        </aside>
 
 
-                <br>
+        <!-- =======================
+             MAIN
+             ======================= -->
+        <main class="main">
+
+            <header class="topbar">
+                <div class="topbar-left">
+                    <h1 class="page-title">Manage HOD Accounts</h1>
+                    <p class="page-subtitle">
+                        Welcome, <span class="strong">{{ session.get("admin_username") }}</span>
+                    </p>
+                </div>
+
+                <div class="topbar-right">
+                    <a class="btn btn-secondary" href="{{ url_for('admin.dashboard') }}">Back to Dashboard</a>
+                    <a class="btn btn-primary" href="{{ url_for('admin.logout') }}">Logout</a>
+                </div>
+            </header>
+
+            <!-- Flash messages -->
+            <section class="alerts">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category|lower }}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+            </section>
 
 
-                <!-- CHANGE STATUS -->
+            <section class="grid">
 
-                <form
-                    method="POST"
-                    action="{{ url_for(
-                        'admin.change_hod_status',
-                        hod_id=hod.hod_id
-                    ) }}"
-                >
+                <!-- =======================
+                     ADD HOD
+                     ======================= -->
+                <section class="card add-card">
+                    <div class="card-head">
+                        <h2 class="card-title">Add New HOD</h2>
+                        <p class="card-subtitle">
+                            Create a Head of Department account mapped to a department.
+                        </p>
+                    </div>
 
-                    <select name="account_status">
+                    <form
+                        class="form"
+                        method="POST"
+                        action="{{ url_for('admin.add_hod') }}"
+                    >
+                        <div class="field">
+                            <label class="label" for="department_id">Department</label>
+                            <select
+                                class="control"
+                                id="department_id"
+                                name="department_id"
+                                required
+                            >
+                                <option value="">-- Select Department --</option>
+                                {% for department in departments %}
+                                    <option value="{{ department.department_id }}">
+                                        {{ department.department_name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
 
-                        <option
-                            value="Pending"
-                            {% if hod.account_status == "Pending" %}
-                                selected
-                            {% endif %}
-                        >
-                            Pending
-                        </option>
+                        <div class="field">
+                            <label class="label" for="employee_id">Employee ID</label>
+                            <input
+                                class="control"
+                                type="text"
+                                id="employee_id"
+                                name="employee_id"
+                                placeholder="Example: HOD001"
+                                required
+                            />
+                        </div>
+
+                        <div class="field">
+                            <label class="label" for="full_name">Full Name</label>
+                            <input
+                                class="control"
+                                type="text"
+                                id="full_name"
+                                name="full_name"
+                                placeholder="Enter HOD name"
+                                required
+                            />
+                        </div>
+
+                        <div class="field">
+                            <label class="label" for="email">Email</label>
+                            <input
+                                class="control"
+                                type="email"
+                                id="email"
+                                name="email"
+                                placeholder="hod@example.com"
+                                required
+                            />
+                        </div>
+
+                        <div class="field">
+                            <label class="label" for="phone">Phone (optional)</label>
+                            <input
+                                class="control"
+                                type="text"
+                                id="phone"
+                                name="phone"
+                                placeholder="Enter phone number"
+                            />
+                        </div>
+
+                        <div class="field">
+                            <label class="label" for="username">Username</label>
+                            <input
+                                class="control"
+                                type="text"
+                                id="username"
+                                name="username"
+                                placeholder="Enter username"
+                                required
+                            />
+                        </div>
+
+                        <div class="field">
+                            <label class="label" for="password">Password</label>
+                            <input
+                                class="control"
+                                type="password"
+                                id="password"
+                                name="password"
+                                placeholder="Enter password"
+                                required
+                            />
+                            <div class="hint">
+                                Tip: Share credentials securely. You can change status later.
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button class="btn btn-primary" type="submit">Add HOD</button>
+                            <a class="btn btn-ghost" href="{{ url_for('admin.dashboard') }}">Cancel</a>
+                        </div>
+                    </form>
+                </section>
 
 
-                        <option
-                            value="Active"
-                            {% if hod.account_status == "Active" %}
-                                selected
-                            {% endif %}
-                        >
-                            Active
-                        </option>
+                <!-- =======================
+                     EXISTING HODS
+                     ======================= -->
+                <section class="card list-card">
+                    <div class="card-head card-head-row">
+                        <div>
+                            <h2 class="card-title">Existing HOD Accounts</h2>
+                            <p class="card-subtitle">
+                                Edit details, delete accounts, or change account status.
+                            </p>
+                        </div>
 
+                        <div class="meta">
+                            <div class="meta-pill" title="Total HOD accounts">
+                                Total: <span class="mono">{{ hods|length if hods else 0 }}</span>
+                            </div>
+                        </div>
+                    </div>
 
-                        <option
-                            value="Inactive"
-                            {% if hod.account_status == "Inactive" %}
-                                selected
-                            {% endif %}
-                        >
-                            Inactive
-                        </option>
+                    {% if hods %}
+                        <div class="table-wrap">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th class="col-id">ID</th>
+                                        <th>Department</th>
+                                        <th class="col-emp">Employee ID</th>
+                                        <th>Full Name</th>
+                                        <th>Email</th>
+                                        <th class="col-phone">Phone</th>
+                                        <th class="col-user">Username</th>
+                                        <th class="col-status">Status</th>
+                                        <th class="col-created">Created At</th>
+                                        <th class="col-actions">Actions</th>
+                                    </tr>
+                                </thead>
 
-                    </select>
+                                <tbody>
+                                    {% for hod in hods %}
+                                        <tr>
+                                            <td class="mono">{{ hod.hod_id }}</td>
+                                            <td>{{ hod.department_name }}</td>
+                                            <td class="mono">{{ hod.employee_id }}</td>
+                                            <td class="strong">{{ hod.full_name }}</td>
+                                            <td class="muted">{{ hod.email }}</td>
+                                            <td class="muted">{{ hod.phone }}</td>
+                                            <td class="mono">{{ hod.username }}</td>
 
+                                            <td>
+                                                {% if hod.account_status == "Active" %}
+                                                    <span class="badge badge-active">Active</span>
+                                                {% elif hod.account_status == "Inactive" %}
+                                                    <span class="badge badge-inactive">Inactive</span>
+                                                {% else %}
+                                                    <span class="badge badge-pending">Pending</span>
+                                                {% endif %}
+                                            </td>
 
-                    <button type="submit">
-                        Change Status
-                    </button>
+                                            <td class="muted">{{ hod.created_at }}</td>
 
-                </form>
+                                            <td>
+                                                <div class="actions">
 
-            </td>
+                                                    <!-- EDIT -->
+                                                    <a
+                                                        class="btn btn-secondary btn-sm"
+                                                        href="{{ url_for('admin.edit_hod', hod_id=hod.hod_id) }}"
+                                                    >
+                                                        Edit
+                                                    </a>
 
-        </tr>
+                                                    <!-- DELETE -->
+                                                    <form
+                                                        method="POST"
+                                                        action="{{ url_for('admin.delete_hod', hod_id=hod.hod_id) }}"
+                                                        onsubmit="return confirm('Are you sure you want to delete this HOD account?');"
+                                                    >
+                                                        <button class="btn btn-danger btn-sm" type="submit">
+                                                            Delete
+                                                        </button>
+                                                    </form>
 
-        {% endfor %}
+                                                    <!-- CHANGE STATUS -->
+                                                    <form
+                                                        class="status-form"
+                                                        method="POST"
+                                                        action="{{ url_for('admin.change_hod_status', hod_id=hod.hod_id) }}"
+                                                    >
+                                                        <select class="control control-sm" name="account_status">
+                                                            <option value="Pending" {% if hod.account_status == "Pending" %}selected{% endif %}>
+                                                                Pending
+                                                            </option>
+                                                            <option value="Active" {% if hod.account_status == "Active" %}selected{% endif %}>
+                                                                Active
+                                                            </option>
+                                                            <option value="Inactive" {% if hod.account_status == "Inactive" %}selected{% endif %}>
+                                                                Inactive
+                                                            </option>
+                                                        </select>
 
-    </tbody>
+                                                        <button class="btn btn-primary btn-sm" type="submit">
+                                                            Change
+                                                        </button>
+                                                    </form>
 
-</table>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="empty">
+                            <div class="empty-title">No HOD accounts found</div>
+                            <div class="empty-subtitle">Create an HOD account using the form.</div>
+                        </div>
+                    {% endif %}
+                </section>
 
-{% else %}
+            </section>
 
-<p>
-    No HOD accounts found.
-</p>
+            <footer class="footer">
+                <span>PreQABoard • Admin</span>
+            </footer>
 
-{% endif %}
+        </main>
 
+    </div>
 
-<br>
-
-<hr>
-
-
-<!-- =====================================================
-     NAVIGATION
-     ===================================================== -->
-
-<a href="{{ url_for('admin.dashboard') }}">
-    Back to Dashboard
-</a>
-
-<br>
-<br>
-
-<a href="{{ url_for('admin.logout') }}">
-    Logout
-</a>
-
+    <script>
+        // Optional: auto-highlight sidebar links when endpoint matches
+        (function () {
+            const endpoint = "{{ request.endpoint }}";
+            document.querySelectorAll(".nav-link[data-endpoint]").forEach(a => {
+                if (a.dataset.endpoint === endpoint) a.classList.add("active");
+            });
+        })();
+    </script>
 
 </body>
-
 </html>

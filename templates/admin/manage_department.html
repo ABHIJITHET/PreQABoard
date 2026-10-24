@@ -1,151 +1,214 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
-
+    <meta charset="UTF-8" />
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    />
     <title>Manage Departments - PreQABoard</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/admin_manage_department.css') }}"
+    />
 </head>
 <body>
 
-    <!-- =====================================================
-         PAGE HEADER
-         ===================================================== -->
+    <div class="layout">
 
-    <h1>PreQABoard</h1>
-    <h2>Department Management</h2>
-    <p>
-        Welcome, {{ session.get("admin_username") }}
-    </p>
-    <hr>
+        <!-- =======================
+             SIDEBAR
+             ======================= -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-mark">PQ</div>
+                <div class="brand-text">
+                    <div class="brand-title">PreQABoard</div>
+                    <div class="brand-subtitle">Admin Panel</div>
+                </div>
+            </div>
 
+            <nav class="nav">
+                <a class="nav-link" href="{{ url_for('admin.dashboard') }}" data-endpoint="admin.dashboard">
+                    Dashboard
+                </a>
 
-    <!-- =====================================================
-         NAVIGATION
-         ===================================================== -->
+                <a class="nav-link" href="{{ url_for('admin.all_students') }}" data-endpoint="admin.all_students">
+                    Students
+                </a>
 
-    <a href="{{ url_for('admin.dashboard') }}">
-        ← Back to Dashboard
-    </a>
+                <a class="nav-link" href="{{ url_for('admin.all_teachers') }}" data-endpoint="admin.all_teachers">
+                    Teachers
+                </a>
 
-    &nbsp;&nbsp;
+                <a class="nav-link" href="{{ url_for('admin.add_academic_year') }}" data-endpoint="admin.manage_academic_year">
+                    Academic Years
+                </a>
 
-    <a href="{{ url_for('admin.logout') }}">
-        Logout
-    </a>
+                <!-- Keep this safe (no BuildError even if your endpoint name differs) -->
+                <a class="nav-link active" href="#" aria-current="page">
+                    Departments
+                </a>
+            </nav>
 
-    <hr>
-
-
-    <!-- =====================================================
-         ADD DEPARTMENT
-         ===================================================== -->
-
-    <h2>Add New Department</h2>
-
-    <form
-        method="POST"
-        action="{{ url_for('admin.add_department') }}"
-    >
-
-        <label for="department_name">
-            Department Name:
-        </label>
-
-        <br><br>
-
-        <input
-            type="text"
-            id="department_name"
-            name="department_name"
-            placeholder="Enter department name"
-            maxlength="100"
-            required
-        >
-
-        <button type="submit">
-            Add Department
-        </button>
-
-    </form>
+            <div class="sidebar-footer">
+                <a class="btn btn-ghost w-100" href="{{ url_for('admin.logout') }}">Logout</a>
+            </div>
+        </aside>
 
 
-    <hr>
+        <!-- =======================
+             MAIN
+             ======================= -->
+        <main class="main">
+
+            <!-- Topbar -->
+            <header class="topbar">
+                <div class="topbar-left">
+                    <h1 class="page-title">Department Management</h1>
+                    <p class="page-subtitle">
+                        Welcome, <span class="strong">{{ session.get("admin_username") }}</span>
+                    </p>
+                </div>
+
+                <div class="topbar-right">
+                    <a class="btn btn-secondary" href="{{ url_for('admin.dashboard') }}">← Back to Dashboard</a>
+                    <a class="btn btn-primary" href="{{ url_for('admin.logout') }}">Logout</a>
+                </div>
+            </header>
+
+            <!-- Flash messages -->
+            <section class="alerts">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category|lower }}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+            </section>
+
+            <section class="content">
+
+                <!-- =======================
+                     LEFT: ADD DEPARTMENT
+                     ======================= -->
+                <section class="card add-card">
+                    <div class="card-head">
+                        <h2 class="card-title">Add New Department</h2>
+                        <p class="card-subtitle">
+                            Create departments first, then map courses, HODs, teachers and students.
+                        </p>
+                    </div>
+
+                    <form
+                        class="form"
+                        method="POST"
+                        action="{{ url_for('admin.add_department') }}"
+                    >
+                        <div class="field">
+                            <label class="label" for="department_name">Department Name</label>
+                            <input
+                                class="control"
+                                type="text"
+                                id="department_name"
+                                name="department_name"
+                                placeholder="Enter department name"
+                                maxlength="100"
+                                required
+                            />
+                            <div class="hint">Max 100 characters.</div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button class="btn btn-primary" type="submit">Add Department</button>
+                            <a class="btn btn-ghost" href="{{ url_for('admin.dashboard') }}">Cancel</a>
+                        </div>
+                    </form>
+                </section>
 
 
-    <!-- =====================================================
-         DEPARTMENT LIST
-         ===================================================== -->
+                <!-- =======================
+                     RIGHT: DEPARTMENT LIST
+                     ======================= -->
+                <section class="card list-card">
+                    <div class="card-head card-head-row">
+                        <div>
+                            <h2 class="card-title">Existing Departments</h2>
+                            <p class="card-subtitle">Delete departments you no longer need.</p>
+                        </div>
 
-    <h2>Existing Departments</h2>
+                        <div class="meta-pill" title="Total departments">
+                            Total:
+                            <span class="mono">
+                                {{ departments|length if departments else 0 }}
+                            </span>
+                        </div>
+                    </div>
 
-    {% if departments %}
+                    {% if departments %}
+                        <div class="table-wrap">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th class="col-id">ID</th>
+                                        <th>Department Name</th>
+                                        <th class="col-created">Created At</th>
+                                        <th class="col-action">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for department in departments %}
+                                        <tr>
+                                            <td class="mono">{{ department.department_id }}</td>
+                                            <td class="strong">{{ department.department_name }}</td>
+                                            <td class="muted">{{ department.created_at }}</td>
+                                            <td>
+                                                <form
+                                                    method="POST"
+                                                    action="{{ url_for('admin.delete_department', department_id=department.department_id) }}"
+                                                    onsubmit="return confirm('Are you sure you want to delete this department?');"
+                                                >
+                                                    <button class="btn btn-danger btn-sm" type="submit">
+                                                        Delete
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="empty">
+                            <div class="empty-title">No departments found</div>
+                            <div class="empty-subtitle">Add your first department using the form.</div>
+                        </div>
+                    {% endif %}
+                </section>
 
-        <table border="1" cellpadding="10">
+            </section>
 
-            <thead>
+            <footer class="footer">
+                <span>PreQABoard • Admin</span>
+            </footer>
 
-                <tr>
+        </main>
 
-                    <th>ID</th>
+    </div>
 
-                    <th>Department Name</th>
-
-                    <th>Created At</th>
-
-                    <th>Action</th>
-
-                </tr>
-
-            </thead>
-
-            <tbody>
-                {% for department in departments %}
-                    <tr>
-                        <td>
-                            {{ department.department_id }}
-                        </td>
-                        <td>
-                            {{ department.department_name }}
-                        </td>
-                        <td>
-                            {{ department.created_at }}
-                        </td>
-                        <td>
-                            <form
-                                method="POST"
-                                action="{{ url_for(
-                                    'admin.delete_department',
-                                    department_id=department.department_id
-                                ) }}"
-                                onsubmit="
-                                    return confirm(
-                                        'Are you sure you want to delete this department?'
-                                    );
-                                "
-                            >
-                                <button type="submit">
-                                    Delete
-                                </button>
-                            </form>
-                        </td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-
-    {% else %}
-
-        <p>
-            No departments found.
-        </p>
-
-    {% endif %}
-    <br>
-    <a href="{{ url_for('admin.dashboard') }}">
-        ← Back to Dashboard
-    </a>
+    <script>
+        // Optional: auto-highlight sidebar links when endpoint matches
+        (function () {
+            const endpoint = "{{ request.endpoint }}";
+            document.querySelectorAll(".nav-link[data-endpoint]").forEach(a => {
+                if (a.dataset.endpoint === endpoint) a.classList.add("active");
+            });
+        })();
+    </script>
 
 </body>
 </html>

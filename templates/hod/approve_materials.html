@@ -109,8 +109,8 @@
 
                     <a
                         href="{{ url_for(
-                            'static',
-                            filename='uploads/study_materials/' + material.file_name
+                            'hod.view_study_material',
+                            study_material_id=material.study_material_id
                         ) }}"
                         target="_blank"
                     >

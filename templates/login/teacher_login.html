@@ -1,109 +1,102 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
     <meta charset="UTF-8">
 
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>Teacher Login - PreQABoard</title>
 
+    <!-- Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/teacher_login.css') }}">
 </head>
 
 <body>
+    <!-- Background -->
+    <div class="bg" aria-hidden="true">
+        <div class="bg__glow bg__glow--one"></div>
+        <div class="bg__glow bg__glow--two"></div>
+        <div class="bg__noise"></div>
+    </div>
 
-    <h1>PreQABoard</h1>
+    <!-- Top bar -->
+    <header class="topbar">
+        <div class="topbar__inner">
+            <a class="brand" href="/">
+                <span class="brand__dot" aria-hidden="true"></span>
+                <span class="brand__text">
+                    <span class="brand__highlight">PreQABoard</span>
+                </span>
+            </a>
 
-    <h2>Teacher Login</h2>
+            <nav class="topbar__nav" aria-label="Top navigation">
+                <a class="topbar__link" href="/">Home</a>
+                <a class="topbar__link topbar__link--active" href="{{ url_for('auth.teacher_login') }}">Teacher</a>
+                <a class="topbar__link" href="/student/login">Student</a>
+            </nav>
+        </div>
+    </header>
 
-    <hr>
+    <!-- Center Card -->
+    <main class="page">
+        <section class="card" aria-label="Teacher login form">
+            <div class="card__header">
+                <h1 class="card__title">Teacher Login</h1>
+                <p class="card__hint">Sign in to upload materials, question papers, and assignments.</p>
+            </div>
 
+            {% if error %}
+                <div class="alert alert--danger" role="alert">
+                    {{ error }}
+                </div>
+            {% endif %}
 
-    <!-- ERROR MESSAGE -->
+            <form class="form" method="POST" action="{{ url_for('auth.teacher_login') }}" autocomplete="on">
+                <div class="field">
+                    <label class="label" for="username">Username</label>
+                    <input
+                        class="input"
+                        id="username"
+                        type="text"
+                        name="username"
+                        required
+                        autocomplete="username"
+                        placeholder="Enter teacher username"
+                    >
+                </div>
 
-    {% if error %}
+                <div class="field">
+                    <label class="label" for="password">Password</label>
+                    <input
+                        class="input"
+                        id="password"
+                        type="password"
+                        name="password"
+                        required
+                        autocomplete="current-password"
+                        placeholder="Enter password"
+                    >
+                </div>
 
-    <p style="color: red;">
-        {{ error }}
-    </p>
+                <button class="btn btn--primary" type="submit">
+                    Login
+                </button>
 
-    {% endif %}
+                <div class="form__footer">
+                    <span class="muted">Don't have a teacher account?</span>
+                    <a class="link" href="{{ url_for('auth.teacher_register') }}">Register as Teacher</a>
+                </div>
 
-
-    <!-- LOGIN FORM -->
-
-    <form method="POST"
-          action="{{ url_for('auth.teacher_login') }}">
-
-        <label>
-            Username:
-        </label>
-
-        <br>
-
-        <input
-            type="text"
-            name="username"
-            required
-        >
-
-        <br><br>
-
-
-        <label>
-            Password:
-        </label>
-
-        <br>
-
-        <input
-            type="password"
-            name="password"
-            required
-        >
-
-        <br><br>
-
-
-        <button type="submit">
-            Login
-        </button>
-
-    </form>
-
-
-    <br>
-
-    <hr>
-
-
-    <!-- TEACHER REGISTRATION -->
-
-    <p>
-        Don't have a teacher account?
-    </p>
-
-    <p>
-
-        <a href="{{ url_for('auth.teacher_register') }}">
-            Register as Teacher
-        </a>
-
-    </p>
-
-
-    <!-- BACK TO HOME -->
-
-    <p>
-
-        <a href="/">
-            ← Back to Home
-        </a>
-
-    </p>
-
+                <div class="form__footer form__footer--secondary">
+                    <a class="link link--muted" href="/">← Back to Home</a>
+                </div>
+            </form>
+        </section>
+    </main>
 </body>
-
 </html>

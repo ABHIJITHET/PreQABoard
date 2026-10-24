@@ -14,7 +14,7 @@
 
     <link
         rel="stylesheet"
-        href="{{ url_for('static', filename='css/dashboard.css') }}"
+        href="{{ url_for('static', filename='css/admin_teachers.css') }}"
     >
 
 </head>
@@ -22,262 +22,266 @@
 
 <body>
 
-
-<!-- =====================================================
-     SIDEBAR
-===================================================== -->
-
-<div class="sidebar">
-
-    <h2>Admin Panel</h2>
+    <!-- Background (visual only) -->
+    <div class="bg" aria-hidden="true">
+        <div class="bg__grid"></div>
+        <div class="bg__glow bg__glow--a"></div>
+        <div class="bg__glow bg__glow--b"></div>
+    </div>
 
 
-    <a href="{{ url_for('admin.dashboard') }}">
-        Dashboard
-    </a>
+    <!-- =====================================================
+         SIDEBAR
+    ===================================================== -->
+
+    <div class="sidebar">
+
+        <div class="sidebar__brand">
+            <div class="brandmark" aria-hidden="true"></div>
+            <div class="sidebar__brandText">
+                <h2>Admin Panel</h2>
+                <p>PreQABoard Control</p>
+            </div>
+        </div>
 
 
-    <a href="{{ url_for('admin.departments') }}">
-        Departments
-    </a>
+        <nav class="nav" aria-label="Admin Navigation">
+
+            <a href="{{ url_for('admin.dashboard') }}">
+                Dashboard
+            </a>
+
+            <a href="{{ url_for('admin.departments') }}">
+                Departments
+            </a>
+
+            <a href="{{ url_for('admin.courses') }}">
+                Courses
+            </a>
+
+            <a href="{{ url_for('admin.semesters') }}">
+                Semesters
+            </a>
+
+            <a href="{{ url_for('admin.academic_years') }}">
+                Academic Years
+            </a>
+
+            <a href="{{ url_for('admin.exam_types') }}">
+                Exam Types
+            </a>
+
+            <a href="{{ url_for('admin.hod_accounts') }}">
+                HOD Accounts
+            </a>
+
+            <a href="{{ url_for('admin.all_students') }}">
+                Students
+            </a>
+
+            <a href="{{ url_for('admin.all_teachers') }}">
+                Teachers
+            </a>
+
+        </nav>
 
 
-    <a href="{{ url_for('admin.courses') }}">
-        Courses
-    </a>
+        <div class="sidebar__footer">
 
+            <a
+                href="{{ url_for('admin.logout') }}"
+                class="logout"
+            >
+                Logout
+            </a>
 
-    <a href="{{ url_for('admin.semesters') }}">
-        Semesters
-    </a>
+            <div class="sidebar__hint">
+                Logged in as
+                <strong>{{ session.get("admin_username") or "Admin" }}</strong>
+            </div>
 
-
-    <a href="{{ url_for('admin.academic_years') }}">
-        Academic Years
-    </a>
-
-
-    <a href="{{ url_for('admin.exam_types') }}">
-        Exam Types
-    </a>
-
-
-    <a href="{{ url_for('admin.hod_accounts') }}">
-        HOD Accounts
-    </a>
-
-
-    <a href="{{ url_for('admin.all_students') }}">
-        Students
-    </a>
-
-
-    <a href="{{ url_for('admin.all_teachers') }}">
-        Teachers
-    </a>
-
-
-    <a
-        href="{{ url_for('admin.logout') }}"
-        class="logout"
-    >
-        Logout
-    </a>
-
-</div>
-
-
-
-<!-- =====================================================
-     MAIN CONTENT
-===================================================== -->
-
-<div class="main">
-
-
-    <!-- TOP BAR -->
-
-    <div class="topbar">
-
-        <h1>
-            All Teachers
-        </h1>
-
-        <p>
-            View all teachers registered in the system.
-        </p>
+        </div>
 
     </div>
 
 
 
-    <!-- TEACHER TABLE -->
+    <!-- =====================================================
+         MAIN CONTENT
+    ===================================================== -->
 
-    <div class="section">
+    <div class="main">
 
 
-        <div class="section-header">
+        <div class="topbar">
 
-            <h2>
-                Teacher List
-            </h2>
+            <div class="topbar__title">
+
+                <h1>
+                    All Teachers
+                </h1>
+
+                <p>
+                    View all teachers registered in the system.
+                </p>
+
+            </div>
+
+            <div class="topbar__actions">
+                <a
+                    href="{{ url_for('admin.dashboard') }}"
+                    class="back-btn"
+                >
+                    ← Back to Dashboard
+                </a>
+            </div>
 
         </div>
 
 
 
-        <div class="table-container">
+        <div class="section">
 
+            <div class="section-header">
 
-            <table>
+                <h2>
+                    Teacher List ({{ teachers|length if teachers else 0 }})
+                </h2>
 
+                <p class="section-subtitle">
+                    Teachers are ordered by department and name.
+                </p>
 
-                <thead>
+            </div>
 
-                    <tr>
 
-                        <th>
-                            #
-                        </th>
+            {% if teachers %}
 
-                        <th>
-                            Employee ID
-                        </th>
+                <div class="table-container">
 
-                        <th>
-                            Teacher Name
-                        </th>
+                    <table>
 
-                        <th>
-                            Department
-                        </th>
+                        <thead>
 
-                        <th>
-                            Email
-                        </th>
+                            <tr>
+                                <th>#</th>
+                                <th>Employee ID</th>
+                                <th>Teacher Name</th>
+                                <th>Department</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Username</th>
+                                <th>Status</th>
+                                <th>Created</th>
+                            </tr>
 
-                        <th>
-                            Phone
-                        </th>
+                        </thead>
 
-                        <th>
-                            Username
-                        </th>
 
-                        <th>
-                            Status
-                        </th>
+                        <tbody>
 
-                        <th>
-                            Created
-                        </th>
+                            {% for teacher in teachers %}
 
-                    </tr>
+                                <tr>
 
-                </thead>
+                                    <td class="col--index">
+                                        {{ loop.index }}
+                                    </td>
 
+                                    <td>
+                                        <strong class="code">
+                                            {{ teacher.employee_id or '-' }}
+                                        </strong>
+                                    </td>
 
+                                    <td>
+                                        <strong class="person-name">
+                                            {{ teacher.full_name or '-' }}
+                                        </strong>
+                                    </td>
 
-                <tbody>
+                                    <td>
+                                        {{ teacher.department_name or 'Not Assigned' }}
+                                    </td>
 
+                                    <td>
+                                        {{ teacher.email or '-' }}
+                                    </td>
 
-                    {% if teachers %}
+                                    <td>
+                                        {{ teacher.phone or '-' }}
+                                    </td>
 
+                                    <td>
+                                        {{ teacher.username or '-' }}
+                                    </td>
 
-                        {% for teacher in teachers %}
+                                    <td>
+                                        {% if teacher.account_status == "Active" %}
+                                            <span class="status status--active">Active</span>
+                                        {% elif teacher.account_status == "Pending" %}
+                                            <span class="status status--pending">Pending</span>
+                                        {% else %}
+                                            <span class="status status--inactive">
+                                                {{ teacher.account_status or 'Inactive' }}
+                                            </span>
+                                        {% endif %}
+                                    </td>
 
+                                    <td class="col--date">
+                                        {{ teacher.created_at or '-' }}
+                                    </td>
 
-                        <tr>
+                                </tr>
 
+                            {% endfor %}
 
-                            <td>
-                                {{ loop.index }}
-                            </td>
+                        </tbody>
 
+                    </table>
 
-                            <td>
+                </div>
 
-                                <strong>
-                                    {{ teacher.employee_id }}
-                                </strong>
+            {% else %}
 
-                            </td>
+                <div class="empty">
 
+                    <h3>
+                        No Teachers Found
+                    </h3>
 
-                            <td>
-                                {{ teacher.full_name }}
-                            </td>
+                    <p>
+                        There are no teachers available in the system.
+                    </p>
 
+                </div>
 
-                            <td>
-                                {{ teacher.department_name or 'Not Assigned' }}
-                            </td>
+            {% endif %}
 
+        </div>
 
-                            <td>
-                                {{ teacher.email }}
-                            </td>
 
-
-                            <td>
-                                {{ teacher.phone or '-' }}
-                            </td>
-
-
-                            <td>
-                                {{ teacher.username or '-' }}
-                            </td>
-
-
-                            <td>
-                                {{ teacher.account_status }}
-                            </td>
-
-
-                            <td>
-                                {{ teacher.created_at }}
-                            </td>
-
-
-                        </tr>
-
-
-                        {% endfor %}
-
-
-                    {% else %}
-
-
-                        <tr>
-
-                            <td
-                                colspan="9"
-                                class="no-data"
-                            >
-
-                                No teachers found.
-
-                            </td>
-
-                        </tr>
-
-
-                    {% endif %}
-
-
-                </tbody>
-
-
-            </table>
-
-
+        <div class="page-footer">
+            <span>PreQABoard • Admin</span>
         </div>
 
 
     </div>
 
 
-</div>
+    <script>
+        // Highlight current page link in sidebar
+        (function () {
+            const links = document.querySelectorAll(".nav a");
+            const current = window.location.pathname;
+            links.forEach(a => {
+                try{
+                    const url = new URL(a.href);
+                    if (url.pathname === current) a.classList.add("is-active");
+                }catch(e){}
+            });
+        })();
+    </script>
 
 
 </body>

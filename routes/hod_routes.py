@@ -1,3 +1,6 @@
+import os
+import uuid
+
 from flask import (
     Blueprint,
     render_template,
@@ -7,18 +10,14 @@ from flask import (
     session,
     send_from_directory
 )
-
-from database.db_connection import get_connection
-
 from werkzeug.security import (
     check_password_hash,
     generate_password_hash
 )
-
 from werkzeug.utils import secure_filename
 
-import os
-import uuid
+from database.db_connection import get_connection
+from utils.pdf_text import extract_pdf_text
 
 
 # ===========================================================
@@ -39,6 +38,20 @@ hod_bp = Blueprint(
 SYLLABUS_UPLOAD_FOLDER = os.path.join(
     "uploads",
     "syllabus"
+)
+
+# ===========================================================
+# QUESTION PAPER / STUDY MATERIAL UPLOAD CONFIGURATION (ADDED)
+# ===========================================================
+
+QUESTION_PAPER_UPLOAD_FOLDER = os.path.join(
+    "uploads",
+    "question_papers"
+)
+
+STUDY_MATERIAL_UPLOAD_FOLDER = os.path.join(
+    "uploads",
+    "study_materials"
 )
 
 ALLOWED_SYLLABUS_EXTENSIONS = {
@@ -1330,12 +1343,13 @@ def manage_teachers():
     connection = None
     cursor = None
 
-    try:
+    search = request.args.get("search", "").strip()
 
+    try:
         connection = get_connection()
         cursor = connection.cursor()
 
-        cursor.execute("""
+        query = """
             SELECT
                 teacher_id,
                 employee_id,
@@ -1347,37 +1361,45 @@ def manage_teachers():
                 account_status,
                 created_at,
                 updated_at
-
             FROM teacher
-
             WHERE department_id = %s
+        """
+        params = [session["hod_department_id"]]
 
-            ORDER BY created_at DESC
+        if search:
+            query += """
+                AND (
+                        full_name LIKE %s
+                     OR employee_id LIKE %s
+                     OR email LIKE %s
+                     OR username LIKE %s
+                )
+            """
+            like_value = f"%{search}%"
+            params.extend([like_value] * 4)
 
-        """, (
-            session["hod_department_id"],
-        ))
+        query += " ORDER BY created_at DESC"
 
+        cursor.execute(query, tuple(params))
         teachers = cursor.fetchall()
 
         return render_template(
             "hod/manage_teachers.html",
-            teachers=teachers
+            teachers=teachers,
+            search=search
         )
 
     except Exception as e:
-
         return render_template(
             "hod/manage_teachers.html",
             teachers=[],
+            search=search,
             error=f"Database Error: {e}"
         )
 
     finally:
-
         if cursor:
             cursor.close()
-
         if connection:
             connection.close()
 
@@ -1819,7 +1841,7 @@ def edit_teacher(teacher_id):
 
 
 # ===========================================================
-# TEACHER SUBJECT ASSIGNMENTS
+# TEACHER SUBJECT ASSIGNMENTS  (WITH SEARCH / FILTER)
 # ===========================================================
 
 @hod_bp.route("/teacher-assignments")
@@ -1831,38 +1853,48 @@ def teacher_assignments():
     connection = None
     cursor = None
 
-    try:
+    # NEW: read search/filter from URL query string
+    search = request.args.get("search", "").strip()
+    filter_academic_year_id = request.args.get("academic_year_id", "").strip()
 
+    try:
         connection = get_connection()
         cursor = connection.cursor()
 
         # ---------------------------------------------------
+        # ACADEMIC YEARS
+        # ---------------------------------------------------
+        cursor.execute("""
+            SELECT
+                academic_year_id,
+                academic_year_name,
+                status,
+                start_date,
+                end_date
+            FROM academic_year
+            WHERE status IN ('Current', 'Upcoming')
+            ORDER BY start_date DESC
+        """)
+        academic_years = cursor.fetchall()
+
+        # ---------------------------------------------------
         # TEACHERS
         # ---------------------------------------------------
-
         cursor.execute("""
             SELECT
                 teacher_id,
                 employee_id,
                 full_name
-
             FROM teacher
-
             WHERE department_id = %s
               AND account_status = 'Active'
-
             ORDER BY full_name
-
-        """, (
-            session["hod_department_id"],
-        ))
-
+        """, (session["hod_department_id"],))
         teachers = cursor.fetchall()
 
         # ---------------------------------------------------
         # SUBJECTS
         # ---------------------------------------------------
-
         cursor.execute("""
             SELECT
                 s.subject_id,
@@ -1870,34 +1902,24 @@ def teacher_assignments():
                 s.subject_name,
                 c.course_name,
                 sem.semester_number
-
             FROM subject s
-
             INNER JOIN course c
                 ON s.course_id = c.course_id
-
             INNER JOIN semester sem
                 ON s.semester_id = sem.semester_id
-
             WHERE c.department_id = %s
               AND s.status = 'Active'
-
             ORDER BY
                 c.course_name,
                 sem.semester_number,
                 s.subject_name
-
-        """, (
-            session["hod_department_id"],
-        ))
-
+        """, (session["hod_department_id"],))
         subjects = cursor.fetchall()
 
         # ---------------------------------------------------
-        # ASSIGNMENTS
+        # ASSIGNMENTS (list) + NEW: search/filter
         # ---------------------------------------------------
-
-        cursor.execute("""
+        query = """
             SELECT
                 tsa.assignment_id,
 
@@ -1910,60 +1932,79 @@ def teacher_assignments():
                 s.subject_name,
 
                 c.course_name,
-
                 sem.semester_number,
 
                 ay.academic_year_name,
+                ay.status AS academic_year_status,
 
                 tsa.status
 
             FROM teacher_subject_assignment tsa
-
             INNER JOIN teacher t
                 ON tsa.teacher_id = t.teacher_id
-
             INNER JOIN subject s
                 ON tsa.subject_id = s.subject_id
-
             INNER JOIN course c
                 ON s.course_id = c.course_id
-
             INNER JOIN semester sem
                 ON s.semester_id = sem.semester_id
-
             INNER JOIN academic_year ay
                 ON tsa.academic_year_id = ay.academic_year_id
 
             WHERE c.department_id = %s
+        """
+        params = [session["hod_department_id"]]
 
+        # NEW: Filter by academic year (optional)
+        if filter_academic_year_id:
+            query += " AND tsa.academic_year_id = %s "
+            params.append(filter_academic_year_id)
+
+        # NEW: Search (optional)
+        if search:
+            query += """
+                AND (
+                        t.full_name LIKE %s
+                     OR t.employee_id LIKE %s
+                     OR s.subject_name LIKE %s
+                     OR s.subject_code LIKE %s
+                     OR c.course_name LIKE %s
+                     OR ay.academic_year_name LIKE %s
+                )
+            """
+            like_value = f"%{search}%"
+            params.extend([like_value] * 6)
+
+        query += """
             ORDER BY
+                ay.start_date DESC,
                 t.full_name,
                 c.course_name,
                 sem.semester_number,
                 s.subject_name
+        """
 
-        """, (
-            session["hod_department_id"],
-        ))
-
+        cursor.execute(query, tuple(params))
         assignments = cursor.fetchall()
 
         return render_template(
             "hod/teacher_assignments.html",
             teachers=teachers,
             subjects=subjects,
-            assignments=assignments
+            academic_years=academic_years,
+            assignments=assignments,
+
+            # NEW: send back to template to keep search/filter values
+            search=search,
+            selected_academic_year_id=filter_academic_year_id
         )
 
     except Exception as e:
-
         return f"Database Error: {e}"
 
     finally:
-
         if cursor:
             cursor.close()
-
         if connection:
             connection.close()
 
@@ -1972,154 +2013,82 @@ def teacher_assignments():
 # ADD TEACHER ASSIGNMENT
 # ===========================================================
 
-@hod_bp.route(
-    "/teacher-assignments/add",
-    methods=["POST"]
-)
+@hod_bp.route("/teacher-assignments/add", methods=["POST"])
 def add_teacher_assignment():
 
     if not hod_required():
         return hod_login_redirect()
 
-    teacher_id = request.form.get(
-        "teacher_id"
-    )
+    teacher_id = request.form.get("teacher_id")
+    subject_id = request.form.get("subject_id")
+    academic_year_id = request.form.get("academic_year_id")  # NEW: from dropdown
 
-    subject_id = request.form.get(
-        "subject_id"
-    )
-
-    if not teacher_id or not subject_id:
-
-        return (
-            "Teacher and subject are required."
-        )
+    if not teacher_id or not subject_id or not academic_year_id:
+        return "Teacher, subject and academic year are required."
 
     connection = None
     cursor = None
 
     try:
-
         connection = get_connection()
         cursor = connection.cursor()
 
         # ---------------------------------------------------
-        # CURRENT ACADEMIC YEAR
+        # VERIFY ACADEMIC YEAR EXISTS (allow Current + Upcoming)
         # ---------------------------------------------------
-
         cursor.execute("""
-            SELECT
-                academic_year_id
-
+            SELECT academic_year_id
             FROM academic_year
-
-            WHERE status = 'Current'
-
-            ORDER BY start_date DESC
-
-            LIMIT 1
-
-        """)
-
-        current_year = cursor.fetchone()
-
-        if not current_year:
-
-            return (
-                "No current academic year is available. "
-                "Please contact the administrator."
-            )
-
-        academic_year_id = current_year[
-            "academic_year_id"
-        ]
+            WHERE academic_year_id = %s
+              AND status IN ('Current','Upcoming')
+        """, (academic_year_id,))
+        if not cursor.fetchone():
+            return "Invalid academic year. Please select a valid year."
 
         # ---------------------------------------------------
-        # VERIFY TEACHER
+        # VERIFY TEACHER (must be in HOD dept)
         # ---------------------------------------------------
-
         cursor.execute("""
-            SELECT
-                teacher_id
-
+            SELECT teacher_id
             FROM teacher
-
             WHERE teacher_id = %s
               AND department_id = %s
               AND account_status = 'Active'
-
-        """, (
-            teacher_id,
-            session["hod_department_id"]
-        ))
-
+        """, (teacher_id, session["hod_department_id"]))
         if not cursor.fetchone():
-
-            return (
-                "Invalid teacher or teacher does "
-                "not belong to your department."
-            )
+            return "Invalid teacher or teacher does not belong to your department."
 
         # ---------------------------------------------------
-        # VERIFY SUBJECT
+        # VERIFY SUBJECT (subject belongs to HOD dept via course)
         # ---------------------------------------------------
-
         cursor.execute("""
-            SELECT
-                s.subject_id
-
+            SELECT s.subject_id
             FROM subject s
-
             INNER JOIN course c
                 ON s.course_id = c.course_id
-
             WHERE s.subject_id = %s
               AND c.department_id = %s
               AND s.status = 'Active'
-
-        """, (
-            subject_id,
-            session["hod_department_id"]
-        ))
-
+        """, (subject_id, session["hod_department_id"]))
         if not cursor.fetchone():
-
-            return (
-                "Invalid subject or subject does "
-                "not belong to your department."
-            )
+            return "Invalid subject or subject does not belong to your department."
 
         # ---------------------------------------------------
-        # DUPLICATE
+        # DUPLICATE CHECK (unique: teacher_id, subject_id, academic_year_id)
         # ---------------------------------------------------
-
         cursor.execute("""
-            SELECT
-                assignment_id
-
+            SELECT assignment_id
             FROM teacher_subject_assignment
-
             WHERE teacher_id = %s
               AND subject_id = %s
               AND academic_year_id = %s
-
-        """, (
-            teacher_id,
-            subject_id,
-            academic_year_id
-        ))
-
+        """, (teacher_id, subject_id, academic_year_id))
         if cursor.fetchone():
-
-            return (
-                "This teacher is already assigned to "
-                "this subject for the current academic year."
-            )
+            return "This teacher is already assigned to this subject for the selected academic year."
 
         # ---------------------------------------------------
         # INSERT
         # ---------------------------------------------------
-
         cursor.execute("""
             INSERT INTO teacher_subject_assignment
             (
@@ -2129,41 +2098,21 @@ def add_teacher_assignment():
                 assigned_by_hod,
                 status
             )
-
-            VALUES
-            (
-                %s,
-                %s,
-                %s,
-                %s,
-                'Active'
-            )
-
-        """, (
-            teacher_id,
-            subject_id,
-            academic_year_id,
-            session["hod_id"]
-        ))
+            VALUES (%s, %s, %s, %s, 'Active')
+        """, (teacher_id, subject_id, academic_year_id, session["hod_id"]))
 
         connection.commit()
 
-        return redirect(
-            url_for("hod.teacher_assignments")
-        )
+        return redirect(url_for("hod.teacher_assignments"))
 
     except Exception as e:
-
         if connection:
             connection.rollback()
-
         return f"Database Error: {e}"
 
     finally:
-
         if cursor:
             cursor.close()
-
         if connection:
             connection.close()
 
@@ -2172,10 +2121,7 @@ def add_teacher_assignment():
 # EDIT TEACHER ASSIGNMENT
 # ===========================================================
 
-@hod_bp.route(
-    "/teacher-assignments/edit/<int:assignment_id>",
-    methods=["GET", "POST"]
-)
+@hod_bp.route("/teacher-assignments/edit/<int:assignment_id>", methods=["GET", "POST"])
 def edit_teacher_assignment(assignment_id):
 
     if not hod_required():
@@ -2185,7 +2131,6 @@ def edit_teacher_assignment(assignment_id):
     cursor = None
 
     try:
-
         connection = get_connection()
         cursor = connection.cursor()
 
@@ -2196,59 +2141,30 @@ def edit_teacher_assignment(assignment_id):
                 tsa.subject_id,
                 tsa.academic_year_id,
                 tsa.status
-
             FROM teacher_subject_assignment tsa
-
             INNER JOIN subject s
                 ON tsa.subject_id = s.subject_id
-
             INNER JOIN course c
                 ON s.course_id = c.course_id
-
             WHERE tsa.assignment_id = %s
               AND c.department_id = %s
-
-        """, (
-            assignment_id,
-            session["hod_department_id"]
-        ))
+        """, (assignment_id, session["hod_department_id"]))
 
         assignment = cursor.fetchone()
-
         if not assignment:
+            return "Teacher assignment not found or it does not belong to your department."
 
-            return (
-                "Teacher assignment not found or it does "
-                "not belong to your department."
-            )
-
-        # ---------------------------------------------------
         # TEACHERS
-        # ---------------------------------------------------
-
         cursor.execute("""
-            SELECT
-                teacher_id,
-                employee_id,
-                full_name
-
+            SELECT teacher_id, employee_id, full_name
             FROM teacher
-
             WHERE department_id = %s
               AND account_status = 'Active'
-
             ORDER BY full_name
-
-        """, (
-            session["hod_department_id"],
-        ))
-
+        """, (session["hod_department_id"],))
         teachers = cursor.fetchall()
 
-        # ---------------------------------------------------
         # SUBJECTS
-        # ---------------------------------------------------
-
         cursor.execute("""
             SELECT
                 s.subject_id,
@@ -2256,177 +2172,111 @@ def edit_teacher_assignment(assignment_id):
                 s.subject_name,
                 c.course_name,
                 sem.semester_number
-
             FROM subject s
-
             INNER JOIN course c
                 ON s.course_id = c.course_id
-
             INNER JOIN semester sem
                 ON s.semester_id = sem.semester_id
-
             WHERE c.department_id = %s
               AND s.status = 'Active'
-
             ORDER BY
                 c.course_name,
                 sem.semester_number,
                 s.subject_name
-
-        """, (
-            session["hod_department_id"],
-        ))
-
+        """, (session["hod_department_id"],))
         subjects = cursor.fetchall()
 
-        # ---------------------------------------------------
-        # POST
-        # ---------------------------------------------------
+        # ACADEMIC YEARS
+        cursor.execute("""
+            SELECT academic_year_id, academic_year_name, status
+            FROM academic_year
+            WHERE status IN ('Current','Upcoming')
+            ORDER BY start_date DESC
+        """)
+        academic_years = cursor.fetchall()
 
         if request.method == "POST":
+            teacher_id = request.form.get("teacher_id")
+            subject_id = request.form.get("subject_id")
+            academic_year_id = request.form.get("academic_year_id")
 
-            teacher_id = request.form.get(
-                "teacher_id"
-            )
+            if not teacher_id or not subject_id or not academic_year_id:
+                return "Teacher, subject and academic year are required."
 
-            subject_id = request.form.get(
-                "subject_id"
-            )
-
-            if not teacher_id or not subject_id:
-
-                return (
-                    "Teacher and subject are required."
-                )
-
-            # ------------------------------------------------
-            # VERIFY TEACHER
-            # ------------------------------------------------
-
+            # Verify academic year
             cursor.execute("""
-                SELECT
-                    teacher_id
+                SELECT academic_year_id
+                FROM academic_year
+                WHERE academic_year_id = %s
+                  AND status IN ('Current','Upcoming')
+            """, (academic_year_id,))
+            if not cursor.fetchone():
+                return "Invalid academic year."
 
+            # Verify teacher
+            cursor.execute("""
+                SELECT teacher_id
                 FROM teacher
-
                 WHERE teacher_id = %s
                   AND department_id = %s
                   AND account_status = 'Active'
-
-            """, (
-                teacher_id,
-                session["hod_department_id"]
-            ))
-
+            """, (teacher_id, session["hod_department_id"]))
             if not cursor.fetchone():
+                return "Invalid teacher for your department."
 
-                return (
-                    "Invalid teacher or teacher does "
-                    "not belong to your department."
-                )
-
-            # ------------------------------------------------
-            # VERIFY SUBJECT
-            # ------------------------------------------------
-
+            # Verify subject
             cursor.execute("""
-                SELECT
-                    s.subject_id
-
+                SELECT s.subject_id
                 FROM subject s
-
                 INNER JOIN course c
                     ON s.course_id = c.course_id
-
                 WHERE s.subject_id = %s
                   AND c.department_id = %s
                   AND s.status = 'Active'
-
-            """, (
-                subject_id,
-                session["hod_department_id"]
-            ))
-
+            """, (subject_id, session["hod_department_id"]))
             if not cursor.fetchone():
+                return "Invalid subject for your department."
 
-                return (
-                    "Invalid subject or subject does "
-                    "not belong to your department."
-                )
-
-            # ------------------------------------------------
-            # DUPLICATE
-            # ------------------------------------------------
-
+            # Duplicate check
             cursor.execute("""
-                SELECT
-                    assignment_id
-
+                SELECT assignment_id
                 FROM teacher_subject_assignment
-
                 WHERE teacher_id = %s
                   AND subject_id = %s
                   AND academic_year_id = %s
                   AND assignment_id != %s
-
-            """, (
-                teacher_id,
-                subject_id,
-                assignment["academic_year_id"],
-                assignment_id
-            ))
-
+            """, (teacher_id, subject_id, academic_year_id, assignment_id))
             if cursor.fetchone():
+                return "Duplicate assignment exists for this academic year."
 
-                return (
-                    "This teacher is already assigned "
-                    "to this subject for this academic year."
-                )
-
-            # ------------------------------------------------
-            # UPDATE
-            # ------------------------------------------------
-
+            # Update
             cursor.execute("""
                 UPDATE teacher_subject_assignment
-
-                SET
-                    teacher_id = %s,
-                    subject_id = %s
-
+                SET teacher_id = %s,
+                    subject_id = %s,
+                    academic_year_id = %s
                 WHERE assignment_id = %s
-
-            """, (
-                teacher_id,
-                subject_id,
-                assignment_id
-            ))
+            """, (teacher_id, subject_id, academic_year_id, assignment_id))
 
             connection.commit()
-
-            return redirect(
-                url_for("hod.teacher_assignments")
-            )
+            return redirect(url_for("hod.teacher_assignments"))
 
         return render_template(
             "hod/edit_teacher_assignment.html",
             assignment=assignment,
             teachers=teachers,
-            subjects=subjects
+            subjects=subjects,
+            academic_years=academic_years  # NEW
         )
 
     except Exception as e:
-
         if connection:
             connection.rollback()
-
         return f"Error editing teacher assignment: {e}"
 
     finally:
-
         if cursor:
             cursor.close()
-
         if connection:
             connection.close()
 
@@ -2729,6 +2579,161 @@ def approve_papers():
 
 
 # ===========================================================
+# VIEW / DOWNLOAD QUESTION PAPER (ADDED)
+# ===========================================================
+
+@hod_bp.route("/question-paper/view/<int:question_paper_id>")
+def view_question_paper(question_paper_id):
+
+    if not hod_required():
+        return hod_login_redirect()
+
+    connection = None
+    cursor = None
+
+    try:
+        connection = get_connection()
+        cursor = connection.cursor()
+
+        cursor.execute("""
+            SELECT
+                qp.question_paper_id,
+                qp.file_name
+            FROM question_paper qp
+            INNER JOIN teacher_subject_assignment tsa
+                ON qp.assignment_id = tsa.assignment_id
+            INNER JOIN subject s
+                ON tsa.subject_id = s.subject_id
+            INNER JOIN course c
+                ON s.course_id = c.course_id
+            WHERE qp.question_paper_id = %s
+              AND c.department_id = %s
+            LIMIT 1
+        """, (
+            question_paper_id,
+            session["hod_department_id"]
+        ))
+
+        paper = cursor.fetchone()
+
+        if not paper:
+
+            return "Question paper not found or not authorized."
+
+        filename = os.path.basename(
+            paper["file_name"] or ""
+        )
+
+        upload_folder = os.path.join(
+            os.getcwd(),
+            QUESTION_PAPER_UPLOAD_FOLDER
+        )
+
+        actual_file = os.path.join(
+            upload_folder,
+            filename
+        )
+
+        if not filename or not os.path.exists(actual_file):
+
+            return "Question paper file not found on server."
+
+        return send_from_directory(
+            upload_folder,
+            filename,
+            as_attachment=False
+        )
+
+    except Exception as e:
+
+        return f"Error viewing question paper: {e}"
+
+    finally:
+
+        if cursor:
+            cursor.close()
+
+        if connection:
+            connection.close()
+
+
+@hod_bp.route("/question-paper/download/<int:question_paper_id>")
+def download_question_paper(question_paper_id):
+
+    if not hod_required():
+        return hod_login_redirect()
+
+    connection = None
+    cursor = None
+
+    try:
+        connection = get_connection()
+        cursor = connection.cursor()
+
+        cursor.execute("""
+            SELECT
+                qp.question_paper_id,
+                qp.file_name
+            FROM question_paper qp
+            INNER JOIN teacher_subject_assignment tsa
+                ON qp.assignment_id = tsa.assignment_id
+            INNER JOIN subject s
+                ON tsa.subject_id = s.subject_id
+            INNER JOIN course c
+                ON s.course_id = c.course_id
+            WHERE qp.question_paper_id = %s
+              AND c.department_id = %s
+            LIMIT 1
+        """, (
+            question_paper_id,
+            session["hod_department_id"]
+        ))
+
+        paper = cursor.fetchone()
+
+        if not paper:
+
+            return "Question paper not found or not authorized."
+
+        filename = os.path.basename(
+            paper["file_name"] or ""
+        )
+
+        upload_folder = os.path.join(
+            os.getcwd(),
+            QUESTION_PAPER_UPLOAD_FOLDER
+        )
+
+        actual_file = os.path.join(
+            upload_folder,
+            filename
+        )
+
+        if not filename or not os.path.exists(actual_file):
+
+            return "Question paper file not found on server."
+
+        return send_from_directory(
+            upload_folder,
+            filename,
+            as_attachment=True,
+            download_name=filename
+        )
+
+    except Exception as e:
+
+        return f"Error downloading question paper: {e}"
+
+    finally:
+
+        if cursor:
+            cursor.close()
+
+        if connection:
+            connection.close()
+
+
+# ===========================================================
 # APPROVE QUESTION PAPER
 # ===========================================================
 
@@ -2871,6 +2876,161 @@ def approve_materials():
     except Exception as e:
 
         return f"Database Error: {e}"
+
+    finally:
+
+        if cursor:
+            cursor.close()
+
+        if connection:
+            connection.close()
+
+
+# ===========================================================
+# VIEW / DOWNLOAD STUDY MATERIAL (ADDED)
+# ===========================================================
+
+@hod_bp.route("/study-material/view/<int:study_material_id>")
+def view_study_material(study_material_id):
+
+    if not hod_required():
+        return hod_login_redirect()
+
+    connection = None
+    cursor = None
+
+    try:
+        connection = get_connection()
+        cursor = connection.cursor()
+
+        cursor.execute("""
+            SELECT
+                sm.study_material_id,
+                sm.file_name
+            FROM study_material sm
+            INNER JOIN teacher_subject_assignment tsa
+                ON sm.assignment_id = tsa.assignment_id
+            INNER JOIN subject s
+                ON tsa.subject_id = s.subject_id
+            INNER JOIN course c
+                ON s.course_id = c.course_id
+            WHERE sm.study_material_id = %s
+              AND c.department_id = %s
+            LIMIT 1
+        """, (
+            study_material_id,
+            session["hod_department_id"]
+        ))
+
+        material = cursor.fetchone()
+
+        if not material:
+
+            return "Study material not found or not authorized."
+
+        filename = os.path.basename(
+            material["file_name"] or ""
+        )
+
+        upload_folder = os.path.join(
+            os.getcwd(),
+            STUDY_MATERIAL_UPLOAD_FOLDER
+        )
+
+        actual_file = os.path.join(
+            upload_folder,
+            filename
+        )
+
+        if not filename or not os.path.exists(actual_file):
+
+            return "Study material file not found on server."
+
+        return send_from_directory(
+            upload_folder,
+            filename,
+            as_attachment=False
+        )
+
+    except Exception as e:
+
+        return f"Error viewing study material: {e}"
+
+    finally:
+
+        if cursor:
+            cursor.close()
+
+        if connection:
+            connection.close()
+
+
+@hod_bp.route("/study-material/download/<int:study_material_id>")
+def download_study_material(study_material_id):
+
+    if not hod_required():
+        return hod_login_redirect()
+
+    connection = None
+    cursor = None
+
+    try:
+        connection = get_connection()
+        cursor = connection.cursor()
+
+        cursor.execute("""
+            SELECT
+                sm.study_material_id,
+                sm.file_name
+            FROM study_material sm
+            INNER JOIN teacher_subject_assignment tsa
+                ON sm.assignment_id = tsa.assignment_id
+            INNER JOIN subject s
+                ON tsa.subject_id = s.subject_id
+            INNER JOIN course c
+                ON s.course_id = c.course_id
+            WHERE sm.study_material_id = %s
+              AND c.department_id = %s
+            LIMIT 1
+        """, (
+            study_material_id,
+            session["hod_department_id"]
+        ))
+
+        material = cursor.fetchone()
+
+        if not material:
+
+            return "Study material not found or not authorized."
+
+        filename = os.path.basename(
+            material["file_name"] or ""
+        )
+
+        upload_folder = os.path.join(
+            os.getcwd(),
+            STUDY_MATERIAL_UPLOAD_FOLDER
+        )
+
+        actual_file = os.path.join(
+            upload_folder,
+            filename
+        )
+
+        if not filename or not os.path.exists(actual_file):
+
+            return "Study material file not found on server."
+
+        return send_from_directory(
+            upload_folder,
+            filename,
+            as_attachment=True,
+            download_name=filename
+        )
+
+    except Exception as e:
+
+        return f"Error downloading study material: {e}"
 
     finally:
 
@@ -3675,6 +3835,8 @@ def manage_syllabus():
             SELECT
                 s.syllabus_id,
                 s.department_id,
+                s.course_id,
+                s.semester_id,
                 s.title,
                 s.file_name,
                 s.file_path,
@@ -3683,6 +3845,8 @@ def manage_syllabus():
                 s.uploaded_at,
 
                 c.course_name,
+                sem.semester_number,
+
                 ay.academic_year_name,
 
                 d.department_name,
@@ -3700,13 +3864,15 @@ def manage_syllabus():
             INNER JOIN course c
                 ON s.course_id = c.course_id
 
+            LEFT JOIN semester sem
+                ON s.semester_id = sem.semester_id
+
             INNER JOIN academic_year ay
                 ON s.academic_year_id = ay.academic_year_id
 
             WHERE s.department_id = %s
 
             ORDER BY s.uploaded_at DESC
-
         """, (
             session["hod_department_id"],
         ))
@@ -3724,6 +3890,21 @@ def manage_syllabus():
         """, (session["hod_department_id"],))
         courses = cursor.fetchall()
 
+        # ✅ ADDED: semesters for HOD department courses
+        cursor.execute("""
+            SELECT
+                sem.semester_id,
+                sem.semester_number,
+                sem.course_id,
+                c.course_name
+            FROM semester sem
+            INNER JOIN course c
+                ON sem.course_id = c.course_id
+            WHERE c.department_id = %s
+            ORDER BY c.course_name, sem.semester_number
+        """, (session["hod_department_id"],))
+        semesters = cursor.fetchall()
+
         cursor.execute("""
             SELECT
                 academic_year_id,
@@ -3737,11 +3918,8 @@ def manage_syllabus():
         cursor.execute("""
             SELECT
                 department_name
-
             FROM department
-
             WHERE department_id = %s
-
         """, (
             session["hod_department_id"],
         ))
@@ -3753,6 +3931,7 @@ def manage_syllabus():
             syllabi=syllabi,
             department=department,
             courses=courses,
+            semesters=semesters,
             academic_years=academic_years
         )
 
@@ -3782,43 +3961,22 @@ def upload_syllabus():
     if not hod_required():
         return hod_login_redirect()
 
-    title = request.form.get(
-        "title",
-        ""
-    ).strip()
-
+    title = request.form.get("title", "").strip()
     course_id = request.form.get("course_id")
+    semester_id = request.form.get("semester_id")  # ✅ ADDED
     academic_year_id = request.form.get("academic_year_id")
 
-    syllabus_file = request.files.get(
-        "syllabus_file"
-    )
+    syllabus_file = request.files.get("syllabus_file")
 
-    if not title or not course_id or not academic_year_id:
+    # ✅ semester_id required now
+    if not title or not course_id or not semester_id or not academic_year_id:
+        return redirect(url_for("hod.manage_syllabus"))
 
-        return redirect(
-            url_for("hod.manage_syllabus")
-        )
+    if not syllabus_file or syllabus_file.filename == "":
+        return redirect(url_for("hod.manage_syllabus"))
 
-    if not syllabus_file:
-
-        return redirect(
-            url_for("hod.manage_syllabus")
-        )
-
-    if syllabus_file.filename == "":
-
-        return redirect(
-            url_for("hod.manage_syllabus")
-        )
-
-    if not allowed_syllabus_file(
-        syllabus_file.filename
-    ):
-
-        return redirect(
-            url_for("hod.manage_syllabus")
-        )
+    if not allowed_syllabus_file(syllabus_file.filename):
+        return redirect(url_for("hod.manage_syllabus"))
 
     connection = None
     cursor = None
@@ -3832,15 +3990,11 @@ def upload_syllabus():
         # ---------------------------------------------------
         # GET HOD
         # ---------------------------------------------------
-
         cursor.execute("""
             SELECT
                 department_id
-
             FROM hod
-
             WHERE hod_id = %s
-
         """, (
             session["hod_id"],
         ))
@@ -3848,15 +4002,12 @@ def upload_syllabus():
         hod = cursor.fetchone()
 
         if not hod:
-
             return "HOD account not found."
 
-        hod_department_id = hod[
-            "department_id"
-        ]
+        hod_department_id = hod["department_id"]
 
         # ---------------------------------------------------
-        # VERIFY COURSE
+        # VERIFY COURSE (department-wise)
         # ---------------------------------------------------
         cursor.execute("""
             SELECT course_id
@@ -3868,6 +4019,22 @@ def upload_syllabus():
 
         if not cursor.fetchone():
             return "Invalid course for your department."
+
+        # ---------------------------------------------------
+        # ✅ VERIFY SEMESTER belongs to the selected course
+        # ---------------------------------------------------
+        cursor.execute("""
+            SELECT sem.semester_id
+            FROM semester sem
+            INNER JOIN course c
+                ON sem.course_id = c.course_id
+            WHERE sem.semester_id = %s
+              AND sem.course_id = %s
+              AND c.department_id = %s
+        """, (semester_id, course_id, hod_department_id))
+
+        if not cursor.fetchone():
+            return "Invalid semester for the selected course."
 
         # ---------------------------------------------------
         # VERIFY ACADEMIC YEAR
@@ -3884,51 +4051,26 @@ def upload_syllabus():
         # ---------------------------------------------------
         # FILE NAME
         # ---------------------------------------------------
-
-        original_filename = secure_filename(
-            syllabus_file.filename
-        )
-
+        original_filename = secure_filename(syllabus_file.filename)
         if not original_filename:
-
             return "Invalid file name."
 
         # ---------------------------------------------------
         # DIRECTORY
         # ---------------------------------------------------
-
-        upload_folder = os.path.join(
-            os.getcwd(),
-            SYLLABUS_UPLOAD_FOLDER
-        )
-
-        os.makedirs(
-            upload_folder,
-            exist_ok=True
-        )
+        upload_folder = os.path.join(os.getcwd(), SYLLABUS_UPLOAD_FOLDER)
+        os.makedirs(upload_folder, exist_ok=True)
 
         # ---------------------------------------------------
         # UNIQUE NAME
         # ---------------------------------------------------
-
-        unique_filename = (
-            str(uuid.uuid4())
-            + "_"
-            + original_filename
-        )
-
-        file_path = os.path.join(
-            upload_folder,
-            unique_filename
-        )
+        unique_filename = str(uuid.uuid4()) + "_" + original_filename
+        file_path = os.path.join(upload_folder, unique_filename)
 
         # ---------------------------------------------------
         # SAVE
         # ---------------------------------------------------
-
-        syllabus_file.save(
-            file_path
-        )
+        syllabus_file.save(file_path)
 
         database_file_path = os.path.join(
             "syllabus",
@@ -3936,14 +4078,14 @@ def upload_syllabus():
         ).replace("\\", "/")
 
         # ---------------------------------------------------
-        # INSERT
+        # INSERT (✅ includes semester_id now)
         # ---------------------------------------------------
-
         cursor.execute("""
             INSERT INTO syllabus
             (
                 department_id,
                 course_id,
+                semester_id,
                 academic_year_id,
                 title,
                 file_name,
@@ -3951,9 +4093,9 @@ def upload_syllabus():
                 status,
                 uploaded_by_hod
             )
-
             VALUES
             (
+                %s,
                 %s,
                 %s,
                 %s,
@@ -3963,10 +4105,10 @@ def upload_syllabus():
                 'Active',
                 %s
             )
-
         """, (
             hod_department_id,
             course_id,
+            semester_id,
             academic_year_id,
             title,
             original_filename,
@@ -3974,11 +4116,42 @@ def upload_syllabus():
             session["hod_id"]
         ))
 
+        # ===================== (ADDED) ======================
+        # Extract syllabus text and store in DB
+        syllabus_id = cursor.lastrowid
+
+        extracted_text = ""
+        extraction_status = "Failed"
+
+        try:
+            extracted_text = extract_pdf_text(file_path)
+            if extracted_text and len(extracted_text.strip()) > 50:
+                extraction_status = "Done"
+            else:
+                extraction_status = "Failed"
+        except Exception:
+            extracted_text = ""
+            extraction_status = "Failed"
+
+        cursor.execute("""
+            UPDATE syllabus
+            SET
+                extracted_text = %s,
+                extraction_status = %s,
+                extracted_at = NOW()
+            WHERE syllabus_id = %s
+              AND department_id = %s
+        """, (
+            extracted_text,
+            extraction_status,
+            syllabus_id,
+            hod_department_id
+        ))
+        # ===================================================
+
         connection.commit()
 
-        return redirect(
-            url_for("hod.manage_syllabus")
-        )
+        return redirect(url_for("hod.manage_syllabus"))
 
     except Exception as e:
 
@@ -3986,14 +4159,8 @@ def upload_syllabus():
             connection.rollback()
 
         try:
-
-            if (
-                file_path
-                and os.path.exists(file_path)
-            ):
-
+            if file_path and os.path.exists(file_path):
                 os.remove(file_path)
-
         except Exception:
             pass
 
@@ -4346,6 +4513,260 @@ def delete_syllabus(syllabus_id):
         if connection:
             connection.close()
 
+
+
+
+# ===========================================================
+# HOD SEMESTER ACADEMIC CALENDAR (NO NEW TABLE)
+# Stores start_date and end_date in semester table
+# ===========================================================
+
+@hod_bp.route("/semester-calendar")
+def semester_calendar():
+
+    if not hod_required():
+        return hod_login_redirect()
+
+    success = request.args.get("success", "").strip()
+    error = request.args.get("error", "").strip()
+
+    connection = None
+    cursor = None
+
+    try:
+        connection = get_connection()
+        cursor = connection.cursor()
+
+        # ---------------------------------------------------
+        # COURSES (HOD department)
+        # ---------------------------------------------------
+        cursor.execute("""
+            SELECT
+                course_id,
+                course_name
+            FROM course
+            WHERE department_id = %s
+              AND status = 'Active'
+            ORDER BY course_name
+        """, (session["hod_department_id"],))
+        courses = cursor.fetchall()
+
+        # ---------------------------------------------------
+        # SEMESTERS (HOD department courses) + start/end dates
+        # ---------------------------------------------------
+        cursor.execute("""
+            SELECT
+                sem.semester_id,
+                sem.course_id,
+                sem.semester_number,
+                sem.start_date,
+                sem.end_date,
+                sem.status,
+                c.course_name
+            FROM semester sem
+            INNER JOIN course c
+                ON sem.course_id = c.course_id
+            WHERE c.department_id = %s
+            ORDER BY c.course_name, sem.semester_number
+        """, (session["hod_department_id"],))
+        semesters = cursor.fetchall()
+
+        return render_template(
+            "hod/semester_calendar.html",
+            courses=courses,
+            semesters=semesters,
+            success=success,
+            error=error
+        )
+
+    except Exception as e:
+        return f"Database Error: {e}"
+
+    finally:
+        if cursor:
+            cursor.close()
+        if connection:
+            connection.close()
+
+
+@hod_bp.route(
+    "/semester-calendar/update/<int:semester_id>",
+    methods=["POST"]
+)
+def update_semester_calendar(semester_id):
+
+    if not hod_required():
+        return hod_login_redirect()
+
+    start_date = request.form.get("start_date", "").strip()
+    end_date = request.form.get("end_date", "").strip()
+
+    if not start_date or not end_date:
+        return redirect(url_for("hod.semester_calendar", error="Start date and end date are required."))
+
+    connection = None
+    cursor = None
+
+    try:
+        connection = get_connection()
+        cursor = connection.cursor()
+
+        # ---------------------------------------------------
+        # VERIFY semester belongs to HOD department
+        # ---------------------------------------------------
+        cursor.execute("""
+            SELECT
+                sem.semester_id
+            FROM semester sem
+            INNER JOIN course c
+                ON sem.course_id = c.course_id
+            WHERE sem.semester_id = %s
+              AND c.department_id = %s
+        """, (semester_id, session["hod_department_id"]))
+
+        if not cursor.fetchone():
+            return redirect(url_for("hod.semester_calendar", error="Invalid semester (not in your department)."))
+
+        # ---------------------------------------------------
+        # UPDATE semester dates
+        # ---------------------------------------------------
+        cursor.execute("""
+            UPDATE semester
+            SET
+                start_date = %s,
+                end_date = %s
+            WHERE semester_id = %s
+        """, (start_date, end_date, semester_id))
+
+        connection.commit()
+
+        return redirect(url_for("hod.semester_calendar", success="Semester dates updated successfully."))
+
+    except Exception as e:
+        if connection:
+            connection.rollback()
+        return redirect(url_for("hod.semester_calendar", error=f"Update failed: {e}"))
+
+    finally:
+        if cursor:
+            cursor.close()
+        if connection:
+            connection.close()
+
+# ===========================================================
+# VIEW DOUBTS (HOD)
+# ===========================================================
+
+@hod_bp.route("/view-doubts")
+def view_doubts():
+
+    if not hod_required():
+        return hod_login_redirect()
+
+    connection = None
+    cursor = None
+
+    try:
+        connection = get_connection()
+        cursor = connection.cursor()
+
+        # -------------------------------
+        # DOUBTS (Department-wise)
+        # -------------------------------
+        cursor.execute("""
+            SELECT
+                d.doubt_id,
+                d.doubt_title,
+                d.doubt_description,
+                d.created_at,
+
+                st.student_id,
+                st.register_number,
+                st.full_name AS student_name,
+
+                s.subject_code,
+                s.subject_name,
+
+                c.course_name,
+                sem.semester_number,
+
+                (
+                    SELECT COUNT(*)
+                    FROM teacher_reply tr
+                    WHERE tr.doubt_id = d.doubt_id
+                ) AS reply_count
+
+            FROM student_doubt d
+
+            INNER JOIN student st
+                ON d.student_id = st.student_id
+
+            INNER JOIN subject s
+                ON d.subject_id = s.subject_id
+
+            INNER JOIN course c
+                ON s.course_id = c.course_id
+
+            INNER JOIN semester sem
+                ON s.semester_id = sem.semester_id
+
+            WHERE c.department_id = %s
+
+            ORDER BY d.created_at DESC
+        """, (session["hod_department_id"],))
+
+        doubts = cursor.fetchall()
+
+        # -------------------------------
+        # REPLIES (Fetch all replies for listed doubts)
+        # -------------------------------
+        replies_by_doubt = {}
+
+        doubt_ids = [row["doubt_id"] for row in doubts]
+        if doubt_ids:
+            placeholders = ",".join(["%s"] * len(doubt_ids))
+
+            cursor.execute(f"""
+                SELECT
+                    tr.reply_id,
+                    tr.doubt_id,
+                    tr.reply,
+                    tr.replied_at,
+
+                    t.teacher_id,
+                    t.full_name AS teacher_name,
+                    t.employee_id
+                FROM teacher_reply tr
+                INNER JOIN teacher t
+                    ON tr.teacher_id = t.teacher_id
+                WHERE tr.doubt_id IN ({placeholders})
+                ORDER BY tr.replied_at ASC
+            """, tuple(doubt_ids))
+
+            replies = cursor.fetchall()
+
+            for r in replies:
+                replies_by_doubt.setdefault(r["doubt_id"], []).append(r)
+
+        return render_template(
+            "hod/view_doubts.html",
+            doubts=doubts,
+            replies_by_doubt=replies_by_doubt
+        )
+
+    except Exception as e:
+        return render_template(
+            "hod/view_doubts.html",
+            doubts=[],
+            replies_by_doubt={},
+            error=f"Database Error: {e}"
+        )
+
+    finally:
+        if cursor:
+            cursor.close()
+        if connection:
+            connection.close()
 
 # ===========================================================
 # HOD PROFILE

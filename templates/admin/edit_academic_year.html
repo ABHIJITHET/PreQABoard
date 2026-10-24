@@ -10,129 +10,240 @@
 
     <title>Edit Academic Year - PreQABoard</title>
 
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/admin_edit_academic_year.css') }}"
+    >
+
 </head>
 
 <body>
 
-    <h1>Edit Academic Year</h1>
-
-    <hr>
-
-    <form
-        method="POST"
-        action="{{ url_for(
-            'admin.edit_academic_year',
-            academic_year_id=academic_year.academic_year_id
-        ) }}"
-    >
-
-        <!-- Academic Year -->
-
-        <label for="academic_year_name">
-            Academic Year:
-        </label>
-
-        <br><br>
-
-        <input
-            type="text"
-            id="academic_year_name"
-            name="academic_year_name"
-            value="{{ academic_year.academic_year_name }}"
-            required
-        >
-
-        <br><br>
+    <!-- Background (visual only) -->
+    <div class="bg" aria-hidden="true">
+        <div class="bg__grid"></div>
+        <div class="bg__glow bg__glow--a"></div>
+        <div class="bg__glow bg__glow--b"></div>
+    </div>
 
 
-        <!-- Start Date -->
+    <!-- =====================================================
+         SIDEBAR
+    ===================================================== -->
 
-        <label for="start_date">
-            Start Date:
-        </label>
+    <div class="sidebar">
 
-        <br><br>
+        <div class="sidebar__brand">
+            <div class="brandmark" aria-hidden="true"></div>
+            <div class="sidebar__brandText">
+                <h2>Admin Panel</h2>
+                <p>PreQABoard Control</p>
+            </div>
+        </div>
 
-        <input
-            type="date"
-            id="start_date"
-            name="start_date"
-            value="{{ academic_year.start_date }}"
-            required
-        >
+        <nav class="nav" aria-label="Admin Navigation">
 
-        <br><br>
+            <a href="{{ url_for('admin.dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('admin.departments') }}">Departments</a>
+            <a href="{{ url_for('admin.courses') }}">Courses</a>
+            <a href="{{ url_for('admin.semesters') }}">Semesters</a>
+            <a href="{{ url_for('admin.academic_years') }}">Academic Years</a>
+            <a href="{{ url_for('admin.exam_types') }}">Exam Types</a>
+            <a href="{{ url_for('admin.hod_accounts') }}">HOD Accounts</a>
+            <a href="{{ url_for('admin.all_students') }}">Students</a>
+            <a href="{{ url_for('admin.all_teachers') }}">Teachers</a>
 
+        </nav>
 
-        <!-- End Date -->
+        <div class="sidebar__footer">
 
-        <label for="end_date">
-            End Date:
-        </label>
-
-        <br><br>
-
-        <input
-            type="date"
-            id="end_date"
-            name="end_date"
-            value="{{ academic_year.end_date }}"
-            required
-        >
-
-        <br><br>
-
-
-        <!-- Status -->
-
-        <label for="status">
-            Status:
-        </label>
-
-        <br><br>
-
-        <select
-            id="status"
-            name="status"
-            required
-        >
-
-            <option
-                value="Upcoming"
-                {% if academic_year.status == "Upcoming" %}
-                    selected
-                {% endif %}
+            <a
+                href="{{ url_for('admin.logout') }}"
+                class="logout"
             >
-                Upcoming
-            </option>
+                Logout
+            </a>
 
-            <option
-                value="Current"
-                {% if academic_year.status == "Current" %}
-                    selected
-                {% endif %}
+            <div class="sidebar__hint">
+                Logged in as
+                <strong>{{ session.get("admin_username") or "Admin" }}</strong>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         MAIN
+    ===================================================== -->
+
+    <div class="main">
+
+        <div class="topbar">
+
+            <div class="topbar__title">
+                <h1>Edit Academic Year</h1>
+                <p>Update academic year name, dates and status.</p>
+            </div>
+
+            <div class="topbar__actions">
+                <a class="btn btn--ghost" href="{{ url_for('admin.academic_years') }}">
+                    Cancel
+                </a>
+            </div>
+
+        </div>
+
+
+        <div class="section">
+
+            <div class="section-header">
+                <h2>Academic Year Details</h2>
+                <p class="section-subtitle">
+                    Please verify dates before saving.
+                </p>
+            </div>
+
+
+            <form
+                class="form"
+                method="POST"
+                action="{{ url_for(
+                    'admin.edit_academic_year',
+                    academic_year_id=academic_year.academic_year_id
+                ) }}"
             >
-                Current
-            </option>
 
-            <option
-                value="Completed"
-                {% if academic_year.status == "Completed" %}
-                    selected
-                {% endif %}
-            >
-                Completed
-            </option>
-        </select>
-        <br><br>
+                <div class="form__grid">
 
-        <button type="submit">
-            Update Academic Year
-        </button>
-    </form>
-    <br>
-    <a href="{{ url_for('admin.academic_years') }}">
-        Cancel
-    </a>
+                    <div class="field field--full">
+                        <label class="field__label" for="academic_year_name">
+                            Academic Year
+                        </label>
+
+                        <input
+                            class="field__input"
+                            type="text"
+                            id="academic_year_name"
+                            name="academic_year_name"
+                            value="{{ academic_year.academic_year_name }}"
+                            required
+                        >
+                    </div>
+
+
+                    <div class="field">
+                        <label class="field__label" for="start_date">
+                            Start Date
+                        </label>
+
+                        <input
+                            class="field__input"
+                            type="date"
+                            id="start_date"
+                            name="start_date"
+                            value="{{ academic_year.start_date }}"
+                            required
+                        >
+                    </div>
+
+
+                    <div class="field">
+                        <label class="field__label" for="end_date">
+                            End Date
+                        </label>
+
+                        <input
+                            class="field__input"
+                            type="date"
+                            id="end_date"
+                            name="end_date"
+                            value="{{ academic_year.end_date }}"
+                            required
+                        >
+                    </div>
+
+
+                    <div class="field field--full">
+                        <label class="field__label" for="status">
+                            Status
+                        </label>
+
+                        <select
+                            class="field__select"
+                            id="status"
+                            name="status"
+                            required
+                        >
+
+                            <option
+                                value="Upcoming"
+                                {% if academic_year.status == "Upcoming" %}
+                                    selected
+                                {% endif %}
+                            >
+                                Upcoming
+                            </option>
+
+                            <option
+                                value="Current"
+                                {% if academic_year.status == "Current" %}
+                                    selected
+                                {% endif %}
+                            >
+                                Current
+                            </option>
+
+                            <option
+                                value="Completed"
+                                {% if academic_year.status == "Completed" %}
+                                    selected
+                                {% endif %}
+                            >
+                                Completed
+                            </option>
+
+                        </select>
+                    </div>
+
+                </div>
+
+
+                <div class="form__actions">
+                    <button class="btn btn--primary" type="submit">
+                        Update Academic Year
+                    </button>
+
+                    <a class="btn btn--ghost" href="{{ url_for('admin.academic_years') }}">
+                        Cancel
+                    </a>
+                </div>
+
+            </form>
+
+        </div>
+
+
+        <div class="page-footer">
+            <span>PreQABoard • Admin</span>
+        </div>
+
+    </div>
+
+
+    <script>
+        (function () {
+            const links = document.querySelectorAll(".nav a");
+            const current = window.location.pathname;
+            links.forEach(a => {
+                try{
+                    const url = new URL(a.href);
+                    if (url.pathname === current) a.classList.add("is-active");
+                }catch(e){}
+            });
+        })();
+    </script>
+
 </body>
 </html>

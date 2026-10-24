@@ -2,212 +2,247 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <title>Student Registration - PreQABoard</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/student_register.css') }}">
 </head>
 
 <body>
 
-    <h1>Student Registration</h1>
-
-    {% with messages = get_flashed_messages(with_categories=true) %}
-
-        {% if messages %}
-
-            {% for category, message in messages %}
-
-                <p>{{ message }}</p>
-
-            {% endfor %}
-
-        {% endif %}
-
-    {% endwith %}
-
-
-    <form method="POST"
-          action="{{ url_for('student.register') }}">
-
-        <label>Department:</label>
-        <br>
-
-        <select name="department_id" id="department_id" required>
-
-            <option value="">Select Department</option>
-
-            {% for department in departments %}
-
-                <option
-                    value="{{ department.department_id }}"
-                    data-department="{{ department.department_id }}"
-                >
-                    {{ department.department_name }}
-                </option>
-
-            {% endfor %}
-
-        </select>
-
-        <br><br>
-
-
-        <label>Course:</label>
-        <br>
-
-        <select name="course_id" id="course_id" required>
-
-            <option value="">Select Course</option>
-
-            {% for course in courses %}
-
-                <option
-                    value="{{ course.course_id }}"
-                    data-department="{{ course.department_id }}"
-                >
-                    {{ course.course_name }}
-                </option>
-
-            {% endfor %}
-
-        </select>
-
-        <br><br>
-
-
-        <label>Semester:</label>
-        <br>
-
-        <select name="semester_id" id="semester_id" required>
-
-            <option value="">Select Semester</option>
-
-            {% for semester in semesters %}
-
-                <option
-                    value="{{ semester.semester_id }}"
-                    data-course="{{ semester.course_id }}"
-                >
-                    Semester {{ semester.semester_number }}
-                </option>
-
-            {% endfor %}
-
-        </select>
-
-        <br><br>
-
-
-        <label>Register Number:</label>
-        <br>
-
-        <input
-            type="text"
-            name="register_number"
-            required
-        >
-
-        <br><br>
-
-
-        <label>Full Name:</label>
-        <br>
-
-        <input
-            type="text"
-            name="full_name"
-            required
-        >
-
-        <br><br>
-
-
-        <label>Email:</label>
-        <br>
-
-        <input
-            type="email"
-            name="email"
-            required
-        >
-
-        <br><br>
-
-
-        <label>Phone:</label>
-        <br>
-
-        <input
-            type="text"
-            name="phone"
-        >
-
-        <br><br>
-
-
-        <label>Username:</label>
-        <br>
-
-        <input
-            type="text"
-            name="username"
-            required
-        >
-
-        <br><br>
-
-
-        <label>Password:</label>
-        <br>
-
-        <input
-            type="password"
-            name="password"
-            required
-        >
-
-        <br><br>
-
-
-        <label>Confirm Password:</label>
-        <br>
-
-        <input
-            type="password"
-            name="confirm_password"
-            required
-        >
-
-        <br><br>
-
-
-        <button type="submit">
-            Register
-        </button>
-
-    </form>
-
-
-    <br>
-
-    <p>
-        Already have an account?
-        <a href="{{ url_for('student.login') }}">
-            Student Login
-        </a>
-    </p>
-
-
-    <p>
-        <a href="/">
-            Back to Home
-        </a>
-    </p>
-
+    <div class="bg">
+        <div class="bg__grid"></div>
+        <div class="bg__glow bg__glow--a"></div>
+        <div class="bg__glow bg__glow--b"></div>
+    </div>
+
+    <main class="auth">
+
+        <section class="auth__card" aria-label="Student Registration Card">
+
+            <header class="auth__header">
+                <a class="brand" href="/" aria-label="Go to Home">
+                    <span class="brand__dot"></span>
+                    <span class="brand__text">PreQABoard</span>
+                </a>
+
+                <h1 class="auth__title">Student Registration</h1>
+                <p class="auth__subtitle">
+                    Create your student account to access question papers, study materials, and AI assistance.
+                </p>
+            </header>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="flash-stack" role="status" aria-live="polite">
+                        {% for category, message in messages %}
+                            <div class="flash flash--{{ category|lower }}">
+                                <div class="flash__icon" aria-hidden="true"></div>
+                                <div class="flash__text">{{ message }}</div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            {# Optional: if your backend ever sends success=True, this shows a clean success state #}
+            {% if success %}
+                <div class="status status--success" role="status" aria-live="polite">
+                    <h2 class="status__title">Registration Successful</h2>
+                    <p class="status__text">
+                        Your student account has been created. You can now proceed to login.
+                    </p>
+
+                    <div class="status__actions">
+                        <a class="btn btn--primary" href="{{ url_for('student.login') }}">Go to Student Login</a>
+                        <a class="btn btn--ghost" href="/">Back to Home</a>
+                    </div>
+                </div>
+            {% else %}
+
+                <form class="form"
+                      method="POST"
+                      action="{{ url_for('student.register') }}">
+
+                    <div class="form__grid">
+
+                        <div class="field">
+                            <label class="field__label" for="department_id">Department</label>
+                            <div class="field__control">
+                                <select class="field__select" name="department_id" id="department_id" required>
+                                    <option value="">Select Department</option>
+                                    {% for department in departments %}
+                                        <option
+                                            value="{{ department.department_id }}"
+                                            data-department="{{ department.department_id }}"
+                                        >
+                                            {{ department.department_name }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label class="field__label" for="course_id">Course</label>
+                            <div class="field__control">
+                                <select class="field__select" name="course_id" id="course_id" required>
+                                    <option value="">Select Course</option>
+                                    {% for course in courses %}
+                                        <option
+                                            value="{{ course.course_id }}"
+                                            data-department="{{ course.department_id }}"
+                                        >
+                                            {{ course.course_name }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label class="field__label" for="semester_id">Semester</label>
+                            <div class="field__control">
+                                <select class="field__select" name="semester_id" id="semester_id" required>
+                                    <option value="">Select Semester</option>
+                                    {% for semester in semesters %}
+                                        <option
+                                            value="{{ semester.semester_id }}"
+                                            data-course="{{ semester.course_id }}"
+                                        >
+                                            Semester {{ semester.semester_number }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label class="field__label" for="class_name">Class / Section</label>
+                            <div class="field__control">
+                                <input class="field__input"
+                                       type="text"
+                                       name="class_name"
+                                       id="class_name"
+                                       placeholder="e.g., A / CS-A / II-A"
+                                       required>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label class="field__label" for="register_number">Register Number</label>
+                            <div class="field__control">
+                                <input class="field__input"
+                                       type="text"
+                                       name="register_number"
+                                       id="register_number"
+                                       placeholder="e.g., 21CS001"
+                                       required>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label class="field__label" for="full_name">Full Name</label>
+                            <div class="field__control">
+                                <input class="field__input"
+                                       type="text"
+                                       name="full_name"
+                                       id="full_name"
+                                       autocomplete="name"
+                                       placeholder="Enter your full name"
+                                       required>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label class="field__label" for="email">Email</label>
+                            <div class="field__control">
+                                <input class="field__input"
+                                       type="email"
+                                       name="email"
+                                       id="email"
+                                       autocomplete="email"
+                                       placeholder="name@example.com"
+                                       required>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label class="field__label" for="phone">Phone</label>
+                            <div class="field__control">
+                                <input class="field__input"
+                                       type="text"
+                                       name="phone"
+                                       id="phone"
+                                       autocomplete="tel"
+                                       placeholder="Optional">
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label class="field__label" for="username">Username</label>
+                            <div class="field__control">
+                                <input class="field__input"
+                                       type="text"
+                                       name="username"
+                                       id="username"
+                                       autocomplete="username"
+                                       placeholder="Choose a username"
+                                       required>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label class="field__label" for="password">Password</label>
+                            <div class="field__control">
+                                <input class="field__input"
+                                       type="password"
+                                       name="password"
+                                       id="password"
+                                       autocomplete="new-password"
+                                       placeholder="Create a password"
+                                       required>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label class="field__label" for="confirm_password">Confirm Password</label>
+                            <div class="field__control">
+                                <input class="field__input"
+                                       type="password"
+                                       name="confirm_password"
+                                       id="confirm_password"
+                                       autocomplete="new-password"
+                                       placeholder="Re-enter password"
+                                       required>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="form__actions">
+                        <button class="btn btn--primary" type="submit">Create Account</button>
+                        <a class="btn btn--ghost" href="/">Back to Home</a>
+                    </div>
+
+                </form>
+
+                <footer class="auth__footer">
+                    <p class="auth__footline">
+                        Already have an account?
+                        <a class="link" href="{{ url_for('student.login') }}">Student Login</a>
+                    </p>
+                </footer>
+
+            {% endif %}
+
+        </section>
+
+    </main>
 
     <script>
-
         const departmentSelect =
             document.getElementById("department_id");
 
@@ -294,10 +329,8 @@
             });
 
         });
-
     </script>
 
 </body>
 
 </html>
-

@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PreQABoard</title>
+
+  <!-- Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+</head>
+
+<body>
+
+  <!-- =========================
+       FULLSCREEN INTRO OVERLAY
+       ========================= -->
+  <div id="introOverlay" class="intro-overlay" aria-label="PreQABoard intro (click to continue)">
+    <div class="intro-overlay__bg" aria-hidden="true">
+      <div class="intro-overlay__glow intro-overlay__glow--one"></div>
+      <div class="intro-overlay__glow intro-overlay__glow--two"></div>
+      <div class="intro-overlay__noise"></div>
+    </div>
+
+    <div class="intro-overlay__content">
+      <div class="intro-overlay__scene" aria-hidden="true">
+        <div class="book">
+          <div class="book__spine"></div>
+          <div class="book__pages"></div>
+
+          <div class="book__cover book__cover--left">
+            <div class="book__coverInner"></div>
+          </div>
+
+          <div class="book__cover book__cover--right">
+            <div class="book__coverInner"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ✅ Only this text (no other content) -->
+      <div class="intro-overlay__text">
+        <h1 class="intro-overlay__welcome">
+          Welcome to <span class="brand__highlight">PreQABoard</span>
+        </h1>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================
+       MAIN HOME PAGE (HIDDEN UNTIL INTRO ENDS)
+       ========================= -->
+  <div id="app" class="app app--hidden">
+
+    <!-- Background accents for main page -->
+    <div class="bg" aria-hidden="true">
+      <div class="bg__glow bg__glow--one"></div>
+      <div class="bg__glow bg__glow--two"></div>
+      <div class="bg__noise"></div>
+    </div>
+
+    <!-- Top Navigation -->
+    <header class="topbar">
+      <div class="container topbar__inner">
+        <a class="brand" href="/">
+          <span class="brand__dot" aria-hidden="true"></span>
+          <span class="brand__text">
+            <span class="brand__highlight">PreQABoard</span>
+          </span>
+        </a>
+
+        <nav class="topnav" aria-label="Primary">
+          <a class="topnav__link" href="#features">Features</a>
+          <a class="topnav__link" href="#about">About</a>
+
+          <span class="topnav__sep" aria-hidden="true"></span>
+
+          <a class="topnav__link topnav__link--strong" href="/admin/login">Admin</a>
+          <a class="topnav__link topnav__link--strong" href="/hod/login">HOD</a>
+        </nav>
+
+        <div class="topbar__cta">
+          <!-- LOGIN DROPDOWN -->
+          <div class="dropdown">
+            <button class="btn btn--ghost dropdown__trigger" type="button">
+              Login
+              <span class="chev" aria-hidden="true"></span>
+            </button>
+
+            <div class="dropdown__menu" role="menu" aria-label="Login menu">
+              <a class="dropdown__item" href="/teacher/login" role="menuitem">Teacher Login</a>
+              <a class="dropdown__item" href="/student/login" role="menuitem">Student Login</a>
+            </div>
+          </div>
+
+          <!-- REGISTER DROPDOWN -->
+          <div class="dropdown">
+            <button class="btn btn--primary dropdown__trigger" type="button">
+              Register
+              <span class="chev" aria-hidden="true"></span>
+            </button>
+
+            <div class="dropdown__menu" role="menu" aria-label="Register menu">
+              <a class="dropdown__item" href="/teacher/register" role="menuitem">Teacher Register</a>
+              <a class="dropdown__item" href="/student/register" role="menuitem">Student Register</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Hero -->
+    <main class="container">
+      <section class="hero" id="home">
+        <div class="badge">
+          <span class="badge__pulse" aria-hidden="true"></span>
+          <span>Professional Question Bank Platform</span>
+        </div>
+
+        <h1 class="hero__brand">
+          <span class="brand__highlight">PreQABoard</span>
+        </h1>
+
+        <p class="hero__lead">
+          Smart, verified academic resources.
+        </p>
+
+        <p class="hero__subtitle">
+          A modern platform for managing question papers, study materials, assignments,
+          and repeated-question insights — designed for colleges.
+        </p>
+
+        <div class="hero__actions">
+          <a class="btn btn--primary btn--wide" href="/student/login">Student Login</a>
+          <a class="btn btn--ghost btn--wide" href="/teacher/login">Teacher Login</a>
+        </div>
+      </section>
+
+      <!-- Features -->
+      <section id="features" class="section">
+        <div class="section__head">
+          <h2 class="section__title">Features</h2>
+          <p class="section__subtitle">
+            Clean workflow, structured resources, and a professional portal experience for every role.
+          </p>
+        </div>
+
+        <div class="feature-wrap">
+          <div class="feature">
+            <div class="feature__icon">01</div>
+            <div class="feature__title">Approval-based content</div>
+            <div class="feature__text">Only verified question papers and materials become available.</div>
+          </div>
+
+          <div class="feature">
+            <div class="feature__icon">02</div>
+            <div class="feature__title">Organized structure</div>
+            <div class="feature__text">Department, course, semester and subject-based organization.</div>
+          </div>
+
+          <div class="feature">
+            <div class="feature__icon">03</div>
+            <div class="feature__title">Professional dashboards</div>
+            <div class="feature__text">Unique module dashboards for Admin, HOD, Teacher and Student.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- About -->
+      <section id="about" class="section section--thin">
+        <div class="about">
+          <div class="about__left">
+            <h2 class="section__title">About <span class="accent">PreQABoard</span></h2>
+            <p class="section__subtitle">
+              PreQABoard is built for college-level question bank management and exam preparation,
+              with clear module separation for Admin, HOD, Teacher and Student workflows.
+            </p>
+          </div>
+
+          <div class="about__right">
+            <div class="bullets">
+              <div class="bullet">
+                <div class="bullet__dot" aria-hidden="true"></div>
+                <div class="bullet__text">Fast access to approved academic content</div>
+              </div>
+              <div class="bullet">
+                <div class="bullet__dot" aria-hidden="true"></div>
+                <div class="bullet__text">Upload → review → approval workflow</div>
+              </div>
+              <div class="bullet">
+                <div class="bullet__dot" aria-hidden="true"></div>
+                <div class="bullet__text">Modern dark UI with cerulean blue accent</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Footer -->
+      <footer class="footer">
+        <div class="footer__inner">
+          <div class="footer__left">
+            <div class="brand brand--small">
+              <span class="brand__dot" aria-hidden="true"></span>
+              <span class="brand__text"><span class="brand__highlight">PreQABoard</span></span>
+            </div>
+            <div class="footer__meta">A professional college question bank management system.</div>
+          </div>
+
+          <div class="footer__right">
+            <a class="footer__link" href="#home">Home</a>
+            <a class="footer__link" href="#features">Features</a>
+            <a class="footer__link" href="#about">About</a>
+          </div>
+        </div>
+      </footer>
+
+    </main>
+  </div>
+
+  <!-- =========================
+       INTRO CONTROL (JS)
+       ========================= -->
+  <script>
+    (function () {
+      const overlay = document.getElementById("introOverlay");
+      const app = document.getElementById("app");
+
+      const DURATION_MS = 5200; // ✅ slower intro time
+      let finished = false;
+
+      function finishIntro() {
+        if (finished) return;
+        finished = true;
+
+        overlay.classList.add("intro-overlay--hide");
+
+        window.setTimeout(function () {
+          overlay.remove();
+          app.classList.remove("app--hidden");
+        }, 900); // ✅ slower fade out
+      }
+
+      window.setTimeout(finishIntro, DURATION_MS);
+
+      // still allow click to skip (no text shown)
+      overlay.addEventListener("click", finishIntro);
+    })();
+  </script>
+
+</body>
+</html>

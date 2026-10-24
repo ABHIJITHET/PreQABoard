@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Doubts - PreQABoard</title>
+</head>
+<body>
+
+    <h1>PreQABoard - HOD</h1>
+
+    <p>
+        <a href="{{ url_for('hod.dashboard') }}">← Back to Dashboard</a> |
+        <a href="{{ url_for('hod.logout') }}">Logout</a>
+    </p>
+
+    <hr>
+
+    <h2>Student Doubts (Department-wise)</h2>
+
+    {% if error %}
+        <p style="color:red;">{{ error }}</p>
+    {% endif %}
+
+    {% if doubts %}
+
+        <table border="1" cellpadding="8" cellspacing="0">
+            <thead>
+                <tr>
+                    <th>No.</th>
+                    <th>Date</th>
+                    <th>Student</th>
+                    <th>Register No</th>
+                    <th>Course</th>
+                    <th>Semester</th>
+                    <th>Subject</th>
+                    <th>Title</th>
+                    <th>Description</th>
+                    <th>Replies</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for d in doubts %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ d.created_at }}</td>
+                    <td>{{ d.student_name }}</td>
+                    <td>{{ d.register_number }}</td>
+                    <td>{{ d.course_name }}</td>
+                    <td>{{ d.semester_number }}</td>
+                    <td>{{ d.subject_code }} - {{ d.subject_name }}</td>
+                    <td>{{ d.doubt_title or '-' }}</td>
+                    <td>{{ d.doubt_description or '-' }}</td>
+
+                    <td>
+                        <strong>{{ d.reply_count }}</strong>
+
+                        {% set replies = replies_by_doubt.get(d.doubt_id, []) %}
+
+                        {% if replies %}
+                            <details>
+                                <summary>View replies</summary>
+
+                                <ul>
+                                    {% for r in replies %}
+                                        <li>
+                                            <strong>{{ r.teacher_name }} ({{ r.employee_id }})</strong><br>
+                                            {{ r.reply }}<br>
+                                            <small>{{ r.replied_at }}</small>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+
+                            </details>
+                        {% else %}
+                            <br>
+                            <small>No replies yet</small>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+    {% else %}
+        <p><strong>No doubts found.</strong></p>
+    {% endif %}
+
+</body>
+</html>

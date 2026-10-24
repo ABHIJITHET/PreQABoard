@@ -2,36 +2,95 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Login - PreQABoard</title>
+
+    <!-- Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin_login.css') }}">
 </head>
+
 <body>
-    <h1>PreQABoard</h1>
-    <h2>Admin Login</h2>
-    {% if error %}
-        <p>{{ error }}</p>
-    {% endif %}
-    <form method="POST">
-        <label>Username</label>
-        <br>
-        <input
-            type="text"
-            name="username"
-            required
-        >
-        <br><br>
-        <label>Password</label>
-        <br>
-        <input
-            type="password"
-            name="password"
-            required
-        >
-        <br><br>
-        <button type="submit">
-            Login
-        </button>
-    </form>
+    <!-- Background -->
+    <div class="bg" aria-hidden="true">
+        <div class="bg__glow bg__glow--one"></div>
+        <div class="bg__glow bg__glow--two"></div>
+        <div class="bg__noise"></div>
+    </div>
+
+    <!-- Top bar -->
+    <header class="topbar">
+        <div class="topbar__inner">
+            <a class="brand" href="/">
+                <span class="brand__dot" aria-hidden="true"></span>
+                <span class="brand__text">
+                    <span class="brand__highlight">PreQABoard</span>
+                </span>
+            </a>
+
+            <nav class="topbar__nav" aria-label="Top navigation">
+                <a class="topbar__link" href="/">Home</a>
+                <a class="topbar__link topbar__link--active" href="/admin/login">Admin</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Center Card -->
+    <main class="page">
+        <section class="card" aria-label="Admin login form">
+            <div class="card__header">
+                <h1 class="card__title">Admin Login</h1>
+                <p class="card__hint">Enter your admin credentials to continue.</p>
+            </div>
+
+            {% if error %}
+                <div class="alert" role="alert">
+                    {{ error }}
+                </div>
+            {% endif %}
+
+            <form class="form" method="POST" autocomplete="on">
+                <div class="field">
+                    <label class="label" for="username">Username</label>
+                    <input
+                        class="input"
+                        id="username"
+                        type="text"
+                        name="username"
+                        required
+                        autocomplete="username"
+                        placeholder="Enter admin username"
+                    >
+                </div>
+
+                <div class="field">
+                    <label class="label" for="password">Password</label>
+                    <input
+                        class="input"
+                        id="password"
+                        type="password"
+                        name="password"
+                        required
+                        autocomplete="current-password"
+                        placeholder="Enter password"
+                    >
+                </div>
+
+                <button class="btn btn--primary" type="submit">
+                    Login
+                </button>
+
+                <div class="form__footer">
+                    <a class="link" href="/">← Back to Home</a>
+                    <span class="sep" aria-hidden="true"></span>
+                    <a class="link link--muted" href="/hod/login">HOD Login</a>
+                </div>
+            </form>
+        </section>
+    </main>
 </body>
 </html>

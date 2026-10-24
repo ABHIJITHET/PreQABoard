@@ -1,4 +1,7 @@
-from flask import Flask
+from dotenv import load_dotenv
+load_dotenv()
+
+from flask import Flask, render_template
 
 from config import Config
 from database.db_connection import get_connection
@@ -144,116 +147,13 @@ window.addEventListener("pageshow", function (event) {
 
 
             # ---------------------------------------------------
-            # HOME PAGE
+            # HOME PAGE (TEMPLATE)
             # ---------------------------------------------------
 
-            return f"""
-                <!DOCTYPE html>
-
-                <html lang="en">
-
-                <head>
-
-                    <meta charset="UTF-8">
-
-                    <meta name="viewport"
-                          content="width=device-width, initial-scale=1.0">
-
-                    <title>PreQABoard</title>
-
-                </head>
-
-
-                <body>
-
-                    <h1>Welcome to PreQABoard</h1>
-
-                    <p>
-                        Flask is working successfully.
-                    </p>
-
-                    <p>
-                        MySQL is connected successfully.
-                    </p>
-
-                    <p>
-                        Total Departments:
-                        {total_departments}
-                    </p>
-
-
-                    <hr>
-
-
-                    <!-- =========================================
-                         ADMIN
-                         ========================================= -->
-
-                    <h3>Admin</h3>
-
-                    <a href="/admin/login">
-                        Admin Login
-                    </a>
-
-
-                    <br><br>
-
-
-                    <!-- =========================================
-                         HOD
-                         ========================================= -->
-
-                    <h3>HOD</h3>
-
-                    <a href="/hod/login">
-                        HOD Login
-                    </a>
-
-
-                    <br><br>
-
-
-                    <!-- =========================================
-                         TEACHER
-                         ========================================= -->
-
-                    <h3>Teacher</h3>
-
-                    <a href="/teacher/login">
-                        Teacher Login
-                    </a>
-
-                    <br><br>
-
-                    <a href="/teacher/register">
-                        Teacher Registration
-                    </a>
-
-
-                    <br><br>
-
-
-                    <!-- =========================================
-                         STUDENT
-                         ========================================= -->
-
-                    <h3>Student</h3>
-
-                    <a href="/student/login">
-                        Student Login
-                    </a>
-
-                    <br><br>
-
-                    <a href="/student/register">
-                        Student Registration
-                    </a>
-
-
-                </body>
-
-                </html>
-            """
+            return render_template(
+                "home.html",
+                total_departments=total_departments
+            )
 
 
         except Exception as e:
@@ -301,10 +201,6 @@ window.addEventListener("pageshow", function (event) {
 
     # ===========================================================
     # PRINT REGISTERED ROUTES
-    # ===========================================================
-    #
-    # This helps us verify that Student routes are registered.
-    #
     # ===========================================================
 
     print("\n==============================================")

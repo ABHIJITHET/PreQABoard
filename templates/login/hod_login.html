@@ -1,63 +1,97 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
-
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HOD Login - PreQABoard</title>
+
+    <!-- Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/hod_login.css') }}">
 </head>
 
 <body>
+    <!-- Background -->
+    <div class="bg" aria-hidden="true">
+        <div class="bg__glow bg__glow--one"></div>
+        <div class="bg__glow bg__glow--two"></div>
+        <div class="bg__noise"></div>
+    </div>
 
-    <h1>PreQABoard</h1>
+    <!-- Top bar -->
+    <header class="topbar">
+        <div class="topbar__inner">
+            <a class="brand" href="/">
+                <span class="brand__dot" aria-hidden="true"></span>
+                <span class="brand__text">
+                    <span class="brand__highlight">PreQABoard</span>
+                </span>
+            </a>
 
-    <h2>HOD Login</h2>
+            <nav class="topbar__nav" aria-label="Top navigation">
+                <a class="topbar__link" href="/">Home</a>
+                <a class="topbar__link topbar__link--active" href="/hod/login">HOD</a>
+                <a class="topbar__link" href="/admin/login">Admin</a>
+            </nav>
+        </div>
+    </header>
 
-    {% if error %}
-        <p>{{ error }}</p>
-    {% endif %}
+    <!-- Center Card -->
+    <main class="page">
+        <section class="card" aria-label="HOD login form">
+            <div class="card__header">
+                <h1 class="card__title">HOD Login</h1>
+                <p class="card__hint">Sign in to review and approve academic resources.</p>
+            </div>
 
-    <form method="POST">
+            {% if error %}
+                <div class="alert" role="alert">
+                    {{ error }}
+                </div>
+            {% endif %}
 
-        <label for="username">
-            Username
-        </label>
+            <form class="form" method="POST" autocomplete="on">
+                <div class="field">
+                    <label class="label" for="username">Username</label>
+                    <input
+                        class="input"
+                        type="text"
+                        id="username"
+                        name="username"
+                        required
+                        autocomplete="username"
+                        placeholder="Enter HOD username"
+                    >
+                </div>
 
-        <br>
+                <div class="field">
+                    <label class="label" for="password">Password</label>
+                    <input
+                        class="input"
+                        type="password"
+                        id="password"
+                        name="password"
+                        required
+                        autocomplete="current-password"
+                        placeholder="Enter password"
+                    >
+                </div>
 
-        <input
-            type="text"
-            id="username"
-            name="username"
-            required
-        >
+                <button class="btn btn--primary" type="submit">
+                    Login
+                </button>
 
-        <br><br>
-
-        <label for="password">
-            Password
-        </label>
-
-        <br>
-
-        <input
-            type="password"
-            id="password"
-            name="password"
-            required
-        >
-
-        <br><br>
-
-        <button type="submit">
-            Login
-        </button>
-
-    </form>
-
+                <div class="form__footer">
+                    <a class="link" href="/">← Back to Home</a>
+                    <span class="sep" aria-hidden="true"></span>
+                    <a class="link link--muted" href="/admin/login">Admin Login</a>
+                </div>
+            </form>
+        </section>
+    </main>
 </body>
-
 </html>

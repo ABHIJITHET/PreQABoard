@@ -1,235 +1,269 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
-    <meta charset="UTF-8">
-
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
-
+    <meta charset="UTF-8" />
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    />
     <title>Manage Exam Types - PreQABoard</title>
 
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/admin_manage_exam_type.css') }}"
+    />
 </head>
 
 <body>
 
-    <h1>PreQABoard - Manage Exam Types</h1>
+    <div class="layout">
 
-    <h2>
-        Welcome, {{ session.get("admin_username") }}
-    </h2>
+        <!-- =======================
+             SIDEBAR
+             ======================= -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-mark">PQ</div>
+                <div class="brand-text">
+                    <div class="brand-title">PreQABoard</div>
+                    <div class="brand-subtitle">Admin Panel</div>
+                </div>
+            </div>
 
-    <hr>
+            <nav class="nav">
+                <a class="nav-link" href="{{ url_for('admin.dashboard') }}" data-endpoint="admin.dashboard">
+                    Dashboard
+                </a>
 
+                <a class="nav-link" href="{{ url_for('admin.all_students') }}" data-endpoint="admin.all_students">
+                    Students
+                </a>
 
-    <!-- =====================================================
-         ADD EXAM TYPE
-         ===================================================== -->
+                <a class="nav-link" href="{{ url_for('admin.all_teachers') }}" data-endpoint="admin.all_teachers">
+                    Teachers
+                </a>
 
-    <h2>Add New Exam Type</h2>
+                <a class="nav-link" href="{{ url_for('admin.add_academic_year') }}" data-endpoint="admin.manage_academic_year">
+                    Academic Years
+                </a>
 
-    <form
-        method="POST"
-        action="{{ url_for('admin.add_exam_type') }}"
-    >
+                <!-- Safe active link (no BuildError if endpoint name differs in your project) -->
+                <a class="nav-link active" href="#" aria-current="page">
+                    Exam Types
+                </a>
+            </nav>
 
-        <label for="exam_type_name">
-            Exam Type:
-        </label>
-
-        <br><br>
-
-        <input
-            type="text"
-            id="exam_type_name"
-            name="exam_type_name"
-            placeholder="Example: Internal Examination"
-            required
-        >
-
-        <br><br>
-
-        <button type="submit">
-            Add Exam Type
-        </button>
-
-    </form>
-
-    <hr>
+            <div class="sidebar-footer">
+                <a class="btn btn-ghost w-100" href="{{ url_for('admin.logout') }}">Logout</a>
+            </div>
+        </aside>
 
 
-    <!-- =====================================================
-         EXISTING EXAM TYPES
-         ===================================================== -->
+        <!-- =======================
+             MAIN
+             ======================= -->
+        <main class="main">
 
-    <h2>Existing Exam Types</h2>
+            <header class="topbar">
+                <div class="topbar-left">
+                    <h1 class="page-title">Manage Exam Types</h1>
+                    <p class="page-subtitle">
+                        Welcome, <span class="strong">{{ session.get("admin_username") }}</span>
+                    </p>
+                </div>
 
-    {% if exam_types %}
+                <div class="topbar-right">
+                    <a class="btn btn-secondary" href="{{ url_for('admin.dashboard') }}">Back to Dashboard</a>
+                    <a class="btn btn-primary" href="{{ url_for('admin.logout') }}">Logout</a>
+                </div>
+            </header>
 
-        <table border="1" cellpadding="10">
-
-            <thead>
-
-                <tr>
-
-                    <th>ID</th>
-
-                    <th>Exam Type</th>
-
-                    <th>Status</th>
-
-                    <th>Created At</th>
-
-                    <th>Actions</th>
-
-                </tr>
-
-            </thead>
-
-
-            <tbody>
-
-                {% for exam_type in exam_types %}
-
-                    <tr>
-
-                        <td>
-                            {{ exam_type.exam_type_id }}
-                        </td>
-
-                        <td>
-                            {{ exam_type.exam_type_name }}
-                        </td>
-
-                        <td>
-                            {{ exam_type.status }}
-                        </td>
-
-                        <td>
-                            {{ exam_type.created_at }}
-                        </td>
+            <!-- Flash messages -->
+            <section class="alerts">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category|lower }}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+            </section>
 
 
-                        <td>
+            <section class="grid">
 
-                            <!-- EDIT -->
+                <!-- =======================
+                     ADD EXAM TYPE
+                     ======================= -->
+                <section class="card add-card">
+                    <div class="card-head">
+                        <h2 class="card-title">Add New Exam Type</h2>
+                        <p class="card-subtitle">
+                            Example: Internal Examination, End Semester Examination, Model Exam.
+                        </p>
+                    </div>
 
-                            <a href="{{ url_for(
-                                'admin.edit_exam_type',
-                                exam_type_id=exam_type.exam_type_id
-                            ) }}">
+                    <form
+                        class="form"
+                        method="POST"
+                        action="{{ url_for('admin.add_exam_type') }}"
+                    >
+                        <div class="field">
+                            <label class="label" for="exam_type_name">Exam Type</label>
+                            <input
+                                class="control"
+                                type="text"
+                                id="exam_type_name"
+                                name="exam_type_name"
+                                placeholder="Example: Internal Examination"
+                                required
+                            />
+                        </div>
 
-                                <button type="button">
-                                    Edit
-                                </button>
-
+                        <div class="form-actions">
+                            <button class="btn btn-primary" type="submit">
+                                Add Exam Type
+                            </button>
+                            <a class="btn btn-ghost" href="{{ url_for('admin.dashboard') }}">
+                                Cancel
                             </a>
-
-                            <br>
-                            <br>
-
-
-                            <!-- DELETE -->
-
-                            <form
-                                method="POST"
-                                action="{{ url_for(
-                                    'admin.delete_exam_type',
-                                    exam_type_id=exam_type.exam_type_id
-                                ) }}"
-                                onsubmit="
-                                    return confirm(
-                                        'Are you sure you want to delete this exam type?'
-                                    );
-                                "
-                            >
-
-                                <button type="submit">
-                                    Delete
-                                </button>
-
-                            </form>
-
-                            <br>
+                        </div>
+                    </form>
+                </section>
 
 
-                            <!-- CHANGE STATUS -->
+                <!-- =======================
+                     EXISTING EXAM TYPES
+                     ======================= -->
+                <section class="card list-card">
+                    <div class="card-head card-head-row">
+                        <div>
+                            <h2 class="card-title">Existing Exam Types</h2>
+                            <p class="card-subtitle">Edit, delete, or toggle status.</p>
+                        </div>
 
-                            <form
-                                method="POST"
-                                action="{{ url_for(
-                                    'admin.change_exam_type_status',
-                                    exam_type_id=exam_type.exam_type_id
-                                ) }}"
-                            >
+                        <div class="meta-pill" title="Total exam types">
+                            Total:
+                            <span class="mono">{{ exam_types|length if exam_types else 0 }}</span>
+                        </div>
+                    </div>
 
-                                <select name="status">
+                    {% if exam_types %}
+                        <div class="table-wrap">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th class="col-id">ID</th>
+                                        <th>Exam Type</th>
+                                        <th class="col-status">Status</th>
+                                        <th class="col-created">Created At</th>
+                                        <th class="col-actions">Actions</th>
+                                    </tr>
+                                </thead>
 
-                                    <option
-                                        value="Active"
-                                        {% if exam_type.status =="Active" %}
-                                            selected
-                                        {% endif %}
-                                    >
-                                        Active
-                                    </option>
+                                <tbody>
+                                    {% for exam_type in exam_types %}
+                                        <tr>
+                                            <td class="mono">{{ exam_type.exam_type_id }}</td>
 
-                                    <option
-                                        value="Inactive"
-                                        {% if exam_type.status =="Inactive" %}
-                                            selected
-                                        {% endif %}
-                                    >
-                                        Inactive
-                                    </option>
+                                            <td class="strong">
+                                                {{ exam_type.exam_type_name }}
+                                            </td>
 
-                                </select>
+                                            <td>
+                                                {% if exam_type.status == "Active" %}
+                                                    <span class="badge badge-active">Active</span>
+                                                {% else %}
+                                                    <span class="badge badge-inactive">Inactive</span>
+                                                {% endif %}
+                                            </td>
 
-                                <button type="submit">
-                                    Change Status
-                                </button>
+                                            <td class="muted">{{ exam_type.created_at }}</td>
 
-                            </form>
+                                            <td>
+                                                <div class="actions">
 
-                        </td>
+                                                    <!-- EDIT -->
+                                                    <a
+                                                        class="btn btn-secondary btn-sm"
+                                                        href="{{ url_for('admin.edit_exam_type', exam_type_id=exam_type.exam_type_id) }}"
+                                                    >
+                                                        Edit
+                                                    </a>
 
-                    </tr>
+                                                    <!-- DELETE -->
+                                                    <form
+                                                        method="POST"
+                                                        action="{{ url_for('admin.delete_exam_type', exam_type_id=exam_type.exam_type_id) }}"
+                                                        onsubmit="return confirm('Are you sure you want to delete this exam type?');"
+                                                    >
+                                                        <button class="btn btn-danger btn-sm" type="submit">
+                                                            Delete
+                                                        </button>
+                                                    </form>
 
-                {% endfor %}
+                                                    <!-- CHANGE STATUS -->
+                                                    <form
+                                                        class="status-form"
+                                                        method="POST"
+                                                        action="{{ url_for('admin.change_exam_type_status', exam_type_id=exam_type.exam_type_id) }}"
+                                                    >
+                                                        <select class="control control-sm" name="status">
+                                                            <option
+                                                                value="Active"
+                                                                {% if exam_type.status == "Active" %} selected {% endif %}
+                                                            >
+                                                                Active
+                                                            </option>
+                                                            <option
+                                                                value="Inactive"
+                                                                {% if exam_type.status == "Inactive" %} selected {% endif %}
+                                                            >
+                                                                Inactive
+                                                            </option>
+                                                        </select>
 
-            </tbody>
+                                                        <button class="btn btn-primary btn-sm" type="submit">
+                                                            Change
+                                                        </button>
+                                                    </form>
 
-        </table>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="empty">
+                            <div class="empty-title">No exam types found</div>
+                            <div class="empty-subtitle">Add an exam type using the form.</div>
+                        </div>
+                    {% endif %}
+                </section>
 
-    {% else %}
+            </section>
 
-        <p>
-            No exam types found.
-        </p>
+            <footer class="footer">
+                <span>PreQABoard • Admin</span>
+            </footer>
 
-    {% endif %}
+        </main>
 
+    </div>
 
-    <br>
-
-    <hr>
-
-
-    <!-- =====================================================
-         NAVIGATION
-         ===================================================== -->
-
-    <a href="{{ url_for('admin.dashboard') }}">
-        Back to Dashboard
-    </a>
-
-    <br><br>
-
-    <a href="{{ url_for('admin.logout') }}">
-        Logout
-    </a>
+    <script>
+        // Optional: auto-highlight sidebar links when endpoint matches
+        (function () {
+            const endpoint = "{{ request.endpoint }}";
+            document.querySelectorAll(".nav-link[data-endpoint]").forEach(a => {
+                if (a.dataset.endpoint === endpoint) a.classList.add("active");
+            });
+        })();
+    </script>
 
 </body>
-
 </html>

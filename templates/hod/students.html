@@ -28,8 +28,8 @@
 
     <p>
         <strong>Note:</strong>
-        Student editing, approval and rejection are available only on the
-        Student Approvals page.
+        You can edit, activate/deactivate, and delete students from this page.
+        Approval and rejection are available only on the Student Approvals page.
     </p>
 
     <hr>
@@ -121,7 +121,7 @@
 
             <option
                 value="Pending"
-                {% if selected_approval_status == "Pending" %}
+                {% if selected_approval_status =="Pending" %}
                     selected
                 {% endif %}
             >
@@ -130,7 +130,7 @@
 
             <option
                 value="Approved"
-                {% if selected_approval_status == "Approved" %}
+                {% if selected_approval_status =="Approved" %}
                     selected
                 {% endif %}
             >
@@ -139,7 +139,7 @@
 
             <option
                 value="Rejected"
-                {% if selected_approval_status == "Rejected" %}
+                {% if selected_approval_status =="Rejected" %}
                     selected
                 {% endif %}
             >
@@ -191,6 +191,7 @@
                             <th>Username</th>
                             <th>Approval Status</th>
                             <th>Account Status</th>
+                            <th>Action</th>
 
                         </tr>
 
@@ -233,6 +234,63 @@
 
                             <td>
                                 {{ student.account_status }}
+                            </td>
+
+                            <!-- ACTIONS -->
+                            <td>
+
+                                <!-- EDIT -->
+                                <a href="{{ url_for('hod.edit_student', student_id=student.student_id) }}">
+                                    Edit
+                                </a>
+
+                                <br><br>
+
+                                <!-- ACTIVATE / DEACTIVATE -->
+                                {% if student.account_status == 'Active' %}
+
+                                    <form
+                                        method="POST"
+                                        action="{{ url_for('hod.change_student_status', student_id=student.student_id) }}"
+                                        style="display:inline;"
+                                        onsubmit="return confirm('Deactivate this student account?');"
+                                    >
+                                        <input type="hidden" name="status" value="Inactive">
+                                        <button type="submit">Deactivate</button>
+                                    </form>
+
+                                {% elif student.account_status == 'Inactive' %}
+
+                                    <form
+                                        method="POST"
+                                        action="{{ url_for('hod.change_student_status', student_id=student.student_id) }}"
+                                        style="display:inline;"
+                                        onsubmit="return confirm('Activate this student account?');"
+                                    >
+                                        <input type="hidden" name="status" value="Active">
+                                        <button type="submit">Activate</button>
+                                    </form>
+
+                                {% else %}
+
+                                    <span>Pending Approval</span>
+
+                                {% endif %}
+
+                                <br><br>
+
+                                <!-- DELETE -->
+                                <form
+                                    method="POST"
+                                    action="{{ url_for('hod.delete_student', student_id=student.student_id) }}"
+                                    style="display:inline;"
+                                    onsubmit="return confirm('Are you sure you want to delete this student?');"
+                                >
+                                    <button type="submit">
+                                        Delete
+                                    </button>
+                                </form>
+
                             </td>
 
                         </tr>

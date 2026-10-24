@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study Materials - PreQABoard</title>
+</head>
+<body>
+
+    <h2>Study Materials</h2>
+
+    <p>
+        <a href="{{ url_for('student.dashboard') }}">← Dashboard</a> |
+        <a href="{{ url_for('student.logout') }}">Logout</a>
+    </p>
+
+    <hr>
+
+    <form method="GET" action="{{ url_for('student.study_materials') }}">
+        <label>Subject:</label>
+        <select name="subject_id">
+            <option value="">All</option>
+
+            {% for s in subjects %}
+                <option value="{{ s.subject_id }}"
+                    {% if selected_subject_id|string == s.subject_id|string %}selected{% endif %}>
+                    {{ s.subject_code }} - {{ s.subject_name }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <button type="submit">Filter</button>
+        <a href="{{ url_for('student.study_materials') }}">Reset</a>
+    </form>
+
+    <hr>
+
+    {% if materials %}
+        <table border="1" cellpadding="8" cellspacing="0">
+            <thead>
+                <tr>
+                    <th>No.</th>
+                    <th>Title</th>
+                    <th>Subject</th>
+                    <th>Upload Date</th>
+                    <th>Download</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for m in materials %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ m.title or m.file_name }}</td>
+                    <td>{{ m.subject_code }} - {{ m.subject_name }}</td>
+                    <td>{{ m.upload_date }}</td>
+                    <td>
+                        <a href="{{ url_for('student.download_study_material', study_material_id=m.study_material_id) }}">
+                            Download
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p><strong>No study materials found.</strong></p>
+    {% endif %}
+
+</body>
+</html>
