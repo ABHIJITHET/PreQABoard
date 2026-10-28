@@ -1,149 +1,261 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HOD Dashboard - PreQABoard</title>
 
-    <meta charset="UTF-8">
-
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
-
-    <title>HOD Dashboard - PreQABoard</title>
-
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/hod/hod_dashboard.css') }}">
 </head>
 
 <body>
 
-    <h1>PreQABoard</h1>
+  <!-- background layers -->
+  <div class="bg" aria-hidden="true">
+    <div class="bg__grid"></div>
+    <div class="bg__glow bg__glow--a"></div>
+    <div class="bg__glow bg__glow--b"></div>
+  </div>
 
-    <h2>HOD Dashboard</h2>
+  <!-- =========================
+       SIDEBAR
+       ========================= -->
+  <aside class="sidebar">
+    <div class="sidebar__brand">
+      <div class="brandmark" aria-hidden="true">PQ</div>
+      <div class="sidebar__brandText">
+        <h2>PreQABoard</h2>
+        <p>HOD Panel</p>
+      </div>
+    </div>
 
-    <hr>
+    <nav class="nav">
+      <a href="{{ url_for('hod.dashboard') }}" class="is-active" data-endpoint="hod.dashboard">Dashboard</a>
 
-    <h3>
-        Welcome, {{ hod_name }}
-    </h3>
+      <a href="{{ url_for('hod.semester_calendar') }}" data-endpoint="hod.semester_calendar">Semester Calendar</a>
+      <a href="{{ url_for('hod.manage_syllabus') }}" data-endpoint="hod.manage_syllabus">Manage Syllabus</a>
+      <a href="{{ url_for('hod.manage_teachers') }}" data-endpoint="hod.manage_teachers">Manage Teachers</a>
+      <a href="{{ url_for('hod.manage_subjects') }}" data-endpoint="hod.manage_subjects">Manage Subjects</a>
+      <a href="{{ url_for('hod.teacher_assignments') }}" data-endpoint="hod.teacher_assignments">Assign Teachers</a>
 
-    {% if department %}
+      <a href="{{ url_for('hod.student_approvals') }}" data-endpoint="hod.student_approvals">Student Approvals</a>
+      <a href="{{ url_for('hod.students') }}" data-endpoint="hod.students">View Students</a>
 
+      <a href="{{ url_for('hod.approve_papers') }}" data-endpoint="hod.approve_papers">Approve Question Papers</a>
+      <a href="{{ url_for('hod.approve_materials') }}" data-endpoint="hod.approve_materials">Approve Materials</a>
+
+      <a href="{{ url_for('hod.view_doubts') }}" data-endpoint="hod.view_doubts">Student Doubts</a>
+
+      <a href="{{ url_for('hod.profile') }}" data-endpoint="hod.profile">My Profile</a>
+    </nav>
+
+    <div class="sidebar__footer">
+      <a class="logout" href="{{ url_for('hod.logout') }}">Logout</a>
+      <div class="sidebar__hint">
+        Tip: Verify files using “View” before approving.
+      </div>
+    </div>
+  </aside>
+
+  <!-- =========================
+       MAIN
+       ========================= -->
+  <main class="main">
+
+    <section class="topbar">
+      <div class="topbar__title">
+        <h1>HOD Dashboard</h1>
         <p>
-            <strong>Department:</strong>
-            {{ department.department_name }}
+          Welcome, <strong>{{ hod_name }}</strong>
+          {% if department %}
+            • <span>{{ department.department_name }}</span>
+          {% endif %}
         </p>
+      </div>
+    </section>
 
-    {% endif %}
+    <!-- KPI Cards -->
+    <section class="cards">
+      <div class="card">
+        <div class="card__head">
+          <h3>Total Students</h3>
+          <span class="pill pill--accent">Dept</span>
+        </div>
+        <div class="number">{{ total_students }}</div>
+        <div class="card__meta">Students registered under your department.</div>
+      </div>
 
-    <hr>
+      <div class="card">
+        <div class="card__head">
+          <h3>Total Teachers</h3>
+          <span class="pill pill--info">Staff</span>
+        </div>
+        <div class="number">{{ total_teachers }}</div>
+        <div class="card__meta">Teachers mapped to your department.</div>
+      </div>
 
-    <h3>Department Overview</h3>
+      <div class="card">
+        <div class="card__head">
+          <h3>Total Subjects</h3>
+          <span class="pill">Acad</span>
+        </div>
+        <div class="number">{{ total_subjects }}</div>
+        <div class="card__meta">Subjects available for courses/semesters.</div>
+      </div>
+    </section>
 
-    <p>
-        Total Students:
-        <strong>{{ total_students }}</strong>
-    </p>
+    <!-- Quick Actions (table style like your CSS) -->
+    <section class="section">
+      <div class="section-header">
+        <h2>HOD Management</h2>
+        <p class="section-subtitle">Quick access to department operations.</p>
+      </div>
 
-    <p>
-        Total Teachers:
-        <strong>{{ total_teachers }}</strong>
-    </p>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th class="col--index">#</th>
+              <th>Module</th>
+              <th>Description</th>
+              <th style="width:220px;">Action</th>
+            </tr>
+          </thead>
 
-    <p>
-        Total Subjects:
-        <strong>{{ total_subjects }}</strong>
-    </p>
+          <tbody>
+            <tr>
+              <td class="col--index">1</td>
+              <td class="dept-name">Semester Calendar</td>
+              <td>Manage academic timeline / schedule.</td>
+              <td>
+                <div class="action-buttons">
+                  <a class="view-button" href="{{ url_for('hod.semester_calendar') }}">Open</a>
+                </div>
+              </td>
+            </tr>
 
-    <hr>
+            <tr>
+              <td class="col--index">2</td>
+              <td class="dept-name">Manage Syllabus</td>
+              <td>Upload or update syllabus materials.</td>
+              <td>
+                <div class="action-buttons">
+                  <a class="view-button" href="{{ url_for('hod.manage_syllabus') }}">Open</a>
+                </div>
+              </td>
+            </tr>
 
-    <h3>HOD Management</h3>
-    <!-- Manage sem calendar -->
-    <p>
-        <a href="{{ url_for('hod.semester_calendar') }}">
-            Semester Calendar
-        </a>
-    </p>
+            <tr>
+              <td class="col--index">3</td>
+              <td class="dept-name">Manage Teachers</td>
+              <td>View teachers and maintain records.</td>
+              <td>
+                <div class="action-buttons">
+                  <a class="view-button teacher-button" href="{{ url_for('hod.manage_teachers') }}">Open</a>
+                </div>
+              </td>
+            </tr>
 
-    <!-- Manage Syllabus -->
-    <p>
-        <a href="{{ url_for('hod.manage_syllabus') }}">
-            Manage Syllabus
-        </a>
-    </p>
+            <tr>
+              <td class="col--index">4</td>
+              <td class="dept-name">Manage Subjects</td>
+              <td>Create and maintain subject list.</td>
+              <td>
+                <div class="action-buttons">
+                  <a class="view-button" href="{{ url_for('hod.manage_subjects') }}">Open</a>
+                </div>
+              </td>
+            </tr>
 
-    <!-- Manage Teachers -->
-    <p>
-        <a href="{{ url_for('hod.manage_teachers') }}">
-            Manage Teachers
-        </a>
-    </p>
+            <tr>
+              <td class="col--index">5</td>
+              <td class="dept-name">Assign Teachers</td>
+              <td>Map teachers to subjects/semesters.</td>
+              <td>
+                <div class="action-buttons">
+                  <a class="view-button teacher-button" href="{{ url_for('hod.teacher_assignments') }}">Open</a>
+                </div>
+              </td>
+            </tr>
 
-    <!-- Manage Subjects -->
-    <p>
-        <a href="{{ url_for('hod.manage_subjects') }}">
-            Manage Subjects
-        </a>
-    </p>
+            <tr>
+              <td class="col--index">6</td>
+              <td class="dept-name">Student Approvals</td>
+              <td>Approve student registrations.</td>
+              <td>
+                <div class="action-buttons">
+                  <a class="view-button" href="{{ url_for('hod.student_approvals') }}">Open</a>
+                </div>
+              </td>
+            </tr>
 
-    <!-- Assign Teachers -->
-    <p>
-        <a href="{{ url_for('hod.teacher_assignments') }}">
-            Assign Teachers
-        </a>
-    </p>
+            <tr>
+              <td class="col--index">7</td>
+              <td class="dept-name">View Students</td>
+              <td>Search and review student list.</td>
+              <td>
+                <div class="action-buttons">
+                  <a class="view-button" href="{{ url_for('hod.students') }}">Open</a>
+                </div>
+              </td>
+            </tr>
 
-    <!--Students approve-->
-    <p>
-        <a href="{{ url_for('hod.student_approvals') }}">
-            Student Approvals
-        </a>
-    </p>
+            <tr>
+              <td class="col--index">8</td>
+              <td class="dept-name">Approve Question Papers</td>
+              <td>Review and approve uploaded papers.</td>
+              <td>
+                <div class="action-buttons">
+                  <a class="view-button" href="{{ url_for('hod.approve_papers') }}">Open</a>
+                </div>
+              </td>
+            </tr>
 
-    <!-- View Students -->
-    <p>
-        <a href="{{ url_for('hod.students') }}">
-            View Students
-        </a>
-    </p>
+            <tr>
+              <td class="col--index">9</td>
+              <td class="dept-name">Approve Materials</td>
+              <td>Review and approve study materials.</td>
+              <td>
+                <div class="action-buttons">
+                  <a class="view-button" href="{{ url_for('hod.approve_materials') }}">Open</a>
+                </div>
+              </td>
+            </tr>
 
-    <!-- Approve Question Papers -->
-    <p>
-        <a href="{{ url_for('hod.approve_papers') }}">
-            Approve Question Papers
-        </a>
-    </p>
+            <tr>
+              <td class="col--index">10</td>
+              <td class="dept-name">Student Doubts</td>
+              <td>View doubts raised by students.</td>
+              <td>
+                <div class="action-buttons">
+                  <a class="view-button" href="{{ url_for('hod.view_doubts') }}">Open</a>
+                </div>
+              </td>
+            </tr>
 
-    <!-- Approve Materials -->
-    <p>
-        <a href="{{ url_for('hod.approve_materials') }}">
-            Approve Materials
-        </a>
-    </p>
+          </tbody>
+        </table>
+      </div>
+    </section>
 
-    <!-- Student Doubts -->
-    <p>
-        <a href="{{ url_for('hod.view_doubts') }}">
-            Student Doubts
-        </a>
-    </p>
+    <div class="page-footer">
+      PreQABoard • HOD
+    </div>
 
-    <hr>
+  </main>
 
-    <h3>Account</h3>
-
-    <!-- Profile -->
-    <p>
-        <a href="{{ url_for('hod.profile') }}">
-            My Profile
-        </a>
-    </p>
-
-    <!-- Logout -->
-    <p>
-        <a href="{{ url_for('hod.logout') }}">
-            Logout
-        </a>
-    </p>
+  <script>
+    // Auto-active nav (keeps your is-active style)
+    (function () {
+      const endpoint = "{{ request.endpoint }}";
+      document.querySelectorAll(".nav a[data-endpoint]").forEach(a => {
+        if (a.dataset.endpoint === endpoint) {
+          document.querySelectorAll(".nav a").forEach(x => x.classList.remove("is-active"));
+          a.classList.add("is-active");
+        }
+      });
+    })();
+  </script>
 
 </body>
-
 </html>
-```

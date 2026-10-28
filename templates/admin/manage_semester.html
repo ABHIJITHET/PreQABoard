@@ -220,10 +220,10 @@
                                                         action="{{ url_for('admin.change_semester_status', semester_id=semester.semester_id) }}"
                                                     >
                                                         <select class="control control-sm" name="status">
-                                                            <option value="Active" {% if semester.status == "Active" %}selected{% endif %}>
+                                                            <option value="Active" {% if semester.status =="Active" %}selected{% endif %}>
                                                                 Active
                                                             </option>
-                                                            <option value="Inactive" {% if semester.status == "Inactive" %}selected{% endif %}>
+                                                            <option value="Inactive" {% if semester.status =="Inactive" %}selected{% endif %}>
                                                                 Inactive
                                                             </option>
                                                         </select>

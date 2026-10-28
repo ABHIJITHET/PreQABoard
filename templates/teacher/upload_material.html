@@ -1,199 +1,68 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
-    <meta charset="UTF-8">
-
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
-
-    <title>Upload Study Material - PreQABoard</title>
-
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Upload Study Material • Teacher • PreQABoard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/teacher/teacher_upload_material.css') }}">
 </head>
-
 <body>
+  <div class="ns-wrap">
+    <div class="container">
+      <header class="topbar">
+        <div class="page-title">
+          <h1>Upload Study Material</h1>
+          <p>Upload a PDF material for HOD approval.</p>
+        </div>
+        <div class="actions">
+          <a class="btn" href="{{ url_for('teacher.my_materials') }}">My Materials</a>
+          <a class="btn" href="{{ url_for('teacher.dashboard') }}">Dashboard</a>
+        </div>
+      </header>
 
-    <h1>PreQABoard</h1>
+      <div class="alerts">
+        {% if error %}<div class="alert error">{{ error }}</div>{% endif %}
+        {% if success %}<div class="alert success">{{ success }}</div>{% endif %}
+      </div>
 
-    <h2>Upload Study Material</h2>
-
-    <hr>
-
-
-    <!-- =====================================================
-         BACK
-    ====================================================== -->
-
-    <p>
-        <a href="{{ url_for('teacher.dashboard') }}">
-            ← Back to Dashboard
-        </a>
-    </p>
-
-
-    <!-- =====================================================
-         ERROR
-    ====================================================== -->
-
-    {% if error %}
-
-    <p style="color: red;">
-        {{ error }}
-    </p>
-
-    {% endif %}
-
-
-    <!-- =====================================================
-         SUCCESS
-    ====================================================== -->
-
-    {% if success %}
-
-    <p style="color: green;">
-        {{ success }}
-    </p>
-
-    {% endif %}
-
-
-    <!-- =====================================================
-         UPLOAD FORM
-    ====================================================== -->
-
-    <form
-        method="POST"
-        enctype="multipart/form-data"
-    >
-
-        <!-- SUBJECT -->
-
-        <p>
-
-            <label for="assignment_id">
-                Subject:
-            </label>
-
-            <br>
-
-            <select
-                id="assignment_id"
-                name="assignment_id"
-                required
-            >
-
-                <option value="">
-                    -- Select Subject --
-                </option>
-
-                {% for assignment in assignments %}
-
-                <option value="{{ assignment.assignment_id }}">
-
-                    {{ assignment.subject_code }}
-                    -
-                    {{ assignment.subject_name }}
-
-                    |
-                    {{ assignment.course_name }}
-
-                    |
-                    Semester
-                    {{ assignment.semester_number }}
-
-                    |
-                    {{ assignment.academic_year_name }}
-
-                </option>
-
+      <section class="ns-card">
+        <div class="ns-head">
+          <h1>Material Details</h1>
+          <p>Select assignment, enter title, then upload the PDF.</p>
+        </div>
+        <div class="ns-body">
+          <form class="form" method="POST" action="" enctype="multipart/form-data">
+            <div class="field">
+              <label for="assignment_id">Subject Assignment</label>
+              <select id="assignment_id" name="assignment_id" required>
+                <option value="" disabled selected>Select assignment</option>
+                {% for a in assignments %}
+                  <option value="{{ a.assignment_id }}">
+                    {{ a.subject_code }} — {{ a.subject_name }} (Sem {{ a.semester_number }}, {{ a.course_name }}, {{ a.academic_year_name }})
+                  </option>
                 {% endfor %}
+              </select>
+            </div>
 
-            </select>
+            <div class="field">
+              <label for="title">Title</label>
+              <input id="title" name="title" type="text" required placeholder="e.g., Unit 2 Notes">
+            </div>
 
-        </p>
+            <div class="field">
+              <label for="study_material">Upload PDF</label>
+              <input id="study_material" name="study_material" type="file" accept=".pdf" required>
+            </div>
 
+            <div class="actions">
+              <button class="btn btn-primary" type="submit">Upload</button>
+              <a class="btn" href="{{ url_for('teacher.my_materials') }}">Cancel</a>
+            </div>
+          </form>
+        </div>
+      </section>
 
-        <!-- TITLE -->
-
-        <p>
-
-            <label for="title">
-                Study Material Title:
-            </label>
-
-            <br>
-
-            <input
-                type="text"
-                id="title"
-                name="title"
-                maxlength="200"
-                placeholder="Enter study material title"
-                required
-            >
-
-        </p>
-
-
-        <!-- FILE -->
-
-        <p>
-
-            <label for="study_material">
-                PDF File:
-            </label>
-
-            <br>
-
-            <input
-                type="file"
-                id="study_material"
-                name="study_material"
-                accept=".pdf,application/pdf"
-                required
-            >
-
-        </p>
-
-
-        <p>
-
-            <small>
-                Only PDF files are allowed.
-            </small>
-
-        </p>
-
-
-        <!-- SUBMIT -->
-
-        <p>
-
-            <button type="submit">
-                Upload Study Material
-            </button>
-
-        </p>
-
-    </form>
-
-
-    <hr>
-
-
-    <!-- =====================================================
-         LOGOUT
-    ====================================================== -->
-
-    <p>
-
-        <a href="{{ url_for('teacher.logout') }}">
-            Logout
-        </a>
-
-    </p>
-
+    </div>
+  </div>
 </body>
-
 </html>

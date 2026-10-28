@@ -1,67 +1,108 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Doubts - PreQABoard</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Doubts • Student • PreQABoard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/student/student_my_doubts.css') }}">
 </head>
 <body>
+  <div class="s-layout">
+    <aside class="s-sidebar">
+      <div class="brand">
+        <div class="brand-mark"></div>
+        <div class="brand-title">
+          <strong>PreQABoard</strong>
+          <span>Student Panel</span>
+        </div>
+      </div>
 
-    <h2>My Doubts</h2>
+      <nav class="nav">
+        <a href="{{ url_for('student.dashboard') }}"><span>Dashboard</span><small>Home</small></a>
+        <a href="{{ url_for('student.profile') }}"><span>My Profile</span><small>Account</small></a>
+        <a href="{{ url_for('student.syllabus') }}"><span>Syllabus</span><small>Downloads</small></a>
+        <a href="{{ url_for('student.question_papers') }}"><span>Question Papers</span><small>Search</small></a>
+        <a href="{{ url_for('student.study_materials') }}"><span>Study Materials</span><small>PDF</small></a>
+        <a href="{{ url_for('student.teacher_answers') }}"><span>Teacher Answers</span><small>Answer Keys</small></a>
+        <a href="{{ url_for('student.repeated_questions') }}"><span>Repeated Questions</span><small>AI</small></a>
+        <a href="{{ url_for('student.ai_chat') }}"><span>AI Chat</span><small>Assistant</small></a>
+        <a href="{{ url_for('student.post_doubt') }}"><span>Post Doubt</span><small>Ask</small></a>
+        <a class="active" href="{{ url_for('student.my_doubts') }}"><span>My Doubts</span><small>History</small></a>
+        <a href="{{ url_for('student.logout') }}"><span>Logout</span><small>Exit</small></a>
+      </nav>
+    </aside>
 
-    <p>
-        <a href="{{ url_for('student.dashboard') }}">← Dashboard</a> |
-        <a href="{{ url_for('student.post_doubt') }}">Post Doubt</a> |
-        <a href="{{ url_for('student.logout') }}">Logout</a>
-    </p>
+    <main class="s-main">
+      <header class="topbar">
+        <div class="page-title">
+          <h1>My Doubts</h1>
+          <p>View doubts you posted and open to see AI/teacher replies.</p>
+        </div>
+        <div class="actions">
+          <a class="btn btn-primary" href="{{ url_for('student.post_doubt') }}">Post Doubt</a>
+          <a class="btn" href="{{ url_for('student.dashboard') }}">Dashboard</a>
+        </div>
+      </header>
 
-    <hr>
-
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, message in messages %}
-                <p>{{ message }}</p>
+      {% with msgs = get_flashed_messages(with_categories=True) %}
+        {% if msgs %}
+          <div class="alerts">
+            {% for category, message in msgs %}
+              <div class="alert {{ category }}">{{ message }}</div>
             {% endfor %}
+          </div>
         {% endif %}
-    {% endwith %}
+      {% endwith %}
 
-    {% if doubts %}
-
-        <table border="1" cellpadding="8" cellspacing="0">
-            <thead>
-                <tr>
-                    <th>No.</th>
-                    <th>Date</th>
-                    <th>Subject</th>
-                    <th>Title</th>
-                    <th>Description</th>
-                    <th>Replies</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-
-            <tbody>
-                {% for d in doubts %}
-                <tr>
-                    <td>{{ loop.index }}</td>
-                    <td>{{ d.created_at }}</td>
-                    <td>{{ d.subject_code }} - {{ d.subject_name }}</td>
-                    <td>{{ d.doubt_title or '-' }}</td>
-                    <td>{{ d.doubt_description }}</td>
-                    <td>{{ d.reply_count }}</td>
-                    <td>
-                        <a href="{{ url_for('student.view_doubt', doubt_id=d.doubt_id) }}">
-                            Open
-                        </a>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-
-    {% else %}
-        <p><strong>No doubts posted yet.</strong></p>
-    {% endif %}
-
+      <section class="grid">
+        <div class="card" style="grid-column: span 12;">
+          <div class="card-head">
+            <div>
+              <h2>Doubt History</h2>
+              <p>Latest doubts shown first.</p>
+            </div>
+          </div>
+          <div class="card-body">
+            {% if doubts %}
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Date</th>
+                      <th>Subject</th>
+                      <th>Title</th>
+                      <th>Description</th>
+                      <th>Replies</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for d in doubts %}
+                      <tr>
+                        <td class="muted">{{ loop.index }}</td>
+                        <td class="muted">{{ d.created_at }}</td>
+                        <td class="muted">{{ d.subject_code }} - {{ d.subject_name }}</td>
+                        <td>{{ d.doubt_title or '-' }}</td>
+                        <td class="dtext">{{ d.doubt_description }}</td>
+                        <td>
+                          <span class="badge info">{{ d.reply_count }}</span>
+                        </td>
+                        <td>
+                          <a class="btn btn-primary" href="{{ url_for('student.view_doubt', doubt_id=d.doubt_id) }}">Open</a>
+                        </td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            {% else %}
+              <p class="muted" style="margin:0;">No doubts posted yet.</p>
+            {% endif %}
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
 </body>
 </html>

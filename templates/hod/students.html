@@ -1,333 +1,327 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>View Students - PreQABoard</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/hod/hod_students.css') }}">
 </head>
 
 <body>
+    <!-- Background layers -->
+    <div class="bg" aria-hidden="true">
+        <div class="bg__grid"></div>
+        <div class="bg__glow bg__glow--a"></div>
+        <div class="bg__glow bg__glow--b"></div>
+    </div>
 
-    <h1>PreQABoard - HOD</h1>
+    <div class="layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar__brand">
+                <div class="brandmark" aria-hidden="true"></div>
+                <div>
+                    <div class="brandtitle">PreQABoard</div>
+                    <div class="brandsub">HOD Panel</div>
+                </div>
+            </div>
 
-    <nav>
-        <a href="{{ url_for('hod.dashboard') }}">Dashboard</a> |
-        <a href="{{ url_for('hod.student_approvals') }}">Student Approvals</a> |
-        <a href="{{ url_for('hod.students') }}">View Students</a> |
-        <a href="{{ url_for('hod.logout') }}">Logout</a>
-    </nav>
+            <nav class="nav">
+                <a href="{{ url_for('hod.dashboard') }}">
+                    <span class="dot" aria-hidden="true"></span>
+                    Dashboard
+                </a>
 
-    <hr>
+                <a href="{{ url_for('hod.student_approvals') }}">
+                    <span class="dot" aria-hidden="true"></span>
+                    Student Approvals
+                </a>
 
-    <h2>View Students</h2>
+                <a class="is-active" href="{{ url_for('hod.students') }}">
+                    <span class="dot" aria-hidden="true"></span>
+                    View Students
+                </a>
 
-    <p>
-        This page is only for viewing students belonging to your department.
-    </p>
+                <a href="{{ url_for('hod.manage_subjects') }}">
+                    <span class="dot" aria-hidden="true"></span>
+                    Manage Subjects
+                </a>
 
-    <p>
-        <strong>Note:</strong>
-        You can edit, activate/deactivate, and delete students from this page.
-        Approval and rejection are available only on the Student Approvals page.
-    </p>
+                <a href="{{ url_for('hod.manage_teachers') }}">
+                    <span class="dot" aria-hidden="true"></span>
+                    Manage Teachers
+                </a>
 
-    <hr>
+                <a href="{{ url_for('hod.semester_calendar') }}">
+                    <span class="dot" aria-hidden="true"></span>
+                    Semester Calendar
+                </a>
 
-    <!-- SEARCH AND FILTER -->
+                <a href="{{ url_for('hod.profile') }}">
+                    <span class="dot" aria-hidden="true"></span>
+                    Profile
+                </a>
+            </nav>
 
-    <h3>Search & Filter</h3>
+            <div class="sidebar__footer">
+                <a class="logout" href="{{ url_for('hod.logout') }}">Logout</a>
+            </div>
+        </aside>
 
-    <form method="GET" action="{{ url_for('hod.students') }}">
+        <!-- Main -->
+        <main class="main">
+            <header class="topbar">
+                <div class="topbar__left">
+                    <div class="crumb">HOD / Students</div>
+                    <h1 class="title">View Students</h1>
+                    <p class="subtitle">
+                        This page is only for viewing students belonging to your department.
+                        You can edit, activate/deactivate, and delete students here. Approval/rejection is available
+                        only on the Student Approvals page.
+                    </p>
+                </div>
 
-        <label for="search">Search:</label>
+                <div class="topbar__actions">
+                    <a class="btn btn--ghost" href="{{ url_for('hod.student_approvals') }}">Student Approvals</a>
+                    <a class="btn btn--primary" href="{{ url_for('hod.dashboard') }}">Dashboard</a>
+                </div>
+            </header>
 
-        <input
-            type="text"
-            id="search"
-            name="search"
-            placeholder="Register number, name, email or username"
-            value="{{ search or '' }}"
-        >
-
-        <br><br>
-
-
-        <label for="course_id">Course:</label>
-
-        <select id="course_id" name="course_id">
-
-            <option value="">
-                All Courses
-            </option>
-
-            {% for course in courses %}
-
-            <option
-                value="{{ course.course_id }}"
-                {% if selected_course_id|string == course.course_id|string %}
-                    selected
+            <section class="content">
+                {# Optional messages if your backend passes these #}
+                {% if error %}
+                    <div class="alert alert--danger">
+                        <strong>Error:</strong> {{ error }}
+                    </div>
                 {% endif %}
-            >
-                {{ course.course_name }}
-            </option>
-
-            {% endfor %}
-
-        </select>
-
-        <br><br>
-
-
-        <label for="semester_id">Semester:</label>
-
-        <select id="semester_id" name="semester_id">
-
-            <option value="">
-                All Semesters
-            </option>
-
-            {% for semester in semesters %}
-
-            <option
-                value="{{ semester.semester_id }}"
-                {% if selected_semester_id|string == semester.semester_id|string %}
-                    selected
+                {% if success %}
+                    <div class="alert alert--success">
+                        <strong>Success:</strong> {{ success }}
+                    </div>
                 {% endif %}
-            >
-                {{ semester.course_name }}
-                - Semester {{ semester.semester_number }}
-            </option>
 
-            {% endfor %}
+                <!-- Search & Filter -->
+                <section class="card">
+                    <div class="card__head">
+                        <div>
+                            <h2 class="card__title">Search &amp; Filter</h2>
+                            <p class="card__meta">Filter by course, semester, approval status, or keywords.</p>
+                        </div>
+                        <div class="card__count">
+                            <span class="pill pill--info">Tip: use register no. / name / email / username</span>
+                        </div>
+                    </div>
 
-        </select>
-
-        <br><br>
-
-
-        <label for="approval_status">
-            Approval Status:
-        </label>
-
-        <select
-            id="approval_status"
-            name="approval_status"
-        >
-
-            <option value="">
-                All
-            </option>
-
-            <option
-                value="Pending"
-                {% if selected_approval_status =="Pending" %}
-                    selected
-                {% endif %}
-            >
-                Pending
-            </option>
-
-            <option
-                value="Approved"
-                {% if selected_approval_status =="Approved" %}
-                    selected
-                {% endif %}
-            >
-                Approved
-            </option>
-
-            <option
-                value="Rejected"
-                {% if selected_approval_status =="Rejected" %}
-                    selected
-                {% endif %}
-            >
-                Rejected
-            </option>
-
-        </select>
-
-        <br><br>
-
-
-        <button type="submit">
-            Search / Filter
-        </button>
-
-        <a href="{{ url_for('hod.students') }}">
-            Reset
-        </a>
-
-    </form>
-
-    <hr>
-
-
-    <!-- STUDENTS -->
-
-    {% if grouped_students %}
-
-        {% for group in grouped_students %}
-
-            <h3>
-                {{ group.course_name }}
-                - Semester {{ group.semester_number }}
-            </h3>
-
-            {% if group.students %}
-
-                <table border="1" cellpadding="8" cellspacing="0">
-
-                    <thead>
-
-                        <tr>
-
-                            <th>No.</th>
-                            <th>Register Number</th>
-                            <th>Full Name</th>
-                            <th>Email</th>
-                            <th>Phone</th>
-                            <th>Username</th>
-                            <th>Approval Status</th>
-                            <th>Account Status</th>
-                            <th>Action</th>
-
-                        </tr>
-
-                    </thead>
-
-
-                    <tbody>
-
-                        {% for student in group.students %}
-
-                        <tr>
-
-                            <td>
-                                {{ loop.index }}
-                            </td>
-
-                            <td>
-                                {{ student.register_number }}
-                            </td>
-
-                            <td>
-                                {{ student.full_name }}
-                            </td>
-
-                            <td>
-                                {{ student.email }}
-                            </td>
-
-                            <td>
-                                {{ student.phone or "-" }}
-                            </td>
-
-                            <td>
-                                {{ student.username }}
-                            </td>
-
-                            <td>
-                                {{ student.approval_status }}
-                            </td>
-
-                            <td>
-                                {{ student.account_status }}
-                            </td>
-
-                            <!-- ACTIONS -->
-                            <td>
-
-                                <!-- EDIT -->
-                                <a href="{{ url_for('hod.edit_student', student_id=student.student_id) }}">
-                                    Edit
-                                </a>
-
-                                <br><br>
-
-                                <!-- ACTIVATE / DEACTIVATE -->
-                                {% if student.account_status == 'Active' %}
-
-                                    <form
-                                        method="POST"
-                                        action="{{ url_for('hod.change_student_status', student_id=student.student_id) }}"
-                                        style="display:inline;"
-                                        onsubmit="return confirm('Deactivate this student account?');"
-                                    >
-                                        <input type="hidden" name="status" value="Inactive">
-                                        <button type="submit">Deactivate</button>
-                                    </form>
-
-                                {% elif student.account_status == 'Inactive' %}
-
-                                    <form
-                                        method="POST"
-                                        action="{{ url_for('hod.change_student_status', student_id=student.student_id) }}"
-                                        style="display:inline;"
-                                        onsubmit="return confirm('Activate this student account?');"
-                                    >
-                                        <input type="hidden" name="status" value="Active">
-                                        <button type="submit">Activate</button>
-                                    </form>
-
-                                {% else %}
-
-                                    <span>Pending Approval</span>
-
-                                {% endif %}
-
-                                <br><br>
-
-                                <!-- DELETE -->
-                                <form
-                                    method="POST"
-                                    action="{{ url_for('hod.delete_student', student_id=student.student_id) }}"
-                                    style="display:inline;"
-                                    onsubmit="return confirm('Are you sure you want to delete this student?');"
+                    <form class="form" method="GET" action="{{ url_for('hod.students') }}">
+                        <div class="formgrid">
+                            <div class="field field--wide">
+                                <label for="search">Search</label>
+                                <input
+                                    type="text"
+                                    id="search"
+                                    name="search"
+                                    placeholder="Register number, name, email or username"
+                                    value="{{ search or '' }}"
                                 >
-                                    <button type="submit">
-                                        Delete
-                                    </button>
-                                </form>
+                            </div>
 
-                            </td>
+                            <div class="field">
+                                <label for="course_id">Course</label>
+                                <select id="course_id" name="course_id">
+                                    <option value="">All Courses</option>
+                                    {% for course in courses %}
+                                        <option
+                                            value="{{ course.course_id }}"
+                                            {% if selected_course_id|string == course.course_id|string %}selected{% endif %}
+                                        >
+                                            {{ course.course_name }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
 
-                        </tr>
+                            <div class="field">
+                                <label for="semester_id">Semester</label>
+                                <select id="semester_id" name="semester_id">
+                                    <option value="">All Semesters</option>
+                                    {% for semester in semesters %}
+                                        <option
+                                            value="{{ semester.semester_id }}"
+                                            {% if selected_semester_id|string == semester.semester_id|string %}selected{% endif %}
+                                        >
+                                            {{ semester.course_name }} - Semester {{ semester.semester_number }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
 
-                        {% endfor %}
+                            <div class="field">
+                                <label for="approval_status">Approval Status</label>
+                                <select id="approval_status" name="approval_status">
+                                    <option value="">All</option>
+                                    <option value="Pending"  {% if selected_approval_status == "Pending" %}selected{% endif %}>Pending</option>
+                                    <option value="Approved" {% if selected_approval_status == "Approved" %}selected{% endif %}>Approved</option>
+                                    <option value="Rejected" {% if selected_approval_status == "Rejected" %}selected{% endif %}>Rejected</option>
+                                </select>
+                            </div>
+                        </div>
 
-                    </tbody>
+                        <div class="formactions">
+                            <button class="btn btn--primary" type="submit">Search / Filter</button>
+                            <a class="btn btn--ghost" href="{{ url_for('hod.students') }}">Reset</a>
+                        </div>
+                    </form>
+                </section>
 
-                </table>
+                <!-- Students -->
+                {% if grouped_students %}
+                    {% for group in grouped_students %}
+                        <section class="card groupcard">
+                            <div class="card__head">
+                                <div>
+                                    <h2 class="card__title">
+                                        {{ group.course_name }} — Semester {{ group.semester_number }}
+                                    </h2>
+                                    <p class="card__meta">Students list for this course &amp; semester.</p>
+                                </div>
+                                <div class="card__count">
+                                    <span class="pill pill--info">{{ group.students|length if group.students else 0 }} Students</span>
+                                </div>
+                            </div>
 
-            {% endif %}
+                            {% if group.students %}
+                                <div class="tablewrap" role="region" aria-label="Students table">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th style="width:70px;">No.</th>
+                                                <th>Register Number</th>
+                                                <th>Full Name</th>
+                                                <th>Email</th>
+                                                <th style="width:140px;">Phone</th>
+                                                <th style="width:150px;">Username</th>
+                                                <th style="width:160px;">Approval</th>
+                                                <th style="width:160px;">Account</th>
+                                                <th style="width:260px;">Actions</th>
+                                            </tr>
+                                        </thead>
 
-            <br>
+                                        <tbody>
+                                            {% for student in group.students %}
+                                                <tr>
+                                                    <td class="mono">{{ loop.index }}</td>
+                                                    <td class="mono">{{ student.register_number }}</td>
+                                                    <td>{{ student.full_name }}</td>
+                                                    <td class="truncate" title="{{ student.email }}">{{ student.email }}</td>
+                                                    <td class="mono">{{ student.phone or "-" }}</td>
+                                                    <td class="mono">{{ student.username }}</td>
 
-        {% endfor %}
+                                                    <td>
+                                                        {% if student.approval_status == 'Approved' %}
+                                                            <span class="pill pill--approved">Approved</span>
+                                                        {% elif student.approval_status == 'Rejected' %}
+                                                            <span class="pill pill--rejected">Rejected</span>
+                                                        {% else %}
+                                                            <span class="pill pill--pending">Pending</span>
+                                                        {% endif %}
+                                                    </td>
 
-    {% else %}
+                                                    <td>
+                                                        {% if student.account_status == 'Active' %}
+                                                            <span class="pill pill--active">Active</span>
+                                                        {% elif student.account_status == 'Inactive' %}
+                                                            <span class="pill pill--inactive">Inactive</span>
+                                                        {% else %}
+                                                            <span class="pill pill--pending">Pending Approval</span>
+                                                        {% endif %}
+                                                    </td>
 
-        <p>
-            <strong>No students found.</strong>
-        </p>
+                                                    <td>
+                                                        <div class="actions">
+                                                            <a class="btn btn--soft"
+                                                               href="{{ url_for('hod.edit_student', student_id=student.student_id) }}">
+                                                                Edit
+                                                            </a>
 
-    {% endif %}
+                                                            {% if student.account_status == 'Active' %}
+                                                                <form
+                                                                    class="inlineform"
+                                                                    method="POST"
+                                                                    action="{{ url_for('hod.change_student_status', student_id=student.student_id) }}"
+                                                                    onsubmit="return confirm('Deactivate this student account?');"
+                                                                >
+                                                                    <input type="hidden" name="status" value="Inactive">
+                                                                    <button class="btn btn--warn" type="submit">Deactivate</button>
+                                                                </form>
 
+                                                            {% elif student.account_status == 'Inactive' %}
+                                                                <form
+                                                                    class="inlineform"
+                                                                    method="POST"
+                                                                    action="{{ url_for('hod.change_student_status', student_id=student.student_id) }}"
+                                                                    onsubmit="return confirm('Activate this student account?');"
+                                                                >
+                                                                    <input type="hidden" name="status" value="Active">
+                                                                    <button class="btn btn--primary" type="submit">Activate</button>
+                                                                </form>
+                                                            {% else %}
+                                                                <span class="hint">Pending Approval</span>
+                                                            {% endif %}
 
-    <hr>
+                                                            <form
+                                                                class="inlineform"
+                                                                method="POST"
+                                                                action="{{ url_for('hod.delete_student', student_id=student.student_id) }}"
+                                                                onsubmit="return confirm('Are you sure you want to delete this student?');"
+                                                            >
+                                                                <button class="btn btn--danger" type="submit">Delete</button>
+                                                            </form>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <div class="empty">
+                                    <div class="empty__title">No students found in this group</div>
+                                    <div class="empty__desc">Try changing filters or check Student Approvals.</div>
+                                </div>
+                            {% endif %}
+                        </section>
+                    {% endfor %}
+                {% else %}
+                    <section class="card">
+                        <div class="empty">
+                            <div class="empty__title">No students found</div>
+                            <div class="empty__desc">Try adjusting the search / filters.</div>
+                        </div>
+                    </section>
+                {% endif %}
 
-    <a href="{{ url_for('hod.student_approvals') }}">
-        Go to Student Approvals
-    </a>
+                <div class="footerbar">
+                    <a class="btn btn--ghost" href="{{ url_for('hod.student_approvals') }}">Go to Student Approvals</a>
+                    <a class="btn btn--ghost" href="{{ url_for('hod.dashboard') }}">Back to Dashboard</a>
+                </div>
+            </section>
+        </main>
+    </div>
 
-    <br><br>
-
-    <a href="{{ url_for('hod.dashboard') }}">
-        Back to Dashboard
-    </a>
-
+    <script>
+        // Auto-highlight nav link by URL path
+        (function () {
+            const path = window.location.pathname;
+            document.querySelectorAll('.nav a').forEach(a => {
+                const href = a.getAttribute('href');
+                if (!href || href === '#') return;
+                try {
+                    const url = new URL(href, window.location.origin);
+                    if (url.pathname === path) a.classList.add('is-active');
+                } catch (e) { /* ignore */ }
+            });
+        })();
+    </script>
 </body>
-
 </html>

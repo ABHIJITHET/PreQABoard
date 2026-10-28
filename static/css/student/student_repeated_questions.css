@@ -1,0 +1,12 @@
+/* static/css/student/student_repeated_questions.css */
+@import url("student_base.css");
+
+.output{
+  border:1px solid rgba(255,255,255,.10);
+  background: rgba(255,255,255,.04);
+  border-radius: 14px;
+  padding:12px;
+  white-space: pre-wrap;
+  line-height:1.6;
+}
+.pills{ display:flex; gap:10px; flex-wrap:wrap; }

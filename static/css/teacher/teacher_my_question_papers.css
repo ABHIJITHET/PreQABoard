@@ -1,0 +1,7 @@
+/* static/css/teacher/teacher_my_question_papers.css */
+@import url("teacher_base.css");
+
+.filecell{
+  max-width: 360px;
+  word-break: break-word;
+}

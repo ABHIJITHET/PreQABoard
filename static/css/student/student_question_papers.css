@@ -1,0 +1,11 @@
+/* static/css/student/student_question_papers.css */
+@import url("student_base.css");
+
+.filters{
+  display:grid;
+  grid-template-columns: 1fr 1fr 1fr auto;
+  gap:10px;
+  align-items:end;
+}
+@media (max-width: 980px){ .filters{ grid-template-columns: 1fr 1fr; } }
+@media (max-width: 560px){ .filters{ grid-template-columns: 1fr; } }

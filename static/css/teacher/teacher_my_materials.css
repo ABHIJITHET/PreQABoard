@@ -1,0 +1,7 @@
+/* static/css/teacher/teacher_my_materials.css */
+@import url("teacher_base.css");
+
+.filecell{
+  max-width: 360px;
+  word-break: break-word;
+}

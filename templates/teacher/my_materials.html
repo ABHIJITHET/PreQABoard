@@ -1,175 +1,119 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
-    <meta charset="UTF-8">
-
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
-
-    <title>My Study Materials - PreQABoard</title>
-
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Study Materials • Teacher • PreQABoard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/teacher/teacher_my_materials.css') }}">
 </head>
-
 <body>
+  <div class="t-layout">
+    <aside class="t-sidebar">
+      <div class="brand">
+        <div class="brand-mark"></div>
+        <div class="brand-title">
+          <strong>PreQABoard</strong>
+          <span>Teacher Panel</span>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <a href="{{ url_for('teacher.dashboard') }}"><span>Dashboard</span><small>Home</small></a>
+        <a href="{{ url_for('teacher.profile') }}"><span>Profile</span><small>Account</small></a>
+        <a href="{{ url_for('teacher.my_subjects') }}"><span>My Subjects</span><small>Assigned</small></a>
+        <a href="{{ url_for('teacher.view_students') }}"><span>Students</span><small>Directory</small></a>
+        <a href="{{ url_for('teacher.doubt_list') }}"><span>Doubts</span><small>Inbox</small></a>
+        <a href="{{ url_for('teacher.my_question_papers') }}"><span>Question Papers</span><small>My Uploads</small></a>
+        <a class="active" href="{{ url_for('teacher.my_materials') }}"><span>Study Materials</span><small>My Uploads</small></a>
+        <a href="{{ url_for('teacher.upload_answer_key') }}"><span>Upload Answer Key</span><small>PDF</small></a>
+        <a href="{{ url_for('teacher.change_password') }}"><span>Change Password</span><small>Security</small></a>
+        <a href="{{ url_for('teacher.logout') }}"><span>Logout</span><small>Exit</small></a>
+      </nav>
+
+      <div class="sidebar-footer">
+        View opens the PDF using your download/view endpoint.
+      </div>
+    </aside>
+
+    <main class="t-main">
+      <header class="topbar">
+        <div class="page-title">
+          <h1>My Study Materials</h1>
+          <p>Your uploaded materials and approval status.</p>
+        </div>
+        <div class="actions">
+          <a class="btn btn-primary" href="{{ url_for('teacher.upload_study_material') }}">Upload New</a>
+        </div>
+      </header>
+
+      {% if error %}
+        <div class="alerts">
+          <div class="alert error">{{ error }}</div>
+        </div>
+      {% endif %}
+
+      <section class="grid">
+        <div class="card" style="grid-column: span 12;">
+          <div class="card-head">
+            <div>
+              <h2>Uploads</h2>
+              <p>Latest uploads shown first.</p>
+            </div>
+          </div>
+
+          <div class="card-body">
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Title</th>
+                    <th>Subject</th>
+                    <th>Course</th>
+                    <th>Semester</th>
+                    <th>Upload Date</th>
+                    <th>Status</th>
+                    <th>File</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for m in materials %}
+                    <tr>
+                      <td class="muted">{{ loop.index }}</td>
+                      <td>{{ m.title }}</td>
+                      <td class="muted">{{ m.subject_code }} — {{ m.subject_name }}</td>
+                      <td class="muted">{{ m.course_name }}</td>
+                      <td>Sem {{ m.semester_number }}</td>
+                      <td class="muted">{{ m.upload_date }}</td>
+                      <td>
+                        {% if m.approved_by_hod %}
+                          <span class="badge ok">Approved</span>
+                        {% else %}
+                          <span class="badge warn">Pending</span>
+                        {% endif %}
+                      </td>
+                      <td class="filecell">
+                        <a class="btn btn-link"
+                           href="{{ url_for('teacher.download_study_material', study_material_id=m.study_material_id) }}"
+                           target="_blank" rel="noopener">
+                          View PDF
+                        </a>
+                      </td>
+                    </tr>
+                  {% else %}
+                    <tr>
+                      <td colspan="8" class="muted">No study materials uploaded yet.</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
 
-    <h1>PreQABoard</h1>
+        </div>
+      </section>
 
-    <h2>My Study Materials</h2>
-
-    <hr>
-
-
-    {% if error %}
-
-    <p style="color: red;">
-        {{ error }}
-    </p>
-
-    {% endif %}
-
-
-    {% if success %}
-
-    <p style="color: green;">
-        {{ success }}
-    </p>
-
-    {% endif %}
-
-
-    {% if materials %}
-
-    <table border="1"
-           cellpadding="10"
-           cellspacing="0">
-
-        <tr>
-
-            <th>Sl No</th>
-
-            <th>Subject Code</th>
-
-            <th>Subject</th>
-
-            <th>Title</th>
-
-            <th>File</th>
-
-            <th>Uploaded Date</th>
-
-            <th>Approval Status</th>
-
-        </tr>
-
-
-        {% for material in materials %}
-
-        <tr>
-
-            <td>
-                {{ loop.index }}
-            </td>
-
-
-            <td>
-                {{ material.subject_code }}
-            </td>
-
-
-            <td>
-                {{ material.subject_name }}
-            </td>
-
-
-            <td>
-                {{ material.title }}
-            </td>
-
-
-            <td>
-
-                {% if material.file_name %}
-
-                <a href="{{ url_for(
-                    'teacher.download_study_material',
-                    study_material_id=material.study_material_id
-                ) }}">
-
-                    View / Download
-
-                </a>
-
-                {% else %}
-
-                -
-
-                {% endif %}
-
-            </td>
-
-
-            <td>
-                {{ material.upload_date }}
-            </td>
-
-
-            <td>
-
-                {% if material.approved_by_hod %}
-
-                    <span style="color: green;">
-                        Approved
-                    </span>
-
-                {% else %}
-
-                    <span style="color: orange;">
-                        Pending HOD Approval
-                    </span>
-
-                {% endif %}
-
-            </td>
-
-        </tr>
-
-        {% endfor %}
-
-    </table>
-
-
-    {% else %}
-
-    <p>
-        No study materials have been uploaded yet.
-    </p>
-
-    {% endif %}
-
-
-    <hr>
-
-
-    <p>
-
-        <a href="{{ url_for('teacher.upload_study_material') }}">
-            Upload New Study Material
-        </a>
-
-    </p>
-
-
-    <p>
-
-        <a href="{{ url_for('teacher.dashboard') }}">
-            Back to Dashboard
-        </a>
-
-    </p>
-
-
+    </main>
+  </div>
 </body>
-
 </html>

@@ -1,91 +1,152 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>View Doubts - PreQABoard</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/hod/hod_view_doubts.css') }}">
 </head>
+
 <body>
+    <!-- Background layers -->
+    <div class="bg" aria-hidden="true">
+        <div class="bg__grid"></div>
+        <div class="bg__glow bg__glow--a"></div>
+        <div class="bg__glow bg__glow--b"></div>
+    </div>
 
-    <h1>PreQABoard - HOD</h1>
+    <header class="topbar">
+        <div class="topbar__left">
+            <div class="crumb">HOD / Support</div>
+            <h1 class="title">Student Doubts (Department-wise)</h1>
+            <p class="subtitle">View student doubts raised in your department and check teacher replies.</p>
+        </div>
 
-    <p>
-        <a href="{{ url_for('hod.dashboard') }}">← Back to Dashboard</a> |
-        <a href="{{ url_for('hod.logout') }}">Logout</a>
-    </p>
+        <div class="topbar__actions">
+            <a class="btn btn--ghost" href="{{ url_for('hod.dashboard') }}">Back to Dashboard</a>
+            <a class="btn btn--primary" href="{{ url_for('hod.manage_syllabus') }}">Manage Syllabus</a>
+            <a class="btn btn--danger" href="{{ url_for('hod.logout') }}">Logout</a>
+        </div>
+    </header>
 
-    <hr>
+    <main class="main">
+        <div class="wrap">
+            {% if error %}
+                <div class="alert alert--danger">
+                    <strong>Error:</strong> {{ error }}
+                </div>
+            {% endif %}
 
-    <h2>Student Doubts (Department-wise)</h2>
+            <section class="card">
+                <div class="card__head">
+                    <div>
+                        <h2 class="card__title">All Doubts</h2>
+                        <p class="card__meta">Click “View replies” to expand teacher responses.</p>
+                    </div>
+                    <div class="card__count">
+                        <span class="pill pill--info">{{ doubts|length if doubts else 0 }} Doubts</span>
+                    </div>
+                </div>
 
-    {% if error %}
-        <p style="color:red;">{{ error }}</p>
-    {% endif %}
+                {% if doubts %}
+                    <div class="tablewrap" role="region" aria-label="Doubts table">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th style="width:70px;">No.</th>
+                                    <th style="width:170px;">Date</th>
+                                    <th style="width:200px;">Student</th>
+                                    <th style="width:150px;">Register No</th>
+                                    <th style="width:180px;">Course</th>
+                                    <th style="width:90px;">Sem</th>
+                                    <th style="min-width:260px;">Subject</th>
+                                    <th style="min-width:240px;">Title</th>
+                                    <th style="min-width:340px;">Description</th>
+                                    <th style="width:240px;">Replies</th>
+                                </tr>
+                            </thead>
 
-    {% if doubts %}
+                            <tbody>
+                                {% for d in doubts %}
+                                    <tr>
+                                        <td class="mono">{{ loop.index }}</td>
+                                        <td class="mono">{{ d.created_at }}</td>
 
-        <table border="1" cellpadding="8" cellspacing="0">
-            <thead>
-                <tr>
-                    <th>No.</th>
-                    <th>Date</th>
-                    <th>Student</th>
-                    <th>Register No</th>
-                    <th>Course</th>
-                    <th>Semester</th>
-                    <th>Subject</th>
-                    <th>Title</th>
-                    <th>Description</th>
-                    <th>Replies</th>
-                </tr>
-            </thead>
+                                        <td class="truncate" title="{{ d.student_name }}">{{ d.student_name }}</td>
+                                        <td class="mono">{{ d.register_number }}</td>
+                                        <td class="truncate" title="{{ d.course_name }}">{{ d.course_name }}</td>
+                                        <td class="mono">{{ d.semester_number }}</td>
 
-            <tbody>
-                {% for d in doubts %}
-                <tr>
-                    <td>{{ loop.index }}</td>
-                    <td>{{ d.created_at }}</td>
-                    <td>{{ d.student_name }}</td>
-                    <td>{{ d.register_number }}</td>
-                    <td>{{ d.course_name }}</td>
-                    <td>{{ d.semester_number }}</td>
-                    <td>{{ d.subject_code }} - {{ d.subject_name }}</td>
-                    <td>{{ d.doubt_title or '-' }}</td>
-                    <td>{{ d.doubt_description or '-' }}</td>
+                                        <td class="truncate" title="{{ d.subject_code }} - {{ d.subject_name }}">
+                                            <span class="mono">{{ d.subject_code }}</span> — {{ d.subject_name }}
+                                        </td>
 
-                    <td>
-                        <strong>{{ d.reply_count }}</strong>
+                                        <td class="celltext">
+                                            {% if d.doubt_title %}
+                                                <div class="clamp" title="{{ d.doubt_title }}">{{ d.doubt_title }}</div>
+                                            {% else %}
+                                                <span class="muted">-</span>
+                                            {% endif %}
+                                        </td>
 
-                        {% set replies = replies_by_doubt.get(d.doubt_id, []) %}
+                                        <td class="celltext">
+                                            {% if d.doubt_description %}
+                                                <div class="clamp clamp--3" title="{{ d.doubt_description }}">{{ d.doubt_description }}</div>
+                                            {% else %}
+                                                <span class="muted">-</span>
+                                            {% endif %}
+                                        </td>
 
-                        {% if replies %}
-                            <details>
-                                <summary>View replies</summary>
+                                        <td>
+                                            <div class="replybox">
+                                                <div class="replybox__count">
+                                                    <span class="pill pill--count">
+                                                        <span class="mono">{{ d.reply_count }}</span> replies
+                                                    </span>
+                                                </div>
 
-                                <ul>
-                                    {% for r in replies %}
-                                        <li>
-                                            <strong>{{ r.teacher_name }} ({{ r.employee_id }})</strong><br>
-                                            {{ r.reply }}<br>
-                                            <small>{{ r.replied_at }}</small>
-                                        </li>
-                                    {% endfor %}
-                                </ul>
+                                                {% set replies = replies_by_doubt.get(d.doubt_id, []) %}
 
-                            </details>
-                        {% else %}
-                            <br>
-                            <small>No replies yet</small>
-                        {% endif %}
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                                                {% if replies %}
+                                                    <details class="replies">
+                                                        <summary>View replies</summary>
 
-    {% else %}
-        <p><strong>No doubts found.</strong></p>
-    {% endif %}
+                                                        <ul class="replies__list">
+                                                            {% for r in replies %}
+                                                                <li class="replies__item">
+                                                                    <div class="replies__who">
+                                                                        <strong>{{ r.teacher_name }}</strong>
+                                                                        <span class="muted">({{ r.employee_id }})</span>
+                                                                    </div>
+                                                                    <div class="replies__text">{{ r.reply }}</div>
+                                                                    <div class="replies__time mono muted">{{ r.replied_at }}</div>
+                                                                </li>
+                                                            {% endfor %}
+                                                        </ul>
+                                                    </details>
+                                                {% else %}
+                                                    <div class="muted small">No replies yet</div>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="empty">
+                        <div class="empty__title">No doubts found</div>
+                        <div class="empty__desc">When students raise doubts, they will appear here.</div>
+                    </div>
+                {% endif %}
+            </section>
 
+            <div class="footerbar">
+                <a class="btn btn--ghost" href="{{ url_for('hod.dashboard') }}">Back to Dashboard</a>
+            </div>
+        </div>
+    </main>
 </body>
 </html>

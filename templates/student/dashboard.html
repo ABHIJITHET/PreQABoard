@@ -1,84 +1,139 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Dashboard - PreQABoard</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Dashboard • PreQABoard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/student/student_dashboard.css') }}">
 </head>
 <body>
+  <div class="s-layout">
+    <aside class="s-sidebar">
+      <div class="brand">
+        <div class="brand-mark"></div>
+        <div class="brand-title">
+          <strong>PreQABoard</strong>
+          <span>Student Panel</span>
+        </div>
+      </div>
 
-    <h1>PreQABoard - Student</h1>
+      <nav class="nav">
+        <a class="active" href="{{ url_for('student.dashboard') }}"><span>Dashboard</span><small>Home</small></a>
+        <a href="{{ url_for('student.profile') }}"><span>My Profile</span><small>Account</small></a>
+        <a href="{{ url_for('student.syllabus') }}"><span>Syllabus</span><small>Downloads</small></a>
+        <a href="{{ url_for('student.question_papers') }}"><span>Question Papers</span><small>Search</small></a>
+        <a href="{{ url_for('student.study_materials') }}"><span>Study Materials</span><small>PDF</small></a>
+        <a href="{{ url_for('student.teacher_answers') }}"><span>Teacher Answers</span><small>Answer Keys</small></a>
+        <a href="{{ url_for('student.repeated_questions') }}"><span>Repeated Questions</span><small>AI</small></a>
+        <a href="{{ url_for('student.ai_chat') }}"><span>AI Chat</span><small>Assistant</small></a>
+        <a href="{{ url_for('student.post_doubt') }}"><span>Post Doubt</span><small>Ask</small></a>
+        <a href="{{ url_for('student.my_doubts') }}"><span>My Doubts</span><small>History</small></a>
+        <a href="{{ url_for('student.logout') }}"><span>Logout</span><small>Exit</small></a>
+      </nav>
 
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, message in messages %}
-                <p>{{ message }}</p>
+      <div class="sidebar-footer">
+        Tip: Use “Repeated Questions” to prioritize exam prep.
+      </div>
+    </aside>
+
+    <main class="s-main">
+      <header class="topbar">
+        <div class="page-title">
+          <h1>Dashboard</h1>
+          <p>Quick access to syllabus, papers, materials, and doubts.</p>
+        </div>
+        <div class="actions">
+          <a class="btn btn-primary" href="{{ url_for('student.question_papers') }}">Browse Question Papers</a>
+          <a class="btn" href="{{ url_for('student.post_doubt') }}">Post a Doubt</a>
+        </div>
+      </header>
+
+      {% with msgs = get_flashed_messages(with_categories=True) %}
+        {% if msgs %}
+          <div class="alerts">
+            {% for category, message in msgs %}
+              <div class="alert {{ category }}">{{ message }}</div>
             {% endfor %}
+          </div>
         {% endif %}
-    {% endwith %}
+      {% endwith %}
 
-    <p>
-        Welcome, <strong>{{ student.full_name }}</strong>
-        ({{ student.register_number }})
-    </p>
+      {% if student %}
+        <section class="stat-row">
+          <div class="stat">
+            <p class="label">Student</p>
+            <p class="value">{{ student.full_name }} <span class="muted">({{ student.register_number }})</span></p>
+          </div>
+          <div class="stat">
+            <p class="label">Course</p>
+            <p class="value">{{ student.course_name }}</p>
+          </div>
+          <div class="stat">
+            <p class="label">Semester</p>
+            <p class="value">Sem {{ student.semester_number }}</p>
+          </div>
+        </section>
 
-    <p>
-        Course: <strong>{{ student.course_name }}</strong> |
-        Semester: <strong>{{ student.semester_number }}</strong>
-    </p>
+        <section class="grid">
+          <div class="card" style="grid-column: span 12;">
+            <div class="card-head">
+              <div>
+                <h2>Semester Timeline</h2>
+                <p>Based on HOD calendar (if set).</p>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="kv">
+                <div class="cell k">Start Date</div>
+                <div class="cell v">{{ student.start_date or '-' }}</div>
 
-    <p>
-        Semester Start: <strong>{{ student.start_date or '-' }}</strong> |
-        Semester End: <strong>{{ student.end_date or '-' }}</strong>
-    </p>
+                <div class="cell k">End Date</div>
+                <div class="cell v">{{ student.end_date or '-' }}</div>
+              </div>
+            </div>
+          </div>
 
-    <p>
-        <a href="{{ url_for('student.logout') }}">Logout</a>
-    </p>
-
-    <hr>
-
-    <h2>Quick Links</h2>
-    <ul>
-        <li><a href="{{ url_for('student.profile') }}">My Profile</a></li>
-        <li><a href="{{ url_for('student.syllabus') }}">Syllabus</a></li>
-        <li><a href="{{ url_for('student.question_papers') }}">Question Papers</a></li>
-        <li><a href="{{ url_for('student.repeated_questions') }}">Repeated Questions</a></li>
-        <li><a href="{{ url_for('student.study_materials') }}">Study Materials</a></li>
-        <li><a href="{{ url_for('student.teacher_answers') }}">Teacher Answers</a></li>
-        <li><a href="{{ url_for('student.ai_chat') }}">AI Chat</a></li>
-        <li><a href="{{ url_for('student.post_doubt') }}">Post Doubt</a></li>
-        <li><a href="{{ url_for('student.my_doubts') }}">My Doubts</a></li>
-
-
-    </ul>
-
-    <hr>
-
-    <h2>My Subjects</h2>
-
-    {% if subjects %}
-        <table border="1" cellpadding="8" cellspacing="0">
-            <thead>
-                <tr>
-                    <th>No.</th>
-                    <th>Subject Code</th>
-                    <th>Subject Name</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for sub in subjects %}
-                <tr>
-                    <td>{{ loop.index }}</td>
-                    <td>{{ sub.subject_code }}</td>
-                    <td>{{ sub.subject_name }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    {% else %}
-        <p><strong>No subjects found for your course/semester.</strong></p>
-    {% endif %}
-
+          <div class="card" style="grid-column: span 12;">
+            <div class="card-head">
+              <div>
+                <h2>My Subjects</h2>
+                <p>Subjects for your course and semester.</p>
+              </div>
+            </div>
+            <div class="card-body">
+              {% if subjects %}
+                <div class="table-wrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>#</th>
+                        <th>Subject Code</th>
+                        <th>Subject Name</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for sub in subjects %}
+                        <tr>
+                          <td class="muted">{{ loop.index }}</td>
+                          <td class="muted">{{ sub.subject_code }}</td>
+                          <td>{{ sub.subject_name }}</td>
+                        </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+              {% else %}
+                <p class="muted" style="margin:0;">No subjects found for your course/semester.</p>
+              {% endif %}
+            </div>
+          </div>
+        </section>
+      {% else %}
+        <div class="alerts">
+          <div class="alert error">Student data not available.</div>
+        </div>
+      {% endif %}
+    </main>
+  </div>
 </body>
 </html>

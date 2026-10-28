@@ -1,114 +1,132 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Question Paper View - PreQABoard</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Question Paper Details • Student • PreQABoard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/student/student_question_paper_view.css') }}">
 </head>
 <body>
+  <div class="s-layout">
+    <aside class="s-sidebar">
+      <div class="brand">
+        <div class="brand-mark"></div>
+        <div class="brand-title">
+          <strong>PreQABoard</strong>
+          <span>Student Panel</span>
+        </div>
+      </div>
 
-    <h1>PreQABoard - Student</h1>
+      <nav class="nav">
+        <a href="{{ url_for('student.dashboard') }}"><span>Dashboard</span><small>Home</small></a>
+        <a href="{{ url_for('student.profile') }}"><span>My Profile</span><small>Account</small></a>
+        <a href="{{ url_for('student.syllabus') }}"><span>Syllabus</span><small>Downloads</small></a>
+        <a class="active" href="{{ url_for('student.question_papers') }}"><span>Question Papers</span><small>Search</small></a>
+        <a href="{{ url_for('student.study_materials') }}"><span>Study Materials</span><small>PDF</small></a>
+        <a href="{{ url_for('student.teacher_answers') }}"><span>Teacher Answers</span><small>Answer Keys</small></a>
+        <a href="{{ url_for('student.repeated_questions') }}"><span>Repeated Questions</span><small>AI</small></a>
+        <a href="{{ url_for('student.ai_chat') }}"><span>AI Chat</span><small>Assistant</small></a>
+        <a href="{{ url_for('student.post_doubt') }}"><span>Post Doubt</span><small>Ask</small></a>
+        <a href="{{ url_for('student.my_doubts') }}"><span>My Doubts</span><small>History</small></a>
+        <a href="{{ url_for('student.logout') }}"><span>Logout</span><small>Exit</small></a>
+      </nav>
+    </aside>
 
-    <p>
-        <a href="{{ url_for('student.dashboard') }}">Dashboard</a> |
-        <a href="{{ url_for('student.question_papers') }}">Question Papers</a> |
-        <a href="{{ url_for('student.logout') }}">Logout</a>
-    </p>
+    <main class="s-main">
+      <header class="topbar">
+        <div class="page-title">
+          <h1>Question Paper</h1>
+          <p>Paper details and downloadable answer keys (if available).</p>
+        </div>
+        <div class="actions">
+          <a class="btn" href="{{ url_for('student.question_papers') }}">Back to List</a>
+          {% if paper %}
+            <a class="btn btn-primary" href="{{ url_for('student.download_question_paper', question_paper_id=paper.question_paper_id) }}">Download Paper</a>
+          {% endif %}
+        </div>
+      </header>
 
-    <hr>
+      <div class="alerts">
+        {% if error %}<div class="alert error">{{ error }}</div>{% endif %}
+      </div>
 
-    <h2>Question Paper Details</h2>
+      <section class="grid">
+        <div class="card" style="grid-column: span 12;">
+          <div class="card-head">
+            <div>
+              <h2>Details</h2>
+              <p>Metadata of the selected paper.</p>
+            </div>
+          </div>
+          <div class="card-body">
+            {% if paper %}
+              <div class="kv">
+                <div class="cell k">Title</div>
+                <div class="cell v">{{ paper.title }}</div>
 
-    {% if error %}
-        <p style="color:red;"><strong>{{ error }}</strong></p>
-    {% endif %}
+                <div class="cell k">Subject</div>
+                <div class="cell v">
+                  {% if paper.subject_code is defined %}{{ paper.subject_code }} -{% endif %}
+                  {% if paper.subject_name is defined %} {{ paper.subject_name }}{% else %} -{% endif %}
+                </div>
 
-    {% if paper %}
+                <div class="cell k">Academic Year</div>
+                <div class="cell v">{{ paper.academic_year_name if paper.academic_year_name is defined else '-' }}</div>
 
-        <table border="1" cellpadding="8" cellspacing="0">
-            <tr>
-                <th>Title</th>
-                <td>{{ paper.title }}</td>
-            </tr>
+                <div class="cell k">Exam Type</div>
+                <div class="cell v">{{ paper.exam_type_name if paper.exam_type_name is defined else '-' }}</div>
 
-            <tr>
-                <th>Subject</th>
-                <td>
-                    {% if paper.subject_code is defined %}
-                        {{ paper.subject_code }} -
-                    {% endif %}
-                    {% if paper.subject_name is defined %}
-                        {{ paper.subject_name }}
-                    {% else %}
-                        -
-                    {% endif %}
-                </td>
-            </tr>
+                <div class="cell k">Uploaded At</div>
+                <div class="cell v">{{ paper.upload_date if paper.upload_date is defined else '-' }}</div>
+              </div>
+            {% else %}
+              <p class="muted" style="margin:0;">Paper not found.</p>
+            {% endif %}
+          </div>
+        </div>
 
-            <tr>
-                <th>Academic Year</th>
-                <td>{{ paper.academic_year_name if paper.academic_year_name is defined else '-' }}</td>
-            </tr>
-
-            <tr>
-                <th>Exam Type</th>
-                <td>{{ paper.exam_type_name if paper.exam_type_name is defined else '-' }}</td>
-            </tr>
-
-            <tr>
-                <th>Uploaded At</th>
-                <td>{{ paper.upload_date if paper.upload_date is defined else '-' }}</td>
-            </tr>
-
-            <tr>
-                <th>Download</th>
-                <td>
-                    <a href="{{ url_for('student.download_question_paper', question_paper_id=paper.question_paper_id) }}">
-                        Download Question Paper
-                    </a>
-                </td>
-            </tr>
-        </table>
-
-        <hr>
-
-        <h3>Answer Keys (if available)</h3>
-
-        {% if answer_keys is defined and answer_keys %}
-            <table border="1" cellpadding="8" cellspacing="0">
-                <thead>
+        <div class="card" style="grid-column: span 12;">
+          <div class="card-head">
+            <div>
+              <h2>Answer Keys</h2>
+              <p>Available answer keys for this paper.</p>
+            </div>
+          </div>
+          <div class="card-body">
+            {% if answer_keys %}
+              <div class="table-wrap">
+                <table>
+                  <thead>
                     <tr>
-                        <th>No.</th>
-                        <th>File</th>
-                        <th>Date</th>
-                        <th>Download</th>
+                      <th>#</th>
+                      <th>File</th>
+                      <th>Date</th>
+                      <th>Download</th>
                     </tr>
-                </thead>
-                <tbody>
+                  </thead>
+                  <tbody>
                     {% for ak in answer_keys %}
-                    <tr>
-                        <td>{{ loop.index }}</td>
-                        <td>{{ ak.file_name }}</td>
-                        <td>{{ ak.upload_date }}</td>
+                      <tr>
+                        <td class="muted">{{ loop.index }}</td>
+                        <td class="muted">{{ ak.file_name }}</td>
+                        <td class="muted">{{ ak.upload_date }}</td>
                         <td>
-                            {% if 'download_teacher_answer' in globals() %}
-                                <!-- if you implement answer-key download by id -->
-                                <a href="{{ url_for('student.download_teacher_answer', answer_key_id=ak.answer_key_id) }}">Download</a>
-                            {% else %}
-                                <em>Download route not configured</em>
-                            {% endif %}
+                          <a class="btn btn-primary" href="{{ url_for('student.download_teacher_answer', answer_key_id=ak.answer_key_id) }}">
+                            Download
+                          </a>
                         </td>
-                    </tr>
+                      </tr>
                     {% endfor %}
-                </tbody>
-            </table>
-        {% else %}
-            <p><strong>No answer keys listed.</strong></p>
-        {% endif %}
-
-    {% else %}
-        <p><strong>Paper not found.</strong></p>
-    {% endif %}
-
+                  </tbody>
+                </table>
+              </div>
+            {% else %}
+              <p class="muted" style="margin:0;">No answer keys listed.</p>
+            {% endif %}
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
 </body>
 </html>

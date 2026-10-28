@@ -1,51 +1,94 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Syllabus - PreQABoard</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Syllabus • Student • PreQABoard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/student/student_syllabus.css') }}">
 </head>
 <body>
+  <div class="s-layout">
+    <aside class="s-sidebar">
+      <div class="brand">
+        <div class="brand-mark"></div>
+        <div class="brand-title">
+          <strong>PreQABoard</strong>
+          <span>Student Panel</span>
+        </div>
+      </div>
 
-    <h2>Syllabus</h2>
+      <nav class="nav">
+        <a href="{{ url_for('student.dashboard') }}"><span>Dashboard</span><small>Home</small></a>
+        <a href="{{ url_for('student.profile') }}"><span>My Profile</span><small>Account</small></a>
+        <a class="active" href="{{ url_for('student.syllabus') }}"><span>Syllabus</span><small>Downloads</small></a>
+        <a href="{{ url_for('student.question_papers') }}"><span>Question Papers</span><small>Search</small></a>
+        <a href="{{ url_for('student.study_materials') }}"><span>Study Materials</span><small>PDF</small></a>
+        <a href="{{ url_for('student.teacher_answers') }}"><span>Teacher Answers</span><small>Answer Keys</small></a>
+        <a href="{{ url_for('student.repeated_questions') }}"><span>Repeated Questions</span><small>AI</small></a>
+        <a href="{{ url_for('student.ai_chat') }}"><span>AI Chat</span><small>Assistant</small></a>
+        <a href="{{ url_for('student.post_doubt') }}"><span>Post Doubt</span><small>Ask</small></a>
+        <a href="{{ url_for('student.my_doubts') }}"><span>My Doubts</span><small>History</small></a>
+        <a href="{{ url_for('student.logout') }}"><span>Logout</span><small>Exit</small></a>
+      </nav>
+    </aside>
 
-    <p>
-        <a href="{{ url_for('student.dashboard') }}">← Dashboard</a> |
-        <a href="{{ url_for('student.logout') }}">Logout</a>
-    </p>
+    <main class="s-main">
+      <header class="topbar">
+        <div class="page-title">
+          <h1>Syllabus</h1>
+          <p>Download your course syllabus (if uploaded by HOD).</p>
+        </div>
+        <div class="actions">
+          <a class="btn" href="{{ url_for('student.dashboard') }}">Dashboard</a>
+        </div>
+      </header>
 
-    <hr>
-
-    {% if syllabi %}
-        <table border="1" cellpadding="8" cellspacing="0">
-            <thead>
-                <tr>
-                    <th>No.</th>
-                    <th>Title</th>
-                    <th>Academic Year</th>
-                    <th>Uploaded At</th>
-                    <th>Download</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for s in syllabi %}
-                <tr>
-                    <td>{{ loop.index }}</td>
-                    <td>{{ s.title }}</td>
-                    <td>{{ s.academic_year_name }}</td>
-                    <td>{{ s.uploaded_at }}</td>
-                    <td>
-                        <a href="{{ url_for('student.download_syllabus', syllabus_id=s.syllabus_id) }}">
+      <section class="grid">
+        <div class="card" style="grid-column: span 12;">
+          <div class="card-head">
+            <div>
+              <h2>Available Syllabi</h2>
+              <p>Latest uploads shown first.</p>
+            </div>
+          </div>
+          <div class="card-body">
+            {% if syllabi %}
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Title</th>
+                      <th>Academic Year</th>
+                      <th>Uploaded At</th>
+                      <th>Download</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for s in syllabi %}
+                      <tr>
+                        <td class="muted">{{ loop.index }}</td>
+                        <td>{{ s.title }}</td>
+                        <td class="muted">{{ s.academic_year_name }}</td>
+                        <td class="muted">{{ s.uploaded_at }}</td>
+                        <td>
+                          <a class="btn btn-primary"
+                             href="{{ url_for('student.download_syllabus', syllabus_id=s.syllabus_id) }}">
                             Download
-                        </a>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    {% else %}
-        <p><strong>No syllabus uploaded yet.</strong></p>
-    {% endif %}
-
+                          </a>
+                        </td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            {% else %}
+              <p class="muted" style="margin:0;">No syllabus uploaded yet.</p>
+            {% endif %}
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
 </body>
 </html>

@@ -1,407 +1,323 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
-    <meta charset="UTF-8">
-
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
-
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Teacher Assignments - PreQABoard</title>
 
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/hod/hod_teacher_assignments.css') }}">
 </head>
 
 <body>
-
-    <h1>PreQABoard</h1>
-
-    <h2>Teacher Subject Assignment</h2>
-
-    <hr>
-
-    <p>
-        <a href="{{ url_for('hod.dashboard') }}">
-            ← Back to Dashboard
-        </a>
-    </p>
-
-
-    <!-- =====================================================
-         ASSIGN SUBJECT TO TEACHER
-    ====================================================== -->
-
-    <h3>Assign Subject to Teacher</h3>
-
-    <form method="POST"
-          action="{{ url_for('hod.add_teacher_assignment') }}">
-
-        <!-- TEACHER -->
-
-        <label for="teacher_id">
-            Teacher:
-        </label>
-
-        <br>
-
-        <select id="teacher_id"
-                name="teacher_id"
-                required>
-
-            <option value="">
-                -- Select Teacher --
-            </option>
-
-            {% if teachers %}
-
-                {% for teacher in teachers %}
-
-                    <option value="{{ teacher.teacher_id }}">
-                        {{ teacher.full_name }}
-                        ({{ teacher.employee_id }})
-                    </option>
-
-                {% endfor %}
-
-            {% else %}
-
-                <option value="" disabled>
-                    No active teachers found
-                </option>
-
-            {% endif %}
-
-        </select>
-
-
-        <br>
-        <br>
-
-
-        <!-- SUBJECT -->
-
-        <label for="subject_id">
-            Subject:
-        </label>
-
-        <br>
-
-        <select id="subject_id"
-                name="subject_id"
-                required>
-
-            <option value="">
-                -- Select Course / Semester / Subject --
-            </option>
-
-            {% if subjects %}
-
-                {% for subject in subjects %}
-
-                    <option value="{{ subject.subject_id }}">
-
-                        {{ subject.course_name }}
-                        -
-                        Semester {{ subject.semester_number }}
-                        -
-                        {{ subject.subject_code }}
-                        -
-                        {{ subject.subject_name }}
-
-                    </option>
-
-                {% endfor %}
-
-            {% else %}
-
-                <option value="" disabled>
-                    No active subjects found
-                </option>
-
-            {% endif %}
-
-        </select>
-
-
-        <br>
-        <br>
-
-
-        <!-- ACADEMIC YEAR -->
-
-        <label for="academic_year_id">
-            Academic Year:
-        </label>
-
-        <br>
-
-        <select id="academic_year_id"
-                name="academic_year_id"
-                required>
-
-            <option value="">
-                -- Select Academic Year --
-            </option>
-
-            {% if academic_years %}
-
-                {% for year in academic_years %}
-
-                    <option value="{{ year.academic_year_id }}">
-
-                        {{ year.academic_year_name }} ({{ year.status }})
-
-                    </option>
-
-                {% endfor %}
-
-            {% else %}
-
-                <option value="" disabled>
-                    No academic years found
-                </option>
-
-            {% endif %}
-
-        </select>
-
-
-        <br>
-        <br>
-
-
-        <button type="submit">
-            Assign Subject
-        </button>
-
-    </form>
-
-
-    <hr>
-
-
-    <!-- =====================================================
-         CURRENT TEACHER ASSIGNMENTS
-    ====================================================== -->
-
-    <h3>Current Teacher Assignments</h3>
-
-
-    <!-- =====================================================
-         SEARCH / FILTER ASSIGNMENTS (ADDED)
-    ====================================================== -->
-
-    <form method="GET"
-          action="{{ url_for('hod.teacher_assignments') }}">
-
-        <label for="search">
-            Search:
-        </label>
-
-        <input type="text"
-               id="search"
-               name="search"
-               value="{{ search or '' }}"
-               placeholder="Teacher / Employee ID / Subject / Course">
-
-        <br><br>
-
-        <label for="academic_year_id">
-            Academic Year:
-        </label>
-
-        <select id="academic_year_id" name="academic_year_id">
-
-            <option value="">
-                -- All --
-            </option>
-
-            {% if academic_years %}
-
-                {% for year in academic_years %}
-
-                    <option value="{{ year.academic_year_id }}"
-                        {% if (selected_academic_year_id|string) == (year.academic_year_id|string) %}selected{% endif %}>
-
-                        {{ year.academic_year_name }} ({{ year.status }})
-
-                    </option>
-
-                {% endfor %}
-
-            {% endif %}
-
-        </select>
-
-        <br><br>
-
-        <button type="submit">
-            Search
-        </button>
-
-        <a href="{{ url_for('hod.teacher_assignments') }}">
-            Reset
-        </a>
-
-    </form>
-
-    <br>
-
-
-    {% if assignments %}
-
-        <table border="1"
-               cellpadding="10"
-               cellspacing="0">
-
-            <thead>
-
-                <tr>
-
-                    <th>No.</th>
-
-                    <th>Teacher</th>
-
-                    <th>Employee ID</th>
-
-                    <th>Course</th>
-
-                    <th>Semester</th>
-
-                    <th>Subject Code</th>
-
-                    <th>Subject</th>
-
-                    <th>Academic Year</th>
-
-                    <th>Status</th>
-
-                    <th>Action</th>
-
-                </tr>
-
-            </thead>
-
-
-            <tbody>
-
-                {% for assignment in assignments %}
-
-                    <tr>
-
-                        <td>
-                            {{ loop.index }}
-                        </td>
-
-                        <td>
-                            {{ assignment.teacher_name }}
-                        </td>
-
-                        <td>
-                            {{ assignment.employee_id }}
-                        </td>
-
-                        <td>
-                            {{ assignment.course_name }}
-                        </td>
-
-                        <td>
-                            Semester {{ assignment.semester_number }}
-                        </td>
-
-                        <td>
-                            {{ assignment.subject_code }}
-                        </td>
-
-                        <td>
-                            {{ assignment.subject_name }}
-                        </td>
-
-                        <td>
-                            {{ assignment.academic_year_name }}
-                        </td>
-
-                        <td>
-                            {{ assignment.status }}
-                        </td>
-
-                        <td>
-
-                            {% if assignment.status == 'Active' %}
-
-                                <form
-                                    method="POST"
-                                    action="{{ url_for(
-                                        'hod.change_assignment_status',
-                                        assignment_id=assignment.assignment_id
-                                    ) }}"
-                                    style="display:inline;"
+    <!-- Background layers -->
+    <div class="bg" aria-hidden="true">
+        <div class="bg__grid"></div>
+        <div class="bg__glow bg__glow--a"></div>
+        <div class="bg__glow bg__glow--b"></div>
+    </div>
+
+    <div class="layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar__brand">
+                <div class="brandmark" aria-hidden="true"></div>
+                <div>
+                    <div class="brandtitle">PreQABoard</div>
+                    <div class="brandsub">HOD Panel</div>
+                </div>
+            </div>
+
+            <nav class="nav">
+                <a href="{{ url_for('hod.dashboard') }}">
+                    <span class="dot" aria-hidden="true"></span>
+                    Dashboard
+                </a>
+
+                <a href="{{ url_for('hod.student_approvals') }}">
+                    <span class="dot" aria-hidden="true"></span>
+                    Student Approvals
+                </a>
+
+                <a href="{{ url_for('hod.students') }}">
+                    <span class="dot" aria-hidden="true"></span>
+                    View Students
+                </a>
+
+                <a href="{{ url_for('hod.manage_teachers') }}">
+                    <span class="dot" aria-hidden="true"></span>
+                    Manage Teachers
+                </a>
+
+                <a href="{{ url_for('hod.manage_subjects') }}">
+                    <span class="dot" aria-hidden="true"></span>
+                    Manage Subjects
+                </a>
+
+                <a class="is-active" href="{{ request.path }}">
+                    <span class="dot" aria-hidden="true"></span>
+                    Teacher Assignments
+                </a>
+
+                <a href="{{ url_for('hod.semester_calendar') }}">
+                    <span class="dot" aria-hidden="true"></span>
+                    Semester Calendar
+                </a>
+
+                <a href="{{ url_for('hod.profile') }}">
+                    <span class="dot" aria-hidden="true"></span>
+                    Profile
+                </a>
+            </nav>
+
+            <div class="sidebar__footer">
+                <a class="logout" href="{{ url_for('hod.logout') }}">Logout</a>
+            </div>
+        </aside>
+
+        <!-- Main -->
+        <main class="main">
+            <header class="topbar">
+                <div class="topbar__left">
+                    <div class="crumb">HOD / Faculty</div>
+                    <h1 class="title">Teacher Subject Assignment</h1>
+                    <p class="subtitle">
+                        Assign subjects to teachers for an academic year and manage assignment status.
+                    </p>
+                </div>
+
+                <div class="topbar__actions">
+                    <a class="btn btn--primary" href="{{ url_for('hod.dashboard') }}">Back to Dashboard</a>
+                </div>
+            </header>
+
+            <section class="content">
+                {% if error %}
+                    <div class="alert alert--danger">
+                        <strong>Error:</strong> {{ error }}
+                    </div>
+                {% endif %}
+
+                {% if success %}
+                    <div class="alert alert--success">
+                        <strong>Success:</strong> {{ success }}
+                    </div>
+                {% endif %}
+
+                <!-- Assign Subject to Teacher -->
+                <section class="card">
+                    <div class="card__head">
+                        <div>
+                            <h2 class="card__title">Assign Subject to Teacher</h2>
+                            <p class="card__meta">Choose teacher, subject and academic year, then assign.</p>
+                        </div>
+                        <div class="card__count">
+                            <span class="pill pill--info">Create Assignment</span>
+                        </div>
+                    </div>
+
+                    <form class="form" method="POST" action="{{ url_for('hod.add_teacher_assignment') }}">
+                        <div class="formgrid">
+                            <!-- Teacher -->
+                            <div class="field">
+                                <label for="teacher_id">Teacher</label>
+                                <select id="teacher_id" name="teacher_id" required>
+                                    <option value="">-- Select Teacher --</option>
+
+                                    {% if teachers %}
+                                        {% for teacher in teachers %}
+                                            <option value="{{ teacher.teacher_id }}">
+                                                {{ teacher.full_name }} ({{ teacher.employee_id }})
+                                            </option>
+                                        {% endfor %}
+                                    {% else %}
+                                        <option value="" disabled>No active teachers found</option>
+                                    {% endif %}
+                                </select>
+                            </div>
+
+                            <!-- Subject -->
+                            <div class="field">
+                                <label for="subject_id">Subject</label>
+                                <select id="subject_id" name="subject_id" required>
+                                    <option value="">-- Select Course / Semester / Subject --</option>
+
+                                    {% if subjects %}
+                                        {% for subject in subjects %}
+                                            <option value="{{ subject.subject_id }}">
+                                                {{ subject.course_name }} - Semester {{ subject.semester_number }} -
+                                                {{ subject.subject_code }} - {{ subject.subject_name }}
+                                            </option>
+                                        {% endfor %}
+                                    {% else %}
+                                        <option value="" disabled>No active subjects found</option>
+                                    {% endif %}
+                                </select>
+                            </div>
+
+                            <!-- Academic Year -->
+                            <div class="field">
+                                <label for="academic_year_id_assign">Academic Year</label>
+                                <select id="academic_year_id_assign" name="academic_year_id" required>
+                                    <option value="">-- Select Academic Year --</option>
+
+                                    {% if academic_years %}
+                                        {% for year in academic_years %}
+                                            <option value="{{ year.academic_year_id }}">
+                                                {{ year.academic_year_name }} ({{ year.status }})
+                                            </option>
+                                        {% endfor %}
+                                    {% else %}
+                                        <option value="" disabled>No academic years found</option>
+                                    {% endif %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="formactions">
+                            <button class="btn btn--primary" type="submit">Assign Subject</button>
+                        </div>
+                    </form>
+                </section>
+
+                <!-- Current Teacher Assignments -->
+                <section class="card">
+                    <div class="card__head">
+                        <div>
+                            <h2 class="card__title">Current Teacher Assignments</h2>
+                            <p class="card__meta">Search, filter by academic year and manage assignment status.</p>
+                        </div>
+                        <div class="card__count">
+                            <span class="pill pill--info">{{ assignments|length if assignments else 0 }} Records</span>
+                        </div>
+                    </div>
+
+                    <!-- Search / Filter -->
+                    <form class="form form--compact" method="GET" action="{{ url_for('hod.teacher_assignments') }}">
+                        <div class="formgrid formgrid--filter">
+                            <div class="field field--wide">
+                                <label for="search">Search</label>
+                                <input
+                                    type="text"
+                                    id="search"
+                                    name="search"
+                                    value="{{ search or '' }}"
+                                    placeholder="Teacher / Employee ID / Subject / Course"
                                 >
+                            </div>
 
-                                    <input
-                                        type="hidden"
-                                        name="status"
-                                        value="Inactive"
-                                    >
+                            <div class="field">
+                                <label for="academic_year_id_filter">Academic Year</label>
+                                <select id="academic_year_id_filter" name="academic_year_id">
+                                    <option value="">-- All --</option>
 
-                                    <button type="submit">
-                                        Deactivate
-                                    </button>
+                                    {% if academic_years %}
+                                        {% for year in academic_years %}
+                                            <option value="{{ year.academic_year_id }}"
+                                                {% if (selected_academic_year_id|string) == (year.academic_year_id|string) %}selected{% endif %}>
+                                                {{ year.academic_year_name }} ({{ year.status }})
+                                            </option>
+                                        {% endfor %}
+                                    {% endif %}
+                                </select>
+                            </div>
+                        </div>
 
-                                </form>
+                        <div class="formactions">
+                            <button class="btn btn--primary" type="submit">Search</button>
+                            <a class="btn btn--ghost" href="{{ url_for('hod.teacher_assignments') }}">Reset</a>
+                        </div>
+                    </form>
 
-                            {% else %}
+                    {% if assignments %}
+                        <div class="tablewrap" role="region" aria-label="Teacher assignments table">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th style="width:70px;">No.</th>
+                                        <th>Teacher</th>
+                                        <th style="width:140px;">Employee ID</th>
+                                        <th style="width:170px;">Course</th>
+                                        <th style="width:140px;">Semester</th>
+                                        <th style="width:140px;">Subject Code</th>
+                                        <th>Subject</th>
+                                        <th style="width:190px;">Academic Year</th>
+                                        <th style="width:120px;">Status</th>
+                                        <th style="width:200px;">Action</th>
+                                    </tr>
+                                </thead>
 
-                                <form
-                                    method="POST"
-                                    action="{{ url_for(
-                                        'hod.change_assignment_status',
-                                        assignment_id=assignment.assignment_id
-                                    ) }}"
-                                    style="display:inline;"
-                                >
+                                <tbody>
+                                    {% for assignment in assignments %}
+                                        <tr>
+                                            <td class="mono">{{ loop.index }}</td>
+                                            <td>{{ assignment.teacher_name }}</td>
+                                            <td class="mono">{{ assignment.employee_id }}</td>
+                                            <td>{{ assignment.course_name }}</td>
+                                            <td>Semester {{ assignment.semester_number }}</td>
+                                            <td class="mono">{{ assignment.subject_code }}</td>
+                                            <td class="truncate" title="{{ assignment.subject_name }}">{{ assignment.subject_name }}</td>
+                                            <td>{{ assignment.academic_year_name }}</td>
 
-                                    <input
-                                        type="hidden"
-                                        name="status"
-                                        value="Active"
-                                    >
+                                            <td>
+                                                {% if assignment.status == 'Active' %}
+                                                    <span class="pill pill--active">Active</span>
+                                                {% else %}
+                                                    <span class="pill pill--inactive">Inactive</span>
+                                                {% endif %}
+                                            </td>
 
-                                    <button type="submit">
-                                        Activate
-                                    </button>
+                                            <td>
+                                                <div class="actions">
+                                                    {% if assignment.status == 'Active' %}
+                                                        <form class="inlineform"
+                                                              method="POST"
+                                                              action="{{ url_for('hod.change_assignment_status', assignment_id=assignment.assignment_id) }}">
+                                                            <input type="hidden" name="status" value="Inactive">
+                                                            <button class="btn btn--warn" type="submit">Deactivate</button>
+                                                        </form>
+                                                    {% else %}
+                                                        <form class="inlineform"
+                                                              method="POST"
+                                                              action="{{ url_for('hod.change_assignment_status', assignment_id=assignment.assignment_id) }}">
+                                                            <input type="hidden" name="status" value="Active">
+                                                            <button class="btn btn--primary" type="submit">Activate</button>
+                                                        </form>
+                                                    {% endif %}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="empty">
+                            <div class="empty__title">No teacher assignments found</div>
+                            <div class="empty__desc">Try adjusting the search/filters or create a new assignment.</div>
+                        </div>
+                    {% endif %}
+                </section>
 
-                                </form>
+                <div class="footerbar">
+                    <a class="btn btn--ghost" href="{{ url_for('hod.logout') }}">Logout</a>
+                </div>
+            </section>
+        </main>
+    </div>
 
-                            {% endif %}
-
-                        </td>
-
-                    </tr>
-
-                {% endfor %}
-
-            </tbody>
-
-        </table>
-
-    {% else %}
-
-        <p>
-            No teacher assignments found.
-        </p>
-
-    {% endif %}
-
-
-    <br>
-    <br>
-
-
-    <a href="{{ url_for('hod.logout') }}">
-        Logout
-    </a>
-
+    <script>
+        // Auto-highlight nav link by URL path
+        (function () {
+            const path = window.location.pathname;
+            document.querySelectorAll('.nav a').forEach(a => {
+                const href = a.getAttribute('href');
+                if (!href || href === '#') return;
+                try {
+                    const url = new URL(href, window.location.origin);
+                    if (url.pathname === path) a.classList.add('is-active');
+                } catch (e) { /* ignore */ }
+            });
+        })();
+    </script>
 </body>
-
 </html>

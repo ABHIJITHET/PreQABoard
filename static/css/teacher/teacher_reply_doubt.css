@@ -1,0 +1,11 @@
+/* static/css/teacher/teacher_reply_doubt.css */
+@import url("teacher_base.css");
+
+.preview{
+  border:1px solid rgba(255,255,255,.10);
+  background: rgba(255,255,255,.04);
+  border-radius: 14px;
+  padding:12px 12px;
+  white-space: pre-wrap;
+  line-height:1.55;
+}

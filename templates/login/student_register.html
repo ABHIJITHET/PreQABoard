@@ -7,12 +7,17 @@
 
     <title>Student Registration - PreQABoard</title>
 
+    <!-- Font (optional but recommended for consistent sizing) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
     <link rel="stylesheet" href="{{ url_for('static', filename='css/student_register.css') }}">
 </head>
 
 <body>
 
-    <div class="bg">
+    <div class="bg" aria-hidden="true">
         <div class="bg__grid"></div>
         <div class="bg__glow bg__glow--a"></div>
         <div class="bg__glow bg__glow--b"></div>
@@ -24,7 +29,7 @@
 
             <header class="auth__header">
                 <a class="brand" href="/" aria-label="Go to Home">
-                    <span class="brand__dot"></span>
+                    <span class="brand__dot" aria-hidden="true"></span>
                     <span class="brand__text">PreQABoard</span>
                 </a>
 
@@ -47,7 +52,6 @@
                 {% endif %}
             {% endwith %}
 
-            {# Optional: if your backend ever sends success=True, this shows a clean success state #}
             {% if success %}
                 <div class="status status--success" role="status" aria-live="polite">
                     <h2 class="status__title">Registration Successful</h2>
@@ -62,9 +66,7 @@
                 </div>
             {% else %}
 
-                <form class="form"
-                      method="POST"
-                      action="{{ url_for('student.register') }}">
+                <form class="form" method="POST" action="{{ url_for('student.register') }}">
 
                     <div class="form__grid">
 
@@ -74,10 +76,8 @@
                                 <select class="field__select" name="department_id" id="department_id" required>
                                     <option value="">Select Department</option>
                                     {% for department in departments %}
-                                        <option
-                                            value="{{ department.department_id }}"
-                                            data-department="{{ department.department_id }}"
-                                        >
+                                        <option value="{{ department.department_id }}"
+                                                data-department="{{ department.department_id }}">
                                             {{ department.department_name }}
                                         </option>
                                     {% endfor %}
@@ -91,10 +91,8 @@
                                 <select class="field__select" name="course_id" id="course_id" required>
                                     <option value="">Select Course</option>
                                     {% for course in courses %}
-                                        <option
-                                            value="{{ course.course_id }}"
-                                            data-department="{{ course.department_id }}"
-                                        >
+                                        <option value="{{ course.course_id }}"
+                                                data-department="{{ course.department_id }}">
                                             {{ course.course_name }}
                                         </option>
                                     {% endfor %}
@@ -108,10 +106,8 @@
                                 <select class="field__select" name="semester_id" id="semester_id" required>
                                     <option value="">Select Semester</option>
                                     {% for semester in semesters %}
-                                        <option
-                                            value="{{ semester.semester_id }}"
-                                            data-course="{{ semester.course_id }}"
-                                        >
+                                        <option value="{{ semester.semester_id }}"
+                                                data-course="{{ semester.course_id }}">
                                             Semester {{ semester.semester_number }}
                                         </option>
                                     {% endfor %}
@@ -243,94 +239,39 @@
     </main>
 
     <script>
-        const departmentSelect =
-            document.getElementById("department_id");
-
-        const courseSelect =
-            document.getElementById("course_id");
-
-        const semesterSelect =
-            document.getElementById("semester_id");
-
+        const departmentSelect = document.getElementById("department_id");
+        const courseSelect = document.getElementById("course_id");
+        const semesterSelect = document.getElementById("semester_id");
 
         departmentSelect.addEventListener("change", function () {
-
             const departmentId = this.value;
 
-            const courseOptions =
-                courseSelect.querySelectorAll("option");
-
+            const courseOptions = courseSelect.querySelectorAll("option");
             courseSelect.value = "";
             semesterSelect.value = "";
 
-
             courseOptions.forEach(function (option) {
-
-                if (option.value === "") {
-                    return;
-                }
-
-                if (
-                    option.dataset.department === departmentId
-                ) {
-
-                    option.hidden = false;
-
-                } else {
-
-                    option.hidden = true;
-
-                }
-
+                if (option.value === "") return;
+                option.hidden = option.dataset.department !== departmentId;
             });
 
-
-            semesterSelect
-                .querySelectorAll("option")
-                .forEach(function (option) {
-
-                    if (option.value !== "") {
-                        option.hidden = true;
-                    }
-
-                });
-
+            semesterSelect.querySelectorAll("option").forEach(function (option) {
+                if (option.value !== "") option.hidden = true;
+            });
         });
 
-
         courseSelect.addEventListener("change", function () {
-
             const courseId = this.value;
 
-            const semesterOptions =
-                semesterSelect.querySelectorAll("option");
-
+            const semesterOptions = semesterSelect.querySelectorAll("option");
             semesterSelect.value = "";
 
-
             semesterOptions.forEach(function (option) {
-
-                if (option.value === "") {
-                    return;
-                }
-
-                if (
-                    option.dataset.course === courseId
-                ) {
-
-                    option.hidden = false;
-
-                } else {
-
-                    option.hidden = true;
-
-                }
-
+                if (option.value === "") return;
+                option.hidden = option.dataset.course !== courseId;
             });
-
         });
     </script>
 
 </body>
-
 </html>

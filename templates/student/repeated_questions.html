@@ -1,101 +1,120 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Repeated & Important Questions (AI) | Student</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Repeated Questions (AI) • Student • PreQABoard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/student/student_repeated_questions.css') }}">
 </head>
-
 <body>
-
-    <header>
-        <h1>Repeated & Important Questions (AI)</h1>
-
-        <p>
-            Select a subject and generate repeated + important questions from approved question papers.
-        </p>
-
-        <a href="{{ url_for('student.dashboard') }}">
-            Back to Dashboard
-        </a>
-    </header>
-
-    <hr>
-
-    {% if error %}
-        <div>
-            <strong>Error:</strong> {{ error }}
+  <div class="s-layout">
+    <aside class="s-sidebar">
+      <div class="brand">
+        <div class="brand-mark"></div>
+        <div class="brand-title">
+          <strong>PreQABoard</strong>
+          <span>Student Panel</span>
         </div>
-        <hr>
-    {% endif %}
+      </div>
 
-    <section>
-        <h2>Generate</h2>
+      <nav class="nav">
+        <a href="{{ url_for('student.dashboard') }}"><span>Dashboard</span><small>Home</small></a>
+        <a href="{{ url_for('student.profile') }}"><span>My Profile</span><small>Account</small></a>
+        <a href="{{ url_for('student.syllabus') }}"><span>Syllabus</span><small>Downloads</small></a>
+        <a href="{{ url_for('student.question_papers') }}"><span>Question Papers</span><small>Search</small></a>
+        <a href="{{ url_for('student.study_materials') }}"><span>Study Materials</span><small>PDF</small></a>
+        <a href="{{ url_for('student.teacher_answers') }}"><span>Teacher Answers</span><small>Answer Keys</small></a>
+        <a class="active" href="{{ url_for('student.repeated_questions') }}"><span>Repeated Questions</span><small>AI</small></a>
+        <a href="{{ url_for('student.ai_chat') }}"><span>AI Chat</span><small>Assistant</small></a>
+        <a href="{{ url_for('student.post_doubt') }}"><span>Post Doubt</span><small>Ask</small></a>
+        <a href="{{ url_for('student.my_doubts') }}"><span>My Doubts</span><small>History</small></a>
+        <a href="{{ url_for('student.logout') }}"><span>Logout</span><small>Exit</small></a>
+      </nav>
+    </aside>
 
-        <form method="POST" action="{{ url_for('student.repeated_questions') }}">
+    <main class="s-main">
+      <header class="topbar">
+        <div class="page-title">
+          <h1>Repeated & Important Questions (AI)</h1>
+          <p>Generate repeated + important questions from approved papers.</p>
+        </div>
+        <div class="actions">
+          <a class="btn" href="{{ url_for('student.dashboard') }}">Dashboard</a>
+        </div>
+      </header>
 
+      <div class="alerts">
+        {% if error %}<div class="alert error">{{ error }}</div>{% endif %}
+      </div>
+
+      <section class="grid">
+        <div class="card" style="grid-column: span 12;">
+          <div class="card-head">
             <div>
-                <label for="subject_id">Subject:</label>
-
-                <select name="subject_id" id="subject_id" required>
+              <h2>Generate</h2>
+              <p>Select subject and number of recent papers to use.</p>
+            </div>
+          </div>
+          <div class="card-body">
+            <form class="form" method="POST" action="{{ url_for('student.repeated_questions') }}">
+              <div class="form-row">
+                <div class="field">
+                  <label for="subject_id">Subject</label>
+                  <select id="subject_id" name="subject_id" required>
                     <option value="">Select Subject</option>
-
                     {% for s in subjects %}
-                        <option
-                            value="{{ s.subject_id }}"
-                            {% if selected_subject_id == (s.subject_id|string) %}selected{% endif %}
-                        >
-                            {{ s.subject_code }} - {{ s.subject_name }}
-                        </option>
+                      <option value="{{ s.subject_id }}"
+                        {% if selected_subject_id == (s.subject_id|string) %}selected{% endif %}>
+                        {{ s.subject_code }} - {{ s.subject_name }}
+                      </option>
                     {% endfor %}
-                </select>
+                  </select>
+                </div>
+
+                <div class="field">
+                  <label for="limit_papers">Use last N papers (1 to 15)</label>
+                  <input type="number" id="limit_papers" name="limit_papers" min="1" max="15" value="8" required>
+                </div>
+              </div>
+
+              <div class="actions">
+                <button class="btn btn-primary" type="submit">Generate</button>
+                <a class="btn" href="{{ url_for('student.repeated_questions') }}">Reset</a>
+              </div>
+            </form>
+
+            <hr class="sep">
+
+            <div class="pills">
+              <span class="badge info">Used Papers: {{ used_papers or 0 }}</span>
+              {% if extracted_question_count is defined %}
+                <span class="badge info">Extracted Questions: {{ extracted_question_count or 0 }}</span>
+              {% endif %}
+              {% if failed_extract is defined %}
+                <span class="badge warn">Failed Extractions: {{ failed_extract or 0 }}</span>
+              {% endif %}
             </div>
-
-            <br>
-
-            <div>
-                <label for="limit_papers">Use last N papers (1 to 15):</label>
-                <input type="number" id="limit_papers" name="limit_papers" min="1" max="15" value="8" required>
-            </div>
-
-            <br>
-
-            <button type="submit">Generate</button>
-
-        </form>
-
-        <br>
-
-        <div>
-            <strong>Used Papers:</strong> {{ used_papers or 0 }} <br>
-            <strong>Extracted Questions:</strong> {{ extracted_question_count or 0 }} <br>
-            <strong>Failed Extraction Papers:</strong> {{ failed_extract or 0 }}
+          </div>
         </div>
 
-    </section>
+        <div class="card" style="grid-column: span 12;">
+          <div class="card-head">
+            <div>
+              <h2>AI Output</h2>
+              <p>Formatted repeated + important questions.</p>
+            </div>
+          </div>
+          <div class="card-body">
+            {% if ai_output %}
+              <div class="output">{{ ai_output }}</div>
+            {% else %}
+              <p class="muted" style="margin:0;">Generate to see AI formatted output.</p>
+            {% endif %}
+          </div>
+        </div>
+      </section>
 
-
-    <hr>
-
-    <section>
-        <h2>AI Output (Same style like expected answer)</h2>
-
-        {% if ai_output %}
-            <pre style="white-space: pre-wrap;">{{ ai_output }}</pre>
-        {% else %}
-            <p>Generate to see AI formatted output.</p>
-        {% endif %}
-    </section>
-
-    <hr>
-
-    <footer>
-        <a href="{{ url_for('student.dashboard') }}">Dashboard</a>
-        |
-        <a href="{{ url_for('student.logout') }}">Logout</a>
-    </footer>
-
+    </main>
+  </div>
 </body>
-
 </html>

@@ -1,12 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
     <meta charset="UTF-8">
-
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Teacher Registration - PreQABoard</title>
 
     <!-- Font -->
@@ -16,7 +12,6 @@
 
     <!-- CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/teacher_register.css') }}">
-
 </head>
 
 <body>
@@ -82,57 +77,30 @@
                 </div>
             {% else %}
 
-                <form class="form" method="POST" action="{{ url_for('auth.teacher_register') }}" autocomplete="on">
+                <form class="form form--grid" method="POST" action="{{ url_for('auth.teacher_register') }}" autocomplete="on">
 
                     <!-- EMPLOYEE ID -->
                     <div class="field">
                         <label class="label" for="employee_id">Employee ID</label>
-                        <input
-                            class="input"
-                            id="employee_id"
-                            type="text"
-                            name="employee_id"
-                            required
-                            placeholder="Enter employee ID"
-                        >
+                        <input class="input" id="employee_id" type="text" name="employee_id" required placeholder="Enter employee ID">
                     </div>
 
                     <!-- FULL NAME -->
                     <div class="field">
                         <label class="label" for="full_name">Full Name</label>
-                        <input
-                            class="input"
-                            id="full_name"
-                            type="text"
-                            name="full_name"
-                            required
-                            placeholder="Enter full name"
-                        >
+                        <input class="input" id="full_name" type="text" name="full_name" required placeholder="Enter full name">
                     </div>
 
-                    <!-- EMAIL -->
-                    <div class="field">
+                    <!-- EMAIL (full width) -->
+                    <div class="field field--span-2">
                         <label class="label" for="email">Email</label>
-                        <input
-                            class="input"
-                            id="email"
-                            type="email"
-                            name="email"
-                            required
-                            placeholder="Enter email address"
-                        >
+                        <input class="input" id="email" type="email" name="email" required placeholder="Enter email address">
                     </div>
 
                     <!-- PHONE -->
                     <div class="field">
                         <label class="label" for="phone">Phone</label>
-                        <input
-                            class="input"
-                            id="phone"
-                            type="text"
-                            name="phone"
-                            placeholder="Enter phone number (optional)"
-                        >
+                        <input class="input" id="phone" type="text" name="phone" placeholder="Enter phone number (optional)">
                     </div>
 
                     <!-- DEPARTMENT -->
@@ -148,58 +116,32 @@
                         </select>
                     </div>
 
-                    <!-- USERNAME -->
-                    <div class="field">
+                    <!-- USERNAME (full width so it doesn't feel cramped) -->
+                    <div class="field field--span-2">
                         <label class="label" for="username">Username</label>
-                        <input
-                            class="input"
-                            id="username"
-                            type="text"
-                            name="username"
-                            required
-                            autocomplete="username"
-                            placeholder="Create a username"
-                        >
+                        <input class="input" id="username" type="text" name="username" required autocomplete="username" placeholder="Create a username">
                     </div>
 
                     <!-- PASSWORD -->
                     <div class="field">
                         <label class="label" for="password">Password</label>
-                        <input
-                            class="input"
-                           id="password"
-                            type="password"
-                            name="password"
-                            required
-                            autocomplete="new-password"
-                            placeholder="Create a password"
-                        >
+                        <input class="input" id="password" type="password" name="password" required autocomplete="new-password" placeholder="Create a password">
                     </div>
 
                     <!-- CONFIRM PASSWORD -->
                     <div class="field">
                         <label class="label" for="confirm_password">Confirm Password</label>
-                        <input
-                            class="input"
-                            id="confirm_password"
-                            type="password"
-                            name="confirm_password"
-                            required
-                            autocomplete="new-password"
-                            placeholder="Re-enter password"
-                        >
+                        <input class="input" id="confirm_password" type="password" name="confirm_password" required autocomplete="new-password" placeholder="Re-enter password">
                     </div>
 
-                    <button class="btn btn--primary" type="submit">
-                        Register
-                    </button>
+                    <button class="btn btn--primary btn--span-2" type="submit">Register</button>
 
-                    <div class="form__footer">
+                    <div class="form__footer btn--span-2">
                         <span class="muted">Already have an account?</span>
                         <a class="link" href="{{ url_for('auth.teacher_login') }}">Teacher Login</a>
                     </div>
 
-                    <div class="form__footer form__footer--secondary">
+                    <div class="form__footer form__footer--secondary btn--span-2">
                         <a class="link link--muted" href="/">← Back to Home</a>
                     </div>
 
@@ -211,5 +153,4 @@
     </main>
 
 </body>
-
 </html>

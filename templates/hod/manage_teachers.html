@@ -1,378 +1,268 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
-    <meta charset="UTF-8">
-
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
-
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Manage Teachers - PreQABoard</title>
 
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/hod/hod_manage_teachers.css') }}">
 </head>
 
 <body>
 
-    <h1>PreQABoard</h1>
-
-    <h2>Manage Teachers</h2>
-
-    <hr>
-
-
-    <!-- =====================================================
-         NAVIGATION
-    ====================================================== -->
-
-    <p>
-
-        <a href="{{ url_for('hod.dashboard') }}">
-            ← Back to Dashboard
-        </a>
-
-    </p>
-
-
-    <!-- =====================================================
-         ERROR MESSAGE
-    ====================================================== -->
-
-    {% if error %}
-
-    <p style="color: red;">
-        {{ error }}
-    </p>
-
-    {% endif %}
-
-
-    <!-- =====================================================
-         SEARCH TEACHER (ADDED)
-    ====================================================== -->
-
-    <form method="GET"
-          action="{{ url_for('hod.manage_teachers') }}">
-
-        <label for="search">
-            Search Teacher:
-        </label>
-
-        <input type="text"
-               id="search"
-               name="search"
-               value="{{ search or '' }}"
-               placeholder="Name / Employee ID / Email / Username">
-
-        <button type="submit">
-            Search
-        </button>
-
-        <a href="{{ url_for('hod.manage_teachers') }}">
-            Reset
-        </a>
-
-    </form>
-
-    <br>
-
-
-    <!-- =====================================================
-         TEACHER LIST
-    ====================================================== -->
-
-    <h3>Teachers in Your Department</h3>
-
-
-    {% if teachers %}
-
-    <table border="1" cellpadding="10">
-
-        <thead>
-
-            <tr>
-
-                <th>No.</th>
-
-                <th>Employee ID</th>
-
-                <th>Full Name</th>
-
-                <th>Email</th>
-
-                <th>Phone</th>
-
-                <th>Username</th>
-
-                <th>Status</th>
-
-                <th>Created At</th>
-
-                <th>Action</th>
-
-            </tr>
-
-        </thead>
-
-
-        <tbody>
-
-            {% for teacher in teachers %}
-
-            <tr>
-
-                <!-- NUMBER -->
-
-                <td>
-                    {{ loop.index }}
-                </td>
-
-
-                <!-- EMPLOYEE ID -->
-
-                <td>
-                    {{ teacher.employee_id }}
-                </td>
-
-
-                <!-- NAME -->
-
-                <td>
-                    {{ teacher.full_name }}
-                </td>
-
-
-                <!-- EMAIL -->
-
-                <td>
-                    {{ teacher.email }}
-                </td>
-
-
-                <!-- PHONE -->
-
-                <td>
-                    {{ teacher.phone or '-' }}
-                </td>
-
-
-                <!-- USERNAME -->
-
-                <td>
-                    {{ teacher.username or '-' }}
-                </td>
-
-
-                <!-- STATUS -->
-
-                <td>
-                    {{ teacher.account_status }}
-                </td>
-
-
-                <!-- CREATED DATE -->
-
-                <td>
-                    {{ teacher.created_at }}
-                </td>
-
-
-                <!-- ACTIONS -->
-
-                <td>
-
-
-                    <!-- =====================================
-                         PENDING TEACHER
-                    ====================================== -->
-
-                    {% if teacher.account_status == 'Pending' %}
-
-
-                    <!-- APPROVE -->
-
-                    <form
-                        method="POST"
-                        action="{{ url_for(
-                            'hod.approve_teacher',
-                            teacher_id=teacher.teacher_id
-                        ) }}"
-                        style="display:inline;"
-                    >
-
-                        <button type="submit">
-                            Approve
-                        </button>
-
-                    </form>
-
-
-                    <br><br>
-
-
-                    <!-- REJECT -->
-
-                    <form
-                        method="POST"
-                        action="{{ url_for(
-                            'hod.reject_teacher',
-                            teacher_id=teacher.teacher_id
-                        ) }}"
-                        style="display:inline;"
-                    >
-
-                        <button type="submit">
-                            Reject
-                        </button>
-
-                    </form>
-
-
-                    <br><br>
-
-                    {% endif %}
-
-
-                    <!-- =====================================
-                         EDIT
-                    ====================================== -->
-
-                    <a href="{{ url_for(
-                        'hod.edit_teacher',
-                        teacher_id=teacher.teacher_id
-                    ) }}">
-
-                        Edit
-
-                    </a>
-
-
-                    <br><br>
-
-
-                    <!-- =====================================
-                         ACTIVE / INACTIVE
-                    ====================================== -->
-
-                    {% if teacher.account_status == 'Active' %}
-
-
-                    <form
-                        method="POST"
-                        action="{{ url_for(
-                            'hod.change_teacher_status',
-                            teacher_id=teacher.teacher_id
-                        ) }}"
-                        style="display:inline;"
-                    >
-
-                        <input
-                            type="hidden"
-                            name="status"
-                            value="Inactive"
-                        >
-
-                        <button type="submit">
-                            Deactivate
-                        </button>
-
-                    </form>
-
-
-                    {% elif teacher.account_status == 'Inactive' %}
-
-
-                    <form
-                        method="POST"
-                        action="{{ url_for(
-                            'hod.change_teacher_status',
-                            teacher_id=teacher.teacher_id
-                        ) }}"
-                        style="display:inline;"
-                    >
-
-                        <input
-                            type="hidden"
-                            name="status"
-                            value="Active"
-                        >
-
-                        <button type="submit">
-                            Activate
-                        </button>
-
-                    </form>
-
-
-                    {% endif %}
-
-
-                    <br><br>
-
-
-                    <!-- =====================================
-                         DELETE
-                    ====================================== -->
-
-                    <form
-                        method="POST"
-                        action="{{ url_for(
-                            'hod.delete_teacher',
-                            teacher_id=teacher.teacher_id
-                        ) }}"
-                        style="display:inline;"
-                        onsubmit="return confirm(
-                            'Are you sure you want to delete this teacher?'
-                        );"
-                    >
-
-                        <button type="submit">
-                            Delete
-                        </button>
-
-                    </form>
-
-
-                </td>
-
-            </tr>
-
-            {% endfor %}
-
-        </tbody>
-
-    </table>
-
-
-    {% else %}
-
-
-    <p>
-        No teachers have registered in your department yet.
-    </p>
-
-
-    {% endif %}
-
-
-    <br>
-
-    <hr>
-
-
-    <!-- =====================================================
-         LOGOUT
-    ====================================================== -->
-
-    <p>
-
-        <a href="{{ url_for('hod.logout') }}">
-            Logout
-        </a>
-
-    </p>
-
+    <!-- background layers -->
+    <div class="bg" aria-hidden="true">
+        <div class="bg__grid"></div>
+        <div class="bg__glow bg__glow--a"></div>
+        <div class="bg__glow bg__glow--b"></div>
+    </div>
+
+    <!-- =========================
+         SIDEBAR
+         ========================= -->
+    <aside class="sidebar">
+        <div class="sidebar__brand">
+            <div class="brandmark" aria-hidden="true">PQ</div>
+            <div class="sidebar__brandText">
+                <h2>PreQABoard</h2>
+                <p>HOD Panel</p>
+            </div>
+        </div>
+
+        <nav class="nav">
+            <a href="{{ url_for('hod.dashboard') }}" data-endpoint="hod.dashboard">Dashboard</a>
+
+            <a href="{{ url_for('hod.semester_calendar') }}" data-endpoint="hod.semester_calendar">Semester Calendar</a>
+            <a href="{{ url_for('hod.manage_syllabus') }}" data-endpoint="hod.manage_syllabus">Manage Syllabus</a>
+
+            <a class="is-active" href="{{ url_for('hod.manage_teachers') }}" data-endpoint="hod.manage_teachers">
+                Manage Teachers
+            </a>
+
+            <a href="{{ url_for('hod.manage_subjects') }}" data-endpoint="hod.manage_subjects">Manage Subjects</a>
+            <a href="{{ url_for('hod.teacher_assignments') }}" data-endpoint="hod.teacher_assignments">Assign Teachers</a>
+
+            <a href="{{ url_for('hod.student_approvals') }}" data-endpoint="hod.student_approvals">Student Approvals</a>
+            <a href="{{ url_for('hod.students') }}" data-endpoint="hod.students">View Students</a>
+
+            <a href="{{ url_for('hod.approve_papers') }}" data-endpoint="hod.approve_papers">Approve Question Papers</a>
+            <a href="{{ url_for('hod.approve_materials') }}" data-endpoint="hod.approve_materials">Approve Materials</a>
+
+            <a href="{{ url_for('hod.view_doubts') }}" data-endpoint="hod.view_doubts">Student Doubts</a>
+            <a href="{{ url_for('hod.profile') }}" data-endpoint="hod.profile">My Profile</a>
+        </nav>
+
+        <div class="sidebar__footer">
+            <a class="logout" href="{{ url_for('hod.logout') }}">Logout</a>
+            <div class="sidebar__hint">
+                Tip: Approve only verified department teachers.
+            </div>
+        </div>
+    </aside>
+
+    <!-- =========================
+         MAIN
+         ========================= -->
+    <main class="main">
+
+        <section class="topbar">
+            <div class="topbar__title">
+                <h1>Manage Teachers</h1>
+                <p>Search, approve/reject pending accounts, edit details, and manage status.</p>
+            </div>
+
+            <div class="topbar__actions">
+                <a class="btn btn-soft" href="{{ url_for('hod.dashboard') }}">← Back to Dashboard</a>
+            </div>
+        </section>
+
+        <!-- error + flash messages -->
+        <section class="alerts">
+            {% if error %}
+                <div class="alert alert-danger">{{ error }}</div>
+            {% endif %}
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category|lower }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </section>
+
+        <!-- Search -->
+        <section class="section">
+            <div class="section-header">
+                <h2>Search Teacher</h2>
+                <p class="section-subtitle">Search by name, employee ID, email or username.</p>
+            </div>
+
+            <form class="searchbar" method="GET" action="{{ url_for('hod.manage_teachers') }}">
+                <input
+                    class="searchbar__input"
+                    type="text"
+                    id="search"
+                    name="search"
+                    value="{{ search or '' }}"
+                    placeholder="Name / Employee ID / Email / Username"
+                />
+
+                <button class="btn btn-primary" type="submit">Search</button>
+
+                <a class="btn btn-ghost" href="{{ url_for('hod.manage_teachers') }}">Reset</a>
+            </form>
+        </section>
+
+        <!-- Table -->
+        <section class="section">
+            <div class="section-header section-header--row">
+                <div>
+                    <h2>Teachers in Your Department</h2>
+                    <p class="section-subtitle">Approve pending accounts and manage active staff.</p>
+                </div>
+
+                <div class="meta">
+                    <span class="pill pill--accent">
+                        Total: {{ teachers|length if teachers else 0 }}
+                    </span>
+                </div>
+            </div>
+
+            {% if teachers %}
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th class="col--index">No.</th>
+                                <th>Employee ID</th>
+                                <th>Full Name</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Username</th>
+                                <th class="col--status">Status</th>
+                                <th class="col--created">Created At</th>
+                                <th class="col--actions">Action</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for teacher in teachers %}
+                                <tr>
+                                    <td class="col--index">{{ loop.index }}</td>
+                                    <td class="mono">{{ teacher.employee_id }}</td>
+                                    <td class="dept-name">{{ teacher.full_name }}</td>
+                                    <td class="muted">{{ teacher.email }}</td>
+                                    <td>{{ teacher.phone or '-' }}</td>
+                                    <td class="mono">{{ teacher.username or '-' }}</td>
+
+                                    <td class="col--status">
+                                        {% if teacher.account_status == 'Active' %}
+                                            <span class="pill pill--success">Active</span>
+                                        {% elif teacher.account_status == 'Inactive' %}
+                                            <span class="pill pill--warn">Inactive</span>
+                                        {% else %}
+                                            <span class="pill pill--pending">Pending</span>
+                                        {% endif %}
+                                    </td>
+
+                                    <td class="col--created muted">{{ teacher.created_at }}</td>
+
+                                    <td class="col--actions">
+                                        <div class="action-buttons">
+
+                                            {% if teacher.account_status == 'Pending' %}
+
+                                                <form
+                                                    method="POST"
+                                                    action="{{ url_for('hod.approve_teacher', teacher_id=teacher.teacher_id) }}"
+                                                >
+                                                    <button class="view-button" type="submit">
+                                                        Approve
+                                                    </button>
+                                                </form>
+
+                                                <form
+                                                    method="POST"
+                                                    action="{{ url_for('hod.reject_teacher', teacher_id=teacher.teacher_id) }}"
+                                                >
+                                                    <button class="view-button danger-button" type="submit">
+                                                        Reject
+                                                    </button>
+                                                </form>
+
+                                            {% endif %}
+
+                                            <a class="view-button teacher-button" href="{{ url_for('hod.edit_teacher', teacher_id=teacher.teacher_id) }}">
+                                                Edit
+                                            </a>
+
+                                            {% if teacher.account_status == 'Active' %}
+                                                <form
+                                                    method="POST"
+                                                    action="{{ url_for('hod.change_teacher_status', teacher_id=teacher.teacher_id) }}"
+                                                >
+                                                    <input type="hidden" name="status" value="Inactive" />
+                                                    <button class="view-button muted-button" type="submit">
+                                                        Deactivate
+                                                    </button>
+                                                </form>
+                                            {% elif teacher.account_status == 'Inactive' %}
+                                                <form
+                                                    method="POST"
+                                                    action="{{ url_for('hod.change_teacher_status', teacher_id=teacher.teacher_id) }}"
+                                                >
+                                                    <input type="hidden" name="status" value="Active" />
+                                                    <button class="view-button" type="submit">
+                                                        Activate
+                                                    </button>
+                                                </form>
+                                            {% endif %}
+
+                                            <form
+                                                method="POST"
+                                                action="{{ url_for('hod.delete_teacher', teacher_id=teacher.teacher_id) }}"
+                                                onsubmit="return confirm('Are you sure you want to delete this teacher?');"
+                                            >
+                                                <button class="view-button danger-button" type="submit">
+                                                    Delete
+                                                </button>
+                                            </form>
+
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="no-data">
+                    No teachers have registered in your department yet.
+                </div>
+            {% endif %}
+        </section>
+
+        <div class="page-footer">
+            PreQABoard • HOD
+        </div>
+
+    </main>
+
+    <script>
+        // Auto-active nav highlight
+        (function () {
+            const endpoint = "{{ request.endpoint }}";
+            document.querySelectorAll(".nav a[data-endpoint]").forEach(a => {
+                if (a.dataset.endpoint === endpoint) {
+                    document.querySelectorAll(".nav a").forEach(x => x.classList.remove("is-active"));
+                    a.classList.add("is-active");
+                }
+            });
+        })();
+    </script>
 
 </body>
-
 </html>

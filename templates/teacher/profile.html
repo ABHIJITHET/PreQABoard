@@ -1,149 +1,115 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
-    <meta charset="UTF-8">
-
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
-
-    <title>Teacher Profile - PreQABoard</title>
-
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Teacher Profile • PreQABoard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/teacher/teacher_profile.css') }}">
 </head>
-
 <body>
+  <div class="t-layout">
+    <aside class="t-sidebar">
+      <div class="brand">
+        <div class="brand-mark"></div>
+        <div class="brand-title">
+          <strong>PreQABoard</strong>
+          <span>Teacher Panel</span>
+        </div>
+      </div>
 
-    <h1>PreQABoard</h1>
+      <nav class="nav">
+        <a href="{{ url_for('teacher.dashboard') }}"><span>Dashboard</span><small>Home</small></a>
+        <a class="active" href="{{ url_for('teacher.profile') }}"><span>Profile</span><small>Account</small></a>
+        <a href="{{ url_for('teacher.my_subjects') }}"><span>My Subjects</span><small>Assigned</small></a>
+        <a href="{{ url_for('teacher.view_students') }}"><span>Students</span><small>Directory</small></a>
+        <a href="{{ url_for('teacher.doubt_list') }}"><span>Doubts</span><small>Inbox</small></a>
+        <a href="{{ url_for('teacher.my_question_papers') }}"><span>Question Papers</span><small>My Uploads</small></a>
+        <a href="{{ url_for('teacher.my_materials') }}"><span>Study Materials</span><small>My Uploads</small></a>
+        <a href="{{ url_for('teacher.upload_answer_key') }}"><span>Upload Answer Key</span><small>PDF</small></a>
+        <a href="{{ url_for('teacher.change_password') }}"><span>Change Password</span><small>Security</small></a>
+        <a href="{{ url_for('teacher.logout') }}"><span>Logout</span><small>Exit</small></a>
+      </nav>
 
-    <h2>Teacher Profile</h2>
+      <div class="sidebar-footer">
+        Keep your contact details updated.
+      </div>
+    </aside>
 
-    <hr>
+    <main class="t-main">
+      <header class="topbar">
+        <div class="page-title">
+          <h1>Profile</h1>
+          <p>View your account information.</p>
+        </div>
+        <div class="actions">
+          <a class="btn" href="{{ url_for('teacher.change_password') }}">Change Password</a>
+        </div>
+      </header>
 
+      {% if error %}
+        <div class="alerts">
+          <div class="alert error">{{ error }}</div>
+        </div>
+      {% endif %}
 
-    <p>
+      <section class="profile-grid">
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <h2>Teacher Details</h2>
+              <p>Main account & department info.</p>
+            </div>
+          </div>
+          <div class="card-body">
+            {% if teacher %}
+              <div class="kv">
+                <div class="k">Full Name</div>
+                <div class="v">{{ teacher.full_name }}</div>
 
-        <a href="{{ url_for('teacher.dashboard') }}">
-            ← Back to Dashboard
-        </a>
+                <div class="k">Employee ID</div>
+                <div class="v">{{ teacher.employee_id }}</div>
 
-    </p>
+                <div class="k">Username</div>
+                <div class="v">{{ teacher.username }}</div>
 
+                <div class="k">Email</div>
+                <div class="v">{{ teacher.email }}</div>
 
-    {% if error %}
+                <div class="k">Phone</div>
+                <div class="v">{{ teacher.phone }}</div>
 
-    <p style="color: red;">
-        {{ error }}
-    </p>
+                <div class="k">Department</div>
+                <div class="v">{{ teacher.department_name or '—' }}</div>
 
-    {% endif %}
+                <div class="k">Account Status</div>
+                <div class="v">{{ teacher.account_status }}</div>
 
+                <div class="k">Created At</div>
+                <div class="v">{{ teacher.created_at }}</div>
+              </div>
+            {% else %}
+              <p class="muted" style="margin:0;">No profile data available.</p>
+            {% endif %}
+          </div>
+        </div>
 
-    {% if teacher %}
-
-    <h3>Profile Information</h3>
-
-
-    <table border="1" cellpadding="10">
-
-        <tr>
-            <th>Teacher ID</th>
-            <td>{{ teacher.teacher_id }}</td>
-        </tr>
-
-
-        <tr>
-            <th>Employee ID</th>
-            <td>{{ teacher.employee_id }}</td>
-        </tr>
-
-
-        <tr>
-            <th>Full Name</th>
-            <td>{{ teacher.full_name }}</td>
-        </tr>
-
-
-        <tr>
-            <th>Email</th>
-            <td>{{ teacher.email }}</td>
-        </tr>
-
-
-        <tr>
-            <th>Phone</th>
-            <td>
-                {{ teacher.phone or '-' }}
-            </td>
-        </tr>
-
-
-        <tr>
-            <th>Username</th>
-            <td>
-                {{ teacher.username or '-' }}
-            </td>
-        </tr>
-
-
-        <tr>
-            <th>Department</th>
-            <td>
-                {{ teacher.department_name or '-' }}
-            </td>
-        </tr>
-
-
-        <tr>
-            <th>Account Status</th>
-            <td>
-                {{ teacher.account_status }}
-            </td>
-        </tr>
-
-
-        <tr>
-            <th>Created At</th>
-            <td>
-                {{ teacher.created_at or '-' }}
-            </td>
-        </tr>
-
-    </table>
-
-
-    <br>
-
-    <hr>
-
-
-    <h3>Account Options</h3>
-
-
-    <p>
-
-        <a href="{{ url_for('teacher.dashboard') }}">
-            Back to Dashboard
-        </a>
-
-    </p>
-
-
-    {% endif %}
-
-
-    <hr>
-
-
-    <p>
-
-        <a href="{{ url_for('teacher.logout') }}">
-            Logout
-        </a>
-
-    </p>
-
-
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <h2>Quick Actions</h2>
+              <p>Common navigation.</p>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="actions">
+              <a class="btn btn-primary" href="{{ url_for('teacher.upload_question_paper') }}">Upload Paper</a>
+              <a class="btn" href="{{ url_for('teacher.upload_study_material') }}">Upload Material</a>
+              <a class="btn" href="{{ url_for('teacher.upload_answer_key') }}">Upload Answer Key</a>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
 </body>
-
 </html>

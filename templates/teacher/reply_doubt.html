@@ -1,163 +1,80 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
-    <meta charset="UTF-8">
-
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
-
-    <title>Reply to Doubt - PreQABoard</title>
-
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Reply Doubt • Teacher • PreQABoard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/teacher/teacher_reply_doubt.css') }}">
 </head>
-
 <body>
-
-    <h1>PreQABoard</h1>
-
-    <h2>Reply to Student Doubt</h2>
-
-    <hr>
-
-
-    {% if error %}
-
-        <p style="color: red;">
-            {{ error }}
-        </p>
-
-    {% endif %}
-
-
-    {% if doubt %}
-
-        <h3>
-            {{ doubt.doubt_title }}
-        </h3>
-
-
-        <p>
-
-            <strong>Student:</strong>
-
-            {{ doubt.student_name }}
-
-        </p>
-
-
-        <p>
-
-            <strong>Register Number:</strong>
-
-            {{ doubt.register_number }}
-
-        </p>
-
-
-        <p>
-
-            <strong>Subject:</strong>
-
-            {{ doubt.subject_code }}
-            -
-            {{ doubt.subject_name }}
-
-        </p>
-
-
-        <hr>
-
-
-        <h3>
-            Student's Doubt
-        </h3>
-
-
-        <p>
-
-            {{ doubt.doubt_description }}
-
-        </p>
-
-
-        <p>
-
-            <strong>Posted:</strong>
-
-            {{ doubt.created_at }}
-
-        </p>
-
-
-        <hr>
-
-
-        <h3>
-            Your Reply
-        </h3>
-
-
-        <form method="POST">
-
-            <label for="reply">
-                Reply:
-            </label>
-
-            <br><br>
-
-
-            <textarea
-                id="reply"
-                name="reply"
-                rows="8"
-                cols="60"
-                placeholder="Enter your answer..."
-                required
-            ></textarea>
-
-
-            <br><br>
-
-
-            <button type="submit">
-                Send Reply
-            </button>
-
-        </form>
-
-    {% endif %}
-
-
-    <br>
-
-
-    <p>
-
-        <a href="{{ url_for('teacher.doubt_list') }}">
-            Back to Student Doubts
-        </a>
-
-    </p>
-
-
-    <p>
-
-        <a href="{{ url_for('teacher.dashboard') }}">
-            Back to Dashboard
-        </a>
-
-    </p>
-
-
-    <p>
-
-        <a href="{{ url_for('teacher.logout') }}">
-            Logout
-        </a>
-
-    </p>
-
+  <div class="ns-wrap">
+    <div class="container">
+      <header class="topbar">
+        <div class="page-title">
+          <h1>Reply to Doubt</h1>
+          <p>Write a clear answer for the student.</p>
+        </div>
+        <div class="actions">
+          <a class="btn" href="{{ url_for('teacher.doubt_list') }}">Back to Doubts</a>
+        </div>
+      </header>
+
+      <div class="alerts">
+        {% if error %}<div class="alert error">{{ error }}</div>{% endif %}
+        {% if success %}<div class="alert success">{{ success }}</div>{% endif %}
+      </div>
+
+      <section class="ns-card">
+        <div class="ns-head">
+          <h1>Doubt Details</h1>
+          <p>Review before replying.</p>
+        </div>
+        <div class="ns-body">
+          {% if doubt %}
+            <div class="card" style="box-shadow:none;">
+              <div class="card-body">
+                <div class="kv" style="grid-template-columns: 170px 1fr;">
+                  <div class="k">Student</div>
+                  <div class="v">{{ doubt.student_name }} ({{ doubt.register_number }})</div>
+
+                  <div class="k">Subject</div>
+                  <div class="v">{{ doubt.subject_code }} — {{ doubt.subject_name }}</div>
+
+                  <div class="k">Created At</div>
+                  <div class="v">{{ doubt.created_at }}</div>
+
+                  <div class="k">Title</div>
+                  <div class="v">{{ doubt.doubt_title }}</div>
+                </div>
+
+                <hr class="sep">
+
+                <div class="field">
+                  <label>Description</label>
+                  <div class="preview">{{ doubt.doubt_description }}</div>
+                </div>
+              </div>
+            </div>
+
+            <hr class="sep">
+
+            <form class="form" method="POST" action="">
+              <div class="field">
+                <label for="reply">Your Reply</label>
+                <textarea id="reply" name="reply" required placeholder="Type your explanation..."></textarea>
+              </div>
+
+              <div class="actions">
+                <button class="btn btn-primary" type="submit">Submit Reply</button>
+                <a class="btn" href="{{ url_for('teacher.doubt_list') }}">Cancel</a>
+              </div>
+            </form>
+          {% else %}
+            <p class="muted" style="margin:0;">Doubt not available.</p>
+          {% endif %}
+        </div>
+      </section>
+    </div>
+  </div>
 </body>
-
 </html>

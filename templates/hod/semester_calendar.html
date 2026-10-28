@@ -1,100 +1,202 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Semester Calendar - HOD</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Semester Calendar - HOD - PreQABoard</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/hod/hod_semester_calendar.css') }}">
 </head>
+
 <body>
 
-    <h1>PreQABoard - HOD</h1>
+    <!-- background layers -->
+    <div class="bg" aria-hidden="true">
+        <div class="bg__grid"></div>
+        <div class="bg__glow bg__glow--a"></div>
+        <div class="bg__glow bg__glow--b"></div>
+    </div>
 
-    <p>
-        <a href="{{ url_for('hod.dashboard') }}">← Back to Dashboard</a>
-        |
-        <a href="{{ url_for('hod.logout') }}">Logout</a>
-    </p>
+    <!-- =========================
+         SIDEBAR
+         ========================= -->
+    <aside class="sidebar">
+        <div class="sidebar__brand">
+            <div class="brandmark" aria-hidden="true">PQ</div>
+            <div class="sidebar__brandText">
+                <h2>PreQABoard</h2>
+                <p>HOD Panel</p>
+            </div>
+        </div>
 
-    <hr>
+        <nav class="nav">
+            <a href="{{ url_for('hod.dashboard') }}" data-endpoint="hod.dashboard">Dashboard</a>
 
-    <h2>Semester Academic Calendar</h2>
+            <a class="is-active" href="{{ url_for('hod.semester_calendar') }}" data-endpoint="hod.semester_calendar">
+                Semester Calendar
+            </a>
 
-    <p>
-        HOD can enter start and end dates for each semester.
-        These dates will be used for automatic semester increment for students.
-    </p>
+            <a href="{{ url_for('hod.manage_syllabus') }}" data-endpoint="hod.manage_syllabus">Manage Syllabus</a>
+            <a href="{{ url_for('hod.manage_teachers') }}" data-endpoint="hod.manage_teachers">Manage Teachers</a>
+            <a href="{{ url_for('hod.manage_subjects') }}" data-endpoint="hod.manage_subjects">Manage Subjects</a>
+            <a href="{{ url_for('hod.teacher_assignments') }}" data-endpoint="hod.teacher_assignments">Assign Teachers</a>
+            <a href="{{ url_for('hod.student_approvals') }}" data-endpoint="hod.student_approvals">Student Approvals</a>
+            <a href="{{ url_for('hod.students') }}" data-endpoint="hod.students">View Students</a>
+            <a href="{{ url_for('hod.approve_papers') }}" data-endpoint="hod.approve_papers">Approve Question Papers</a>
+            <a href="{{ url_for('hod.approve_materials') }}" data-endpoint="hod.approve_materials">Approve Materials</a>
+            <a href="{{ url_for('hod.view_doubts') }}" data-endpoint="hod.view_doubts">Student Doubts</a>
+            <a href="{{ url_for('hod.profile') }}" data-endpoint="hod.profile">My Profile</a>
+        </nav>
 
-    {% if success %}
-        <p style="color: green;"><strong>{{ success }}</strong></p>
-    {% endif %}
+        <div class="sidebar__footer">
+            <a class="logout" href="{{ url_for('hod.logout') }}">Logout</a>
+            <div class="sidebar__hint">
+                Tip: Start/End dates help auto-promote students to next semester.
+            </div>
+        </div>
+    </aside>
 
-    {% if error %}
-        <p style="color: red;"><strong>{{ error }}</strong></p>
-    {% endif %}
+    <!-- =========================
+         MAIN
+         ========================= -->
+    <main class="main">
 
-    <hr>
+        <section class="topbar">
+            <div class="topbar__title">
+                <h1>Semester Academic Calendar</h1>
+                <p>
+                    Set start and end dates for each semester. These dates can be used for automatic semester increment.
+                </p>
+            </div>
 
-    <label for="course_filter"><strong>Filter by Course:</strong></label>
-    <select id="course_filter">
-        <option value="">-- All Courses --</option>
-        {% for c in courses %}
-            <option value="{{ c.course_id }}">{{ c.course_name }}</option>
-        {% endfor %}
-    </select>
+            <div class="topbar__actions">
+                <a class="btn btn-soft" href="{{ url_for('hod.dashboard') }}">← Back to Dashboard</a>
+            </div>
+        </section>
 
-    <br><br>
+        <!-- Success / Error -->
+        <section class="alerts">
+            {% if success %}
+                <div class="alert alert-success"><strong>{{ success }}</strong></div>
+            {% endif %}
+            {% if error %}
+                <div class="alert alert-danger"><strong>{{ error }}</strong></div>
+            {% endif %}
 
-    {% if semesters %}
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category|lower }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </section>
 
-        <table border="1" cellpadding="8" cellspacing="0">
-            <thead>
-                <tr>
-                    <th>No.</th>
-                    <th>Course</th>
-                    <th>Semester</th>
-                    <th>Start Date</th>
-                    <th>End Date</th>
-                    <th>Update</th>
-                </tr>
-            </thead>
+        <!-- Filter -->
+        <section class="section">
+            <div class="section-header section-header--row">
+                <div>
+                    <h2>Filter</h2>
+                    <p class="section-subtitle">View semesters by course.</p>
+                </div>
 
-            <tbody>
-                {% for sem in semesters %}
-                <tr class="sem-row" data-course="{{ sem.course_id }}">
-                    <td>{{ loop.index }}</td>
-                    <td>{{ sem.course_name }}</td>
-                    <td>{{ sem.semester_number }}</td>
+                <div class="filter">
+                    <label class="filter__label" for="course_filter">Filter by Course</label>
+                    <select class="filter__select" id="course_filter">
+                        <option value="">-- All Courses --</option>
+                        {% for c in courses %}
+                            <option value="{{ c.course_id }}">{{ c.course_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </section>
 
-                    <td>
-                        <form method="POST"
-                              action="{{ url_for('hod.update_semester_calendar', semester_id=sem.semester_id) }}">
+        <!-- Table -->
+        <section class="section">
+            <div class="section-header section-header--row">
+                <div>
+                    <h2>Calendar Settings</h2>
+                    <p class="section-subtitle">Update dates and click Save for each semester row.</p>
+                </div>
 
-                            <input type="date"
-                                   name="start_date"
-                                   value="{{ sem.start_date or '' }}"
-                                   required>
-                    </td>
+                <div class="meta">
+                    <span class="pill pill--accent">
+                        Total: {{ semesters|length if semesters else 0 }}
+                    </span>
+                </div>
+            </div>
 
-                    <td>
-                            <input type="date"
-                                   name="end_date"
-                                   value="{{ sem.end_date or '' }}"
-                                   required>
-                    </td>
+            {% if semesters %}
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th class="col--index">No.</th>
+                                <th>Course</th>
+                                <th class="col--sem">Semester</th>
+                                <th class="col--date">Start Date</th>
+                                <th class="col--date">End Date</th>
+                                <th class="col--actions">Update</th>
+                            </tr>
+                        </thead>
 
-                    <td>
-                            <button type="submit">Save</button>
-                        </form>
-                    </td>
+                        <tbody>
+                            {% for sem in semesters %}
+                                <tr class="sem-row" data-course="{{ sem.course_id }}">
+                                    <td class="col--index">{{ loop.index }}</td>
+                                    <td class="dept-name">{{ sem.course_name }}</td>
+                                    <td class="col--sem">Semester {{ sem.semester_number }}</td>
 
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                                    <td class="col--date">
+                                        <form
+                                            class="row-form"
+                                            method="POST"
+                                            action="{{ url_for('hod.update_semester_calendar', semester_id=sem.semester_id) }}"
+                                        >
+                                            <input
+                                                class="date-input"
+                                                type="date"
+                                                name="start_date"
+                                                value="{{ sem.start_date or '' }}"
+                                                required
+                                            />
+                                    </td>
 
-    {% else %}
-        <p><strong>No semesters found.</strong></p>
-    {% endif %}
+                                    <td class="col--date">
+                                            <input
+                                                class="date-input"
+                                                type="date"
+                                                name="end_date"
+                                                value="{{ sem.end_date or '' }}"
+                                                required
+                                            />
+                                    </td>
+
+                                    <td class="col--actions">
+                                            <button class="view-button" type="submit">Save</button>
+                                        </form>
+                                    </td>
+
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="no-data">
+                    <strong>No semesters found.</strong>
+                </div>
+            {% endif %}
+        </section>
+
+        <div class="page-footer">
+            PreQABoard • HOD
+        </div>
+
+    </main>
 
     <script>
         const courseFilter = document.getElementById("course_filter");
@@ -109,6 +211,17 @@
                 }
             });
         });
+
+        // Auto-active nav highlight (optional)
+        (function () {
+            const endpoint = "{{ request.endpoint }}";
+            document.querySelectorAll(".nav a[data-endpoint]").forEach(a => {
+                if (a.dataset.endpoint === endpoint) {
+                    document.querySelectorAll(".nav a").forEach(x => x.classList.remove("is-active"));
+                    a.classList.add("is-active");
+                }
+            });
+        })();
     </script>
 
 </body>

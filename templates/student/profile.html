@@ -1,73 +1,104 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Profile - PreQABoard</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Profile • Student • PreQABoard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/student/student_profile.css') }}">
 </head>
 <body>
+  <div class="s-layout">
+    <aside class="s-sidebar">
+      <div class="brand">
+        <div class="brand-mark"></div>
+        <div class="brand-title">
+          <strong>PreQABoard</strong>
+          <span>Student Panel</span>
+        </div>
+      </div>
 
-    <h1>PreQABoard - Student</h1>
+      <nav class="nav">
+        <a href="{{ url_for('student.dashboard') }}"><span>Dashboard</span><small>Home</small></a>
+        <a class="active" href="{{ url_for('student.profile') }}"><span>My Profile</span><small>Account</small></a>
+        <a href="{{ url_for('student.syllabus') }}"><span>Syllabus</span><small>Downloads</small></a>
+        <a href="{{ url_for('student.question_papers') }}"><span>Question Papers</span><small>Search</small></a>
+        <a href="{{ url_for('student.study_materials') }}"><span>Study Materials</span><small>PDF</small></a>
+        <a href="{{ url_for('student.teacher_answers') }}"><span>Teacher Answers</span><small>Answer Keys</small></a>
+        <a href="{{ url_for('student.repeated_questions') }}"><span>Repeated Questions</span><small>AI</small></a>
+        <a href="{{ url_for('student.ai_chat') }}"><span>AI Chat</span><small>Assistant</small></a>
+        <a href="{{ url_for('student.post_doubt') }}"><span>Post Doubt</span><small>Ask</small></a>
+        <a href="{{ url_for('student.my_doubts') }}"><span>My Doubts</span><small>History</small></a>
+        <a href="{{ url_for('student.logout') }}"><span>Logout</span><small>Exit</small></a>
+      </nav>
 
-    <p>
-        <a href="{{ url_for('student.dashboard') }}">← Dashboard</a> |
-        <a href="{{ url_for('student.logout') }}">Logout</a>
-    </p>
+      <div class="sidebar-footer">
+        Your profile details are shown as stored in the system.
+      </div>
+    </aside>
 
-    <hr>
+    <main class="s-main">
+      <header class="topbar">
+        <div class="page-title">
+          <h1>My Profile</h1>
+          <p>View your account and academic details.</p>
+        </div>
+        <div class="actions">
+          <a class="btn" href="{{ url_for('student.dashboard') }}">Back to Dashboard</a>
+        </div>
+      </header>
 
-    <h2>My Profile</h2>
+      <div class="alerts">
+        {% if error %}<div class="alert error">{{ error }}</div>{% endif %}
+      </div>
 
-    {% if error %}
-        <p style="color:red;"><strong>{{ error }}</strong></p>
-    {% endif %}
+      <section class="grid">
+        <div class="card" style="grid-column: span 12;">
+          <div class="card-head">
+            <div>
+              <h2>Profile Details</h2>
+              <p>Student information.</p>
+            </div>
+          </div>
+          <div class="card-body">
+            {% if student %}
+              <div class="kv">
+                <div class="cell k">Register Number</div>
+                <div class="cell v">{{ student.register_number or '-' }}</div>
 
-    {% if student %}
-        <table border="1" cellpadding="8" cellspacing="0">
-            <tr>
-                <th>Register Number</th>
-                <td>{{ student.register_number or '-' }}</td>
-            </tr>
-            <tr>
-                <th>Full Name</th>
-                <td>{{ student.full_name or '-' }}</td>
-            </tr>
-            <tr>
-                <th>Email</th>
-                <td>{{ student.email or '-' }}</td>
-            </tr>
-            <tr>
-                <th>Phone</th>
-                <td>{{ student.phone or '-' }}</td>
-            </tr>
-            <tr>
-                <th>Username</th>
-                <td>{{ student.username or '-' }}</td>
-            </tr>
-            <tr>
-                <th>Department</th>
-                <td>{{ student.department_name or '-' }}</td>
-            </tr>
-            <tr>
-                <th>Course</th>
-                <td>{{ student.course_name or '-' }}</td>
-            </tr>
-            <tr>
-                <th>Semester</th>
-                <td>{{ student.semester_number or '-' }}</td>
-            </tr>
-            <tr>
-                <th>Approval Status</th>
-                <td>{{ student.approval_status or '-' }}</td>
-            </tr>
-            <tr>
-                <th>Account Status</th>
-                <td>{{ student.account_status or '-' }}</td>
-            </tr>
-        </table>
-    {% else %}
-        <p><strong>Profile not available.</strong></p>
-    {% endif %}
+                <div class="cell k">Full Name</div>
+                <div class="cell v">{{ student.full_name or '-' }}</div>
 
+                <div class="cell k">Email</div>
+                <div class="cell v">{{ student.email or '-' }}</div>
+
+                <div class="cell k">Phone</div>
+                <div class="cell v">{{ student.phone or '-' }}</div>
+
+                <div class="cell k">Username</div>
+                <div class="cell v">{{ student.username or '-' }}</div>
+
+                <div class="cell k">Department</div>
+                <div class="cell v">{{ student.department_name or '-' }}</div>
+
+                <div class="cell k">Course</div>
+                <div class="cell v">{{ student.course_name or '-' }}</div>
+
+                <div class="cell k">Semester</div>
+                <div class="cell v">{{ student.semester_number or '-' }}</div>
+
+                <div class="cell k">Approval Status</div>
+                <div class="cell v">{{ student.approval_status or '-' }}</div>
+
+                <div class="cell k">Account Status</div>
+                <div class="cell v">{{ student.account_status or '-' }}</div>
+              </div>
+            {% else %}
+              <p class="muted" style="margin:0;">Profile not available.</p>
+            {% endif %}
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
 </body>
 </html>

@@ -1,148 +1,105 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
-    <meta charset="UTF-8">
-
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
-
-    <title>Student Doubts - PreQABoard</title>
-
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Doubts • Teacher • PreQABoard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/teacher/teacher_doubt_list.css') }}">
 </head>
-
 <body>
+  <div class="t-layout">
+    <aside class="t-sidebar">
+      <div class="brand">
+        <div class="brand-mark"></div>
+        <div class="brand-title">
+          <strong>PreQABoard</strong>
+          <span>Teacher Panel</span>
+        </div>
+      </div>
 
-    <h1>PreQABoard</h1>
+      <nav class="nav">
+        <a href="{{ url_for('teacher.dashboard') }}"><span>Dashboard</span><small>Home</small></a>
+        <a href="{{ url_for('teacher.profile') }}"><span>Profile</span><small>Account</small></a>
+        <a href="{{ url_for('teacher.my_subjects') }}"><span>My Subjects</span><small>Assigned</small></a>
+        <a href="{{ url_for('teacher.view_students') }}"><span>Students</span><small>Directory</small></a>
+        <a class="active" href="{{ url_for('teacher.doubt_list') }}"><span>Doubts</span><small>Inbox</small></a>
+        <a href="{{ url_for('teacher.my_question_papers') }}"><span>Question Papers</span><small>My Uploads</small></a>
+        <a href="{{ url_for('teacher.my_materials') }}"><span>Study Materials</span><small>My Uploads</small></a>
+        <a href="{{ url_for('teacher.upload_answer_key') }}"><span>Upload Answer Key</span><small>PDF</small></a>
+        <a href="{{ url_for('teacher.change_password') }}"><span>Change Password</span><small>Security</small></a>
+        <a href="{{ url_for('teacher.logout') }}"><span>Logout</span><small>Exit</small></a>
+      </nav>
 
-    <h2>Student Doubts</h2>
+      <div class="sidebar-footer">
+        Reply to doubts assigned to your subjects.
+      </div>
+    </aside>
 
-    <hr>
+    <main class="t-main">
+      <header class="topbar">
+        <div class="page-title">
+          <h1>Doubts</h1>
+          <p>Student doubts from your assigned subjects.</p>
+        </div>
+      </header>
 
+      {% if error %}
+        <div class="alerts">
+          <div class="alert error">{{ error }}</div>
+        </div>
+      {% endif %}
 
-    {% if error %}
+      <section class="grid">
+        <div class="card" style="grid-column: span 12;">
+          <div class="card-head">
+            <div>
+              <h2>Doubt Inbox</h2>
+              <p>Open and reply to resolve student questions.</p>
+            </div>
+          </div>
 
-    <p style="color: red;">
-        {{ error }}
-    </p>
+          <div class="card-body">
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Created</th>
+                    <th>Student</th>
+                    <th>Register No</th>
+                    <th>Subject</th>
+                    <th>Title</th>
+                    <th>Description</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for d in doubts %}
+                    <tr>
+                      <td class="muted">{{ loop.index }}</td>
+                      <td class="muted">{{ d.created_at }}</td>
+                      <td>{{ d.student_name }}</td>
+                      <td class="muted">{{ d.register_number }}</td>
+                      <td class="muted">{{ d.subject_code }} — {{ d.subject_name }}</td>
+                      <td>{{ d.doubt_title }}</td>
+                      <td class="dtext">{{ d.doubt_description }}</td>
+                      <td>
+                        <a class="btn btn-primary" href="{{ url_for('teacher.reply_doubt', doubt_id=d.doubt_id) }}">Reply</a>
+                      </td>
+                    </tr>
+                  {% else %}
+                    <tr>
+                      <td colspan="8" class="muted">No doubts found.</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
 
-    {% endif %}
-
-
-    {% if doubts %}
-
-    <table border="1"
-           cellpadding="10"
-           cellspacing="0">
-
-        <tr>
-
-            <th>Sl No</th>
-
-            <th>Student</th>
-
-            <th>Register Number</th>
-
-            <th>Subject</th>
-
-            <th>Doubt Title</th>
-
-            <th>Doubt Description</th>
-
-            <th>Date</th>
-
-            <th>Action</th>
-
-        </tr>
-
-
-        {% for doubt in doubts %}
-
-        <tr>
-
-            <td>
-                {{ loop.index }}
-            </td>
-
-
-            <td>
-                {{ doubt.student_name }}
-            </td>
-
-
-            <td>
-                {{ doubt.register_number }}
-            </td>
-
-
-            <td>
-
-                {{ doubt.subject_code }}
-
-                <br>
-
-                {{ doubt.subject_name }}
-
-            </td>
-
-
-            <td>
-                {{ doubt.doubt_title }}
-            </td>
-
-
-            <td>
-                {{ doubt.doubt_description }}
-            </td>
-
-
-            <td>
-                {{ doubt.created_at }}
-            </td>
-
-
-            <td>
-
-                <a href="{{ url_for(
-                    'teacher.reply_doubt',
-                    doubt_id=doubt.doubt_id
-                ) }}">
-
-                    Reply
-
-                </a>
-
-            </td>
-
-        </tr>
-
-        {% endfor %}
-
-    </table>
-
-
-    {% else %}
-
-    <p>
-        No student doubts found.
-    </p>
-
-    {% endif %}
-
-
-    <hr>
-
-
-    <p>
-
-        <a href="{{ url_for('teacher.dashboard') }}">
-            Back to Dashboard
-        </a>
-
-    </p>
-
-
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
 </body>
-
 </html>

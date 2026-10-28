@@ -1,240 +1,317 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Manage Syllabus | HOD</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/hod/hod_syllabus.css') }}">
 </head>
 
 <body>
+    <!-- Background layers -->
+    <div class="bg" aria-hidden="true">
+        <div class="bg__grid"></div>
+        <div class="bg__glow bg__glow--a"></div>
+        <div class="bg__glow bg__glow--b"></div>
+    </div>
 
-    <!-- =====================================================
-         HEADER
-    ====================================================== -->
-
-    <header>
-
-        <h1>Manage Syllabus</h1>
-
-        <p>
-            HOD Syllabus Management
-        </p>
-
-        <a href="{{ url_for('hod.dashboard') }}">
-            Back to Dashboard
-        </a>
-
-    </header>
-
-
-    <hr>
-
-
-    <!-- =====================================================
-         FLASH / ERROR MESSAGE
-    ====================================================== -->
-
-    {% if error %}
-
-        <div>
-            <strong>Error:</strong>
-            {{ error }}
-        </div>
-
-    {% endif %}
-
-
-    {% if success %}
-
-        <div>
-            <strong>Success:</strong>
-            {{ success }}
-        </div>
-
-    {% endif %}
-
-
-    <!-- =====================================================
-         UPLOAD SYLLABUS
-    ====================================================== -->
-
-    <section>
-
-        <h2>Upload Syllabus</h2>
-
-        <form
-            action="{{ url_for('hod.upload_syllabus') }}"
-            method="POST"
-            enctype="multipart/form-data"
-        >
-
-            <div>
-
-                <label for="course_id">
-                    Course:
-                </label>
-
-                <select
-                    name="course_id"
-                    id="course_id"
-                    required
-                >
-
-                    <option value="">
-                        Select Course
-                    </option>
-
-                    {% for course in courses %}
-
-                        <option value="{{ course.course_id }}">
-
-                            {{ course.course_name }}
-
-                        </option>
-
-                    {% endfor %}
-
-                </select>
-
+    <div class="layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar__brand">
+                <div class="brandmark" aria-hidden="true"></div>
+                <div>
+                    <div class="brandtitle">PreQABoard</div>
+                    <div class="brandsub">HOD Panel</div>
+                </div>
             </div>
 
+            <nav class="nav">
+                <a href="{{ url_for('hod.dashboard') }}">
+                    <span class="dot" aria-hidden="true"></span>
+                    Dashboard
+                </a>
 
-            <br>
+                <a href="{{ url_for('hod.student_approvals') }}">
+                    <span class="dot" aria-hidden="true"></span>
+                    Student Approvals
+                </a>
 
+                <a href="{{ url_for('hod.students') }}">
+                    <span class="dot" aria-hidden="true"></span>
+                    View Students
+                </a>
 
-            <div>
+                <a href="{{ url_for('hod.manage_subjects') }}">
+                    <span class="dot" aria-hidden="true"></span>
+                    Manage Subjects
+                </a>
 
-                <label for="semester_id">
-                    Semester:
-                </label>
+                <a href="{{ url_for('hod.manage_teachers') }}">
+                    <span class="dot" aria-hidden="true"></span>
+                    Manage Teachers
+                </a>
 
-                <select
-                    name="semester_id"
-                    id="semester_id"
-                    required
-                >
+                <a class="is-active" href="{{ request.path }}">
+                    <span class="dot" aria-hidden="true"></span>
+                    Manage Syllabus
+                </a>
 
-                    <option value="">
-                        Select Semester
-                    </option>
+                <a href="{{ url_for('hod.semester_calendar') }}">
+                    <span class="dot" aria-hidden="true"></span>
+                    Semester Calendar
+                </a>
 
-                    {% for semester in semesters %}
+                <a href="{{ url_for('hod.profile') }}">
+                    <span class="dot" aria-hidden="true"></span>
+                    Profile
+                </a>
+            </nav>
 
-                        <option
-                            value="{{ semester.semester_id }}"
-                            data-course-id="{{ semester.course_id }}"
-                        >
-
-                            Semester {{ semester.semester_number }}
-                            {% if semester.course_name %}
-                                ({{ semester.course_name }})
-                            {% endif %}
-
-                        </option>
-
-                    {% endfor %}
-
-                </select>
-
+            <div class="sidebar__footer">
+                <a class="logout" href="{{ url_for('hod.logout') }}">Logout</a>
             </div>
+        </aside>
 
+        <!-- Main -->
+        <main class="main">
+            <header class="topbar">
+                <div class="topbar__left">
+                    <div class="crumb">HOD / Academics</div>
+                    <h1 class="title">Manage Syllabus</h1>
+                    <p class="subtitle">Upload, activate/deactivate, and manage department syllabi (PDF).</p>
+                </div>
 
-            <br>
+                <div class="topbar__actions">
+                    <a class="btn btn--primary" href="{{ url_for('hod.dashboard') }}">Back to Dashboard</a>
+                </div>
+            </header>
 
+            <section class="content">
+                {% if error %}
+                    <div class="alert alert--danger">
+                        <strong>Error:</strong> {{ error }}
+                    </div>
+                {% endif %}
 
-            <!-- ===================== ADDED ===================== -->
-            <div>
+                {% if success %}
+                    <div class="alert alert--success">
+                        <strong>Success:</strong> {{ success }}
+                    </div>
+                {% endif %}
 
-                <label for="academic_year_id">
-                    Academic Year:
-                </label>
+                <!-- Upload syllabus -->
+                <section class="card">
+                    <div class="card__head">
+                        <div>
+                            <h2 class="card__title">Upload Syllabus</h2>
+                            <p class="card__meta">Select course, semester, academic year and upload a PDF file.</p>
+                        </div>
+                        <div class="card__count">
+                            <span class="pill pill--info">PDF only</span>
+                        </div>
+                    </div>
 
-                <select
-                    name="academic_year_id"
-                    id="academic_year_id"
-                    required
-                >
+                    <form class="form"
+                          action="{{ url_for('hod.upload_syllabus') }}"
+                          method="POST"
+                          enctype="multipart/form-data">
 
-                    <option value="">
-                        Select Academic Year
-                    </option>
+                        <div class="formgrid">
+                            <div class="field">
+                                <label for="course_id">Course</label>
+                                <select name="course_id" id="course_id" required>
+                                    <option value="">Select Course</option>
+                                    {% for course in courses %}
+                                        <option value="{{ course.course_id }}">{{ course.course_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
 
-                    {% for ay in academic_years %}
+                            <div class="field">
+                                <label for="semester_id">Semester</label>
+                                <select name="semester_id" id="semester_id" required>
+                                    <option value="">Select Semester</option>
+                                    {% for semester in semesters %}
+                                        <option
+                                            value="{{ semester.semester_id }}"
+                                            data-course-id="{{ semester.course_id }}"
+                                        >
+                                            Semester {{ semester.semester_number }}
+                                            {% if semester.course_name %}
+                                                ({{ semester.course_name }})
+                                            {% endif %}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                <div class="help">Semesters are filtered based on the selected course.</div>
+                            </div>
 
-                        <option value="{{ ay.academic_year_id }}">
+                            <div class="field">
+                                <label for="academic_year_id">Academic Year</label>
+                                <select name="academic_year_id" id="academic_year_id" required>
+                                    <option value="">Select Academic Year</option>
+                                    {% for ay in academic_years %}
+                                        <option value="{{ ay.academic_year_id }}">
+                                            {{ ay.academic_year_name }}
+                                            {% if ay.status %}
+                                                ({{ ay.status }})
+                                            {% endif %}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
 
-                            {{ ay.academic_year_name }}
-                            {% if ay.status %}
-                                ({{ ay.status }})
-                            {% endif %}
+                            <div class="field field--wide">
+                                <label for="title">Syllabus Title</label>
+                                <input
+                                    type="text"
+                                    name="title"
+                                    id="title"
+                                    placeholder="Enter syllabus title"
+                                    required
+                                >
+                            </div>
 
-                        </option>
+                            <div class="field field--wide">
+                                <label for="syllabus_file">Syllabus PDF</label>
+                                <input
+                                    class="file"
+                                    type="file"
+                                    name="syllabus_file"
+                                    id="syllabus_file"
+                                    accept=".pdf,application/pdf"
+                                    required
+                                >
+                                <div class="help">Recommended: clear naming (e.g., “CSE Sem 3 Syllabus 2025”).</div>
+                            </div>
+                        </div>
 
-                    {% endfor %}
+                        <div class="formactions">
+                            <button class="btn btn--primary" type="submit">Upload Syllabus</button>
+                        </div>
+                    </form>
+                </section>
 
-                </select>
+                <!-- Syllabus list -->
+                <section class="card">
+                    <div class="card__head">
+                        <div>
+                            <h2 class="card__title">Department Syllabi</h2>
+                            <p class="card__meta">View uploaded syllabi and manage status.</p>
+                        </div>
+                        <div class="card__count">
+                            <span class="pill pill--info">{{ syllabi|length if syllabi else 0 }} Total</span>
+                        </div>
+                    </div>
 
-            </div>
-            <!-- ================================================= -->
+                    {% if syllabi %}
+                        <div class="tablewrap" role="region" aria-label="Syllabus table">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th style="width:70px;">#</th>
+                                        <th>Title</th>
+                                        <th style="width:180px;">Course</th>
+                                        <th style="width:140px;">Semester</th>
+                                        <th style="width:140px;">File</th>
+                                        <th style="width:120px;">Status</th>
+                                        <th style="width:170px;">Uploaded Date</th>
+                                        <th style="width:230px;">Actions</th>
+                                    </tr>
+                                </thead>
 
+                                <tbody>
+                                    {% for syllabus in syllabi %}
+                                        <tr>
+                                            <td class="mono">{{ loop.index }}</td>
 
-            <br>
+                                            <td class="truncate" title="{{ syllabus.title }}">
+                                                {{ syllabus.title }}
+                                            </td>
 
+                                            <td>{{ syllabus.course_name }}</td>
 
-            <div>
+                                            <td>
+                                                {% if syllabus.semester_number %}
+                                                    Semester {{ syllabus.semester_number }}
+                                                {% else %}
+                                                    -
+                                                {% endif %}
+                                            </td>
 
-                <label for="title">
-                    Syllabus Title:
-                </label>
+                                            <td>
+                                                {% if syllabus.file_name %}
+                                                    <a class="link"
+                                                       href="{{ url_for('hod.view_syllabus', syllabus_id=syllabus.syllabus_id) }}"
+                                                       target="_blank" rel="noopener">
+                                                        View PDF
+                                                    </a>
+                                                {% else %}
+                                                    <span class="muted">No File</span>
+                                                {% endif %}
+                                            </td>
 
-                <input
-                    type="text"
-                    name="title"
-                    id="title"
-                    placeholder="Enter syllabus title"
-                    required
-                >
+                                            <td>
+                                                {% if syllabus.status == 'Active' %}
+                                                    <span class="pill pill--active">Active</span>
+                                                {% else %}
+                                                    <span class="pill pill--inactive">Inactive</span>
+                                                {% endif %}
+                                            </td>
 
-            </div>
+                                            <td class="mono">{{ syllabus.upload_date }}</td>
 
+                                            <td>
+                                                <div class="actions">
+                                                    <form class="inlineform"
+                                                          action="{{ url_for('hod.change_syllabus_status', syllabus_id=syllabus.syllabus_id) }}"
+                                                          method="POST">
+                                                        {% if syllabus.status == 'Active' %}
+                                                            <input type="hidden" name="status" value="Inactive">
+                                                            <button class="btn btn--warn" type="submit">Deactivate</button>
+                                                        {% else %}
+                                                            <input type="hidden" name="status" value="Active">
+                                                            <button class="btn btn--primary" type="submit">Activate</button>
+                                                        {% endif %}
+                                                    </form>
 
-            <br>
+                                                    <form class="inlineform"
+                                                          action="{{ url_for('hod.delete_syllabus', syllabus_id=syllabus.syllabus_id) }}"
+                                                          method="POST"
+                                                          onsubmit="return confirm('Are you sure you want to delete this syllabus?');">
+                                                        <button class="btn btn--danger" type="submit">Delete</button>
+                                                    </form>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="empty">
+                            <div class="empty__title">No syllabus uploaded</div>
+                            <div class="empty__desc">Upload a syllabus PDF to make it available to students.</div>
+                        </div>
+                    {% endif %}
+                </section>
 
+                <div class="footerbar">
+                    <a class="btn btn--ghost" href="{{ url_for('hod.dashboard') }}">Dashboard</a>
+                    <a class="btn btn--ghost" href="{{ url_for('hod.logout') }}">Logout</a>
+                </div>
+            </section>
+        </main>
+    </div>
 
-            <div>
-
-                <!-- ✅ CHANGED: label for + input name/id to match route -->
-                <label for="syllabus_file">
-                    Syllabus PDF:
-                </label>
-
-                <input
-                    type="file"
-                    name="syllabus_file"
-                    id="syllabus_file"
-                    accept=".pdf,application/pdf"
-                    required
-                >
-
-            </div>
-
-
-            <br>
-
-
-            <button type="submit">
-                Upload Syllabus
-            </button>
-
-        </form>
-
-        <!-- ===================== ADDED (Optional) ===================== -->
-        <script>
-            // Filter semester dropdown by selected course (optional but useful)
+    <script>
+        // Filter semester dropdown by selected course
+        (function () {
             const courseSelect = document.getElementById("course_id");
             const semesterSelect = document.getElementById("semester_id");
+            if (!courseSelect || !semesterSelect) return;
 
             function filterSemestersByCourse() {
                 const selectedCourseId = courseSelect.value;
@@ -252,254 +329,20 @@
 
             courseSelect.addEventListener("change", filterSemestersByCourse);
             filterSemestersByCourse();
-        </script>
-        <!-- =========================================================== -->
-
-    </section>
-
-
-    <hr>
-
-
-    <!-- =====================================================
-         SYLLABUS LIST
-    ====================================================== -->
-
-    <section>
-
-        <h2>Department Syllabi</h2>
-
-        {% if syllabi %}
-
-            <table border="1">
-
-                <thead>
-
-                    <tr>
-
-                        <th>
-                            #
-                        </th>
-
-                        <th>
-                            Title
-                        </th>
-
-                        <th>
-                            Course
-                        </th>
-
-                        <th>
-                            Semester
-                        </th>
-
-                        <th>
-                            File
-                        </th>
-
-                        <th>
-                            Status
-                        </th>
-
-                        <th>
-                            Uploaded Date
-                        </th>
-
-                        <th>
-                            Actions
-                        </th>
-
-                    </tr>
-
-                </thead>
-
-
-                <tbody>
-
-                    {% for syllabus in syllabi %}
-
-                        <tr>
-
-                            <td>
-                                {{ loop.index }}
-                            </td>
-
-
-                            <td>
-                                {{ syllabus.title }}
-                            </td>
-
-
-                            <td>
-                                {{ syllabus.course_name }}
-                            </td>
-
-
-                            <td>
-                                {% if syllabus.semester_number %}
-                                    Semester {{ syllabus.semester_number }}
-                                {% else %}
-                                    -
-                                {% endif %}
-                            </td>
-
-
-                            <td>
-
-                                {% if syllabus.file_name %}
-
-                                    <a
-                                        href="{{ url_for(
-                                            'hod.view_syllabus',
-                                            syllabus_id=syllabus.syllabus_id
-                                        ) }}"
-                                        target="_blank"
-                                    >
-                                        View PDF
-                                    </a>
-
-                                {% else %}
-
-                                    No File
-
-                                {% endif %}
-
-                            </td>
-
-
-                            <td>
-
-                                {% if syllabus.status == 'Active' %}
-
-                                    Active
-
-                                {% else %}
-
-                                    Inactive
-
-                                {% endif %}
-
-                            </td>
-
-
-                            <td>
-                                {{ syllabus.upload_date }}
-                            </td>
-
-
-                            <td>
-
-                                <!-- =================================
-                                     ACTIVATE / DEACTIVATE
-                                ================================== -->
-
-                                <form
-                                    action="{{ url_for(
-                                        'hod.change_syllabus_status',
-                                        syllabus_id=syllabus.syllabus_id
-                                    ) }}"
-                                    method="POST"
-                                    style="display:inline;"
-                                >
-
-                                    {% if syllabus.status == 'Active' %}
-
-                                        <input
-                                            type="hidden"
-                                            name="status"
-                                            value="Inactive"
-                                        >
-
-                                        <button type="submit">
-                                            Deactivate
-                                        </button>
-
-                                    {% else %}
-
-                                        <input
-                                            type="hidden"
-                                            name="status"
-                                            value="Active"
-                                        >
-
-                                        <button type="submit">
-                                            Activate
-                                        </button>
-
-                                    {% endif %}
-
-                                </form>
-
-
-                                <!-- =================================
-                                     DELETE
-                                ================================== -->
-
-                                <form
-                                    action="{{ url_for(
-                                        'hod.delete_syllabus',
-                                        syllabus_id=syllabus.syllabus_id
-                                    ) }}"
-                                    method="POST"
-                                    style="display:inline;"
-                                >
-
-                                    <button
-                                        type="submit"
-                                        onclick="
-                                            return confirm(
-                                                'Are you sure you want to delete this syllabus?'
-                                            );
-                                        "
-                                    >
-                                        Delete
-                                    </button>
-
-                                </form>
-
-                            </td>
-
-                        </tr>
-
-                    {% endfor %}
-
-                </tbody>
-
-            </table>
-
-        {% else %}
-
-            <p>
-                No syllabus has been uploaded for your department.
-            </p>
-
-        {% endif %}
-
-    </section>
-
-
-    <hr>
-
-
-    <!-- =====================================================
-         FOOTER / NAVIGATION
-    ====================================================== -->
-
-    <footer>
-
-        <a href="{{ url_for('hod.dashboard') }}">
-            Dashboard
-        </a>
-
-        |
-
-        <a href="{{ url_for('hod.logout') }}">
-            Logout
-        </a>
-
-    </footer>
-
-
+        })();
+
+        // Auto-highlight nav link by URL path
+        (function () {
+            const path = window.location.pathname;
+            document.querySelectorAll('.nav a').forEach(a => {
+                const href = a.getAttribute('href');
+                if (!href || href === '#') return;
+                try {
+                    const url = new URL(href, window.location.origin);
+                    if (url.pathname === path) a.classList.add('is-active');
+                } catch (e) { /* ignore */ }
+            });
+        })();
+    </script>
 </body>
-
 </html>

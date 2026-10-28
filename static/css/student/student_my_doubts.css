@@ -1,0 +1,8 @@
+/* static/css/student/student_my_doubts.css */
+@import url("student_base.css");
+
+.dtext{
+  max-width: 760px;
+  white-space: pre-wrap;
+  line-height:1.5;
+}

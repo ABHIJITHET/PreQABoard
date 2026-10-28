@@ -1,90 +1,168 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Edit Student</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Edit Student - PreQABoard</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/hod/hod_edit_student.css') }}">
 </head>
+
 <body>
 
-    <h1>Edit Student</h1>
+    <!-- background layers -->
+    <div class="bg" aria-hidden="true">
+        <div class="bg__grid"></div>
+        <div class="bg__glow bg__glow--a"></div>
+        <div class="bg__glow bg__glow--b"></div>
+    </div>
 
-    <p>
-        <a href="{{ url_for('hod.student_approvals') }}">Back to Student Approvals</a>
-    </p>
+    <main class="main">
 
-    <form method="POST"
-          action="{{ url_for('hod.edit_student', student_id=student.student_id) }}">
+        <header class="topbar">
+            <div class="topbar__title">
+                <h1>Edit Student</h1>
+                <p>Update student details and save changes.</p>
+            </div>
 
-        <label>Register Number:</label><br>
-        <input type="text"
-               name="register_number"
-               value="{{ student.register_number or '' }}"
-               required>
-        <br><br>
+            <div class="topbar__actions">
+                <a class="btn btn-secondary" href="{{ url_for('hod.student_approvals') }}">
+                    ← Back to Student Approvals
+                </a>
+            </div>
+        </header>
 
-        <label>Full Name:</label><br>
-        <input type="text"
-               name="full_name"
-               value="{{ student.full_name or '' }}"
-               required>
-        <br><br>
+        <!-- optional flash messages -->
+        <section class="alerts">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category|lower }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </section>
 
-        <label>Email:</label><br>
-        <input type="email"
-               name="email"
-               value="{{ student.email or '' }}"
-               required>
-        <br><br>
+        <section class="card">
+            <div class="card__header">
+                <h2>Student Information</h2>
+                <p class="subtitle">
+                    Student ID:
+                    <span class="pill pill--accent">{{ student.student_id }}</span>
+                </p>
+            </div>
 
-        <label>Phone:</label><br>
-        <input type="text"
-               name="phone"
-               value="{{ student.phone or '' }}">
-        <br><br>
+            <form
+                class="form"
+                method="POST"
+                action="{{ url_for('hod.edit_student', student_id=student.student_id) }}"
+            >
+                <div class="grid">
 
-        <label>Username:</label><br>
-        <input type="text"
-               name="username"
-               value="{{ student.username or '' }}"
-               required>
-        <br><br>
+                    <div class="field">
+                        <label for="register_number">Register Number</label>
+                        <input
+                            id="register_number"
+                            type="text"
+                            name="register_number"
+                            value="{{ student.register_number or '' }}"
+                            required
+                        />
+                    </div>
 
-        <label>Course:</label><br>
-        <select name="course_id" required>
+                    <div class="field">
+                        <label for="full_name">Full Name</label>
+                        <input
+                            id="full_name"
+                            type="text"
+                            name="full_name"
+                            value="{{ student.full_name or '' }}"
+                            required
+                        />
+                    </div>
 
-            <option value="">Select Course</option>
+                    <div class="field">
+                        <label for="email">Email</label>
+                        <input
+                            id="email"
+                            type="email"
+                            name="email"
+                            value="{{ student.email or '' }}"
+                            required
+                        />
+                    </div>
 
-            {% for course in courses %}
-                <option value="{{ course.course_id }}"
-                    {% if course.course_id == student.course_id %}
-                        selected
-                    {% endif %}>
-                    {{ course.course_name }}
-                </option>
-            {% endfor %}
+                    <div class="field">
+                        <label for="phone">Phone (optional)</label>
+                        <input
+                            id="phone"
+                            type="text"
+                            name="phone"
+                            value="{{ student.phone or '' }}"
+                        />
+                    </div>
 
-        </select>
-        <br><br>
+                    <div class="field">
+                        <label for="username">Username</label>
+                        <input
+                            id="username"
+                            type="text"
+                            name="username"
+                            value="{{ student.username or '' }}"
+                            required
+                        />
+                    </div>
 
-        <label>Semester:</label><br>
-        <select name="semester_id" required>
+                    <div class="field">
+                        <label for="course_id">Course</label>
+                        <select id="course_id" name="course_id" required>
+                            <option value="">Select Course</option>
+                            {% for course in courses %}
+                                <option
+                                    value="{{ course.course_id }}"
+                                    {% if course.course_id == student.course_id %}selected{% endif %}
+                                >
+                                    {{ course.course_name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
 
-            <option value="">Select Semester</option>
+                    <div class="field">
+                        <label for="semester_id">Semester</label>
+                        <select id="semester_id" name="semester_id" required>
+                            <option value="">Select Semester</option>
+                            {% for semester in semesters %}
+                                <option
+                                    value="{{ semester.semester_id }}"
+                                    {% if semester.semester_id == student.semester_id %}selected{% endif %}
+                                >
+                                    Semester {{ semester.semester_number }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
 
-            {% for semester in semesters %}
-                <option value="{{ semester.semester_id }}"
-                    {% if semester.semester_id == student.semester_id %}
-                        selected
-                    {% endif %}>
-                    Semester {{ semester.semester_number }}
-                </option>
-            {% endfor %}
+                </div>
 
-        </select>
-        <br><br>
+                <div class="form__actions">
+                    <button class="btn btn-primary" type="submit">Save Changes</button>
+                    <a class="btn btn-ghost" href="{{ url_for('hod.student_approvals') }}">Cancel</a>
+                </div>
 
-        <button type="submit">Save Changes</button>
+                <p class="hint">
+                    Tip: Ensure Course and Semester are correct before approving the student.
+                </p>
+            </form>
+        </section>
 
-    </form>
+        <footer class="page-footer">
+            PreQABoard • HOD
+        </footer>
+
+    </main>
 
 </body>
 </html>

@@ -1,61 +1,125 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>View Doubt - PreQABoard</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>View Doubt • Student • PreQABoard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/student/student_view_doubt.css') }}">
 </head>
 <body>
+  <div class="s-layout">
+    <aside class="s-sidebar">
+      <div class="brand">
+        <div class="brand-mark"></div>
+        <div class="brand-title">
+          <strong>PreQABoard</strong>
+          <span>Student Panel</span>
+        </div>
+      </div>
 
-    <h2>View Doubt</h2>
+      <nav class="nav">
+        <a href="{{ url_for('student.dashboard') }}"><span>Dashboard</span><small>Home</small></a>
+        <a href="{{ url_for('student.profile') }}"><span>My Profile</span><small>Account</small></a>
+        <a href="{{ url_for('student.syllabus') }}"><span>Syllabus</span><small>Downloads</small></a>
+        <a href="{{ url_for('student.question_papers') }}"><span>Question Papers</span><small>Search</small></a>
+        <a href="{{ url_for('student.study_materials') }}"><span>Study Materials</span><small>PDF</small></a>
+        <a href="{{ url_for('student.teacher_answers') }}"><span>Teacher Answers</span><small>Answer Keys</small></a>
+        <a href="{{ url_for('student.repeated_questions') }}"><span>Repeated Questions</span><small>AI</small></a>
+        <a href="{{ url_for('student.ai_chat') }}"><span>AI Chat</span><small>Assistant</small></a>
+        <a href="{{ url_for('student.post_doubt') }}"><span>Post Doubt</span><small>Ask</small></a>
+        <a class="active" href="{{ url_for('student.my_doubts') }}"><span>My Doubts</span><small>History</small></a>
+        <a href="{{ url_for('student.logout') }}"><span>Logout</span><small>Exit</small></a>
+      </nav>
+    </aside>
 
-    <p>
-        <a href="{{ url_for('student.my_doubts') }}">← My Doubts</a> |
-        <a href="{{ url_for('student.dashboard') }}">Dashboard</a> |
-        <a href="{{ url_for('student.logout') }}">Logout</a>
-    </p>
+    <main class="s-main">
+      <header class="topbar">
+        <div class="page-title">
+          <h1>View Doubt</h1>
+          <p>See AI reply and teacher replies for your doubt.</p>
+        </div>
+        <div class="actions">
+          <a class="btn" href="{{ url_for('student.my_doubts') }}">Back to My Doubts</a>
+          <a class="btn" href="{{ url_for('student.dashboard') }}">Dashboard</a>
+        </div>
+      </header>
 
-    <hr>
+      <section class="grid">
+        <div class="card" style="grid-column: span 12;">
+          <div class="card-head">
+            <div>
+              <h2>Doubt</h2>
+              <p>{{ doubt.subject_code }} - {{ doubt.subject_name }}</p>
+            </div>
+            <div>
+              <span class="badge info">{{ doubt.created_at }}</span>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="kv">
+              <div class="cell k">Title</div>
+              <div class="cell v">{{ doubt.doubt_title or '-' }}</div>
+            </div>
 
-    <h3>{{ doubt.subject_code }} - {{ doubt.subject_name }}</h3>
+            <hr class="sep">
 
-    <p><strong>Title:</strong> {{ doubt.doubt_title or '-' }}</p>
-    <p><strong>Description:</strong><br>{{ doubt.doubt_description }}</p>
-    <p><small>Posted: {{ doubt.created_at }}</small></p>
+            <div class="field">
+              <label>Description</label>
+              <div class="preview">{{ doubt.doubt_description }}</div>
+            </div>
+          </div>
+        </div>
 
-    <hr>
+        <div class="card" style="grid-column: span 12;">
+          <div class="card-head">
+            <div>
+              <h2>AI Reply</h2>
+              <p>Auto-generated (if syllabus context available).</p>
+            </div>
+          </div>
+          <div class="card-body">
+            {% if ai_reply %}
+              <div class="kv" style="grid-template-columns: 160px 1fr;">
+                <div class="cell k">Model</div>
+                <div class="cell v">{{ ai_reply.model }}</div>
 
-    <!-- ===================== (ADDED) AI REPLY SECTION ===================== -->
+                <div class="cell k">Created</div>
+                <div class="cell v">{{ ai_reply.created_at }}</div>
+              </div>
 
-    <h3>AI Reply</h3>
+              <hr class="sep">
 
-    {% if ai_reply %}
-        <p><strong>Model:</strong> {{ ai_reply.model }}</p>
-        <p>{{ ai_reply.reply }}</p>
-        <p><small>{{ ai_reply.created_at }}</small></p>
-    {% else %}
-        <p><strong>No AI reply yet.</strong></p>
-    {% endif %}
+              <div class="preview">{{ ai_reply.reply }}</div>
+            {% else %}
+              <p class="muted" style="margin:0;">No AI reply yet.</p>
+            {% endif %}
+          </div>
+        </div>
 
-    <!-- =================================================================== -->
+        <div class="card" style="grid-column: span 12;">
+          <div class="card-head">
+            <div>
+              <h2>Teacher Replies</h2>
+              <p>Replies from assigned teachers.</p>
+            </div>
+          </div>
+          <div class="card-body">
+            {% if replies %}
+              {% for r in replies %}
+                <div class="reply">
+                  <div class="who">{{ r.teacher_name }} <span class="muted">({{ r.employee_id }})</span></div>
+                  <div class="preview" style="margin-top:10px;">{{ r.reply }}</div>
+                  <div class="meta">{{ r.replied_at }}</div>
+                </div>
+              {% endfor %}
+            {% else %}
+              <p class="muted" style="margin:0;">No replies yet.</p>
+            {% endif %}
+          </div>
+        </div>
+      </section>
 
-    <hr>
-
-    <h3>Teacher Replies</h3>
-
-    {% if replies %}
-        <ul>
-            {% for r in replies %}
-                <li>
-                    <strong>{{ r.teacher_name }} ({{ r.employee_id }})</strong><br>
-                    {{ r.reply }}<br>
-                    <small>{{ r.replied_at }}</small>
-                </li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <p><strong>No replies yet.</strong></p>
-    {% endif %}
-
+    </main>
+  </div>
 </body>
 </html>

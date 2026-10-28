@@ -1,0 +1,29 @@
+/* static/css/student/student_ai_chat.css */
+@import url("student_base.css");
+
+.chat-box{
+  border:1px solid rgba(255,255,255,.10);
+  background: rgba(255,255,255,.04);
+  border-radius: 14px;
+  padding:12px;
+  max-height: 420px;
+  overflow:auto;
+}
+.msg{
+  padding:10px 10px;
+  border-radius: 12px;
+  border:1px solid rgba(255,255,255,.10);
+  background: rgba(255,255,255,.04);
+  margin-bottom:10px;
+}
+.msg .meta{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:6px;
+  color:var(--muted);
+  font-size:12px;
+}
+.msg.student{ border-color: rgba(31,143,255,.30); background: rgba(31,143,255,.08); }
+.msg.assistant{ border-color: rgba(45,227,139,.22); background: rgba(45,227,139,.06); }
+.msg .content{ white-space: pre-wrap; line-height:1.55; }

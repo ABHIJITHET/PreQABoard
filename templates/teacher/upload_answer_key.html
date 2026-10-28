@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Upload Answer Key • Teacher • PreQABoard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/teacher/teacher_upload_answer_key.css') }}">
+</head>
+<body>
+  <div class="ns-wrap">
+    <div class="container">
+      <header class="topbar">
+        <div class="page-title">
+          <h1>Upload Answer Key</h1>
+          <p>Select one of your question papers and upload a PDF answer key.</p>
+        </div>
+        <div class="actions">
+          <a class="btn" href="{{ url_for('teacher.my_question_papers') }}">My Question Papers</a>
+          <a class="btn" href="{{ url_for('teacher.dashboard') }}">Dashboard</a>
+        </div>
+      </header>
+
+      <div class="alerts">
+        {% if error %}<div class="alert error">{{ error }}</div>{% endif %}
+        {% if success %}<div class="alert success">{{ success }}</div>{% endif %}
+      </div>
+
+      <section class="ns-card">
+        <div class="ns-head">
+          <h1>Answer Key Details</h1>
+          <p>Only PDF files are allowed.</p>
+        </div>
+        <div class="ns-body">
+          <form class="form" method="POST" action="" enctype="multipart/form-data">
+            <div class="field">
+              <label for="question_paper_id">Question Paper</label>
+              <select id="question_paper_id" name="question_paper_id" required>
+                <option value="" disabled selected>Select question paper</option>
+                {% for qp in question_papers %}
+                  <option value="{{ qp.question_paper_id }}">
+                    {{ qp.subject_code }} — {{ qp.subject_name }} • {{ qp.exam_type_name }} • {{ qp.title }}
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="answer_key">Upload PDF</label>
+              <input id="answer_key" name="answer_key" type="file" accept=".pdf" required>
+            </div>
+
+            <div class="actions">
+              <button class="btn btn-primary" type="submit">Upload</button>
+              <a class="btn" href="{{ url_for('teacher.dashboard') }}">Cancel</a>
+            </div>
+          </form>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</body>
+</html>

@@ -1,192 +1,106 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
-    <meta charset="UTF-8">
-
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
-
-    <title>Teacher Dashboard - PreQABoard</title>
-
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Teacher Dashboard • PreQABoard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/teacher/teacher_dashboard.css') }}">
 </head>
-
-
 <body>
-
-    <h1>PreQABoard</h1>
-
-    <h2>Teacher Dashboard</h2>
-
-    <hr>
-
-
-    {% if error %}
-
-    <p style="color: red;">
-        {{ error }}
-    </p>
-
-    {% endif %}
-
-
-    {% if teacher %}
-
-    <!-- =====================================================
-         TEACHER WELCOME
-    ====================================================== -->
-
-    <h3>
-        Welcome, {{ teacher.full_name }}
-    </h3>
-
-
-    <hr>
-
-
-    <!-- =====================================================
-         TEACHER OPTIONS
-    ====================================================== -->
-
-    <h3>Teacher Options</h3>
-
-
-    <!-- MY PROFILE -->
-
-    <p>
-
-        <a href="{{ url_for('teacher.profile') }}">
-            My Profile
-        </a>
-
-    </p>
-
-
-    <!-- ASSIGNED SUBJECTS -->
-
-    <p>
-
-        Assigned Subjects:
-
-        <strong>
-            {{ total_subjects }}
-        </strong>
-
-    </p>
-
-
-    <!-- MY SUBJECTS -->
-
-    <p>
-
-        <a href="{{ url_for('teacher.my_subjects') }}">
-            My Subjects
-        </a>
-
-    </p>
-
-    <!-- view students -->
-
-    <p>
-
-    <a href="{{ url_for('teacher.view_students') }}">
-        View Students
-    </a>
-
-    </p>
-
-    <!-- UPLOAD QUESTION PAPER -->
-
-    <p>
-
-        <a href="{{ url_for('teacher.upload_question_paper') }}">
-            Upload Question Paper
-        </a>
-
-    </p>
-
-
-    <!-- MY QUESTION PAPERS -->
-
-    <p>
-
-        <a href="{{ url_for('teacher.my_question_papers') }}">
-            My Question Papers
-        </a>
-
-    </p>
-
-
-    <!-- UPLOAD STUDY MATERIAL -->
-
-    <p>
-
-        <a href="{{ url_for('teacher.upload_study_material') }}">
-            Upload Study Material
-        </a>
-
-    </p>
-
-
-
-    <!-- MY STUDY MATERIALS -->
-
-    <p>
-
-        <a href="{{ url_for('teacher.my_materials') }}">
-            My Study Materials
-        </a>
-
-    </p>
-
-
-    <!-- STUDENT DOUBTS -->
-
-    <p>
-
-        <a href="{{ url_for('teacher.doubt_list') }}">
-            Student Doubts
-        </a>
-
-    </p>
-
-
-    {% endif %}
-
-
-    <hr>
-
-
-    <!-- =====================================================
-         ACCOUNT OPTIONS
-    ====================================================== -->
-
-    <h3>Account</h3>
-
-
-    <!-- LOGOUT -->
-
-    <p>
-
-        <a href="{{ url_for('teacher.logout') }}">
-            Logout
-        </a>
-
-    </p>
-
-
-    <!-- CHANGE PASSWORD -->
-
-    <p>
-
-        <a href="{{ url_for('teacher.change_password') }}">
-            Change Password
-        </a>
-
-    </p>
-
-
+  <div class="t-layout">
+    <aside class="t-sidebar">
+      <div class="brand">
+        <div class="brand-mark"></div>
+        <div class="brand-title">
+          <strong>PreQABoard</strong>
+          <span>Teacher Panel</span>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <a class="active" href="{{ url_for('teacher.dashboard') }}"><span>Dashboard</span><small>Home</small></a>
+        <a href="{{ url_for('teacher.profile') }}"><span>Profile</span><small>Account</small></a>
+        <a href="{{ url_for('teacher.my_subjects') }}"><span>My Subjects</span><small>Assigned</small></a>
+        <a href="{{ url_for('teacher.view_students') }}"><span>Students</span><small>Directory</small></a>
+        <a href="{{ url_for('teacher.doubt_list') }}"><span>Doubts</span><small>Inbox</small></a>
+        <a href="{{ url_for('teacher.my_question_papers') }}"><span>Question Papers</span><small>My Uploads</small></a>
+        <a href="{{ url_for('teacher.my_materials') }}"><span>Study Materials</span><small>My Uploads</small></a>
+        <a href="{{ url_for('teacher.upload_answer_key') }}"><span>Upload Answer Key</span><small>PDF</small></a>
+        <a href="{{ url_for('teacher.change_password') }}"><span>Change Password</span><small>Security</small></a>
+        <a href="{{ url_for('teacher.logout') }}"><span>Logout</span><small>Exit</small></a>
+      </nav>
+
+      <div class="sidebar-footer">
+        Upload PDFs with clear titles to speed up HOD approval.
+      </div>
+    </aside>
+
+    <main class="t-main">
+      <header class="topbar">
+        <div class="page-title">
+          <h1>
+            Dashboard
+            {% if teacher %}<span class="muted" style="font-weight:600;">• {{ teacher.full_name }}</span>{% endif %}
+          </h1>
+          <p>Overview of your assigned subjects, uploads, and student doubts.</p>
+        </div>
+        <div class="actions">
+          <a class="btn btn-primary" href="{{ url_for('teacher.upload_question_paper') }}">Upload Question Paper</a>
+          <a class="btn" href="{{ url_for('teacher.upload_study_material') }}">Upload Study Material</a>
+        </div>
+      </header>
+
+      {% if error %}
+        <div class="alerts">
+          <div class="alert error">{{ error }}</div>
+        </div>
+      {% endif %}
+
+      <section class="stat-row">
+        <div class="stat">
+          <p class="label">Active Subjects</p>
+          <p class="value">{{ total_subjects or 0 }}</p>
+          <p class="hint">Currently assigned to you</p>
+        </div>
+        <div class="stat">
+          <p class="label">Question Papers</p>
+          <p class="value">{{ total_question_papers or 0 }}</p>
+          <p class="hint">Uploaded by you</p>
+        </div>
+        <div class="stat">
+          <p class="label">Study Materials</p>
+          <p class="value">{{ total_study_materials or 0 }}</p>
+          <p class="hint">Uploaded by you</p>
+        </div>
+        <div class="stat">
+          <p class="label">Answer Keys</p>
+          <p class="value">{{ total_answer_keys or 0 }}</p>
+          <p class="hint">Uploaded by you</p>
+        </div>
+      </section>
+
+      <section class="grid">
+        <div class="card" style="grid-column: span 12;">
+          <div class="card-head">
+            <div>
+              <h2>Student Doubts</h2>
+              <p>Total doubts in your assigned subjects.</p>
+            </div>
+            <div>
+              <span class="badge info">{{ total_doubts or 0 }} total</span>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="actions">
+              <a class="btn btn-primary" href="{{ url_for('teacher.doubt_list') }}">Open Doubt Inbox</a>
+              <a class="btn" href="{{ url_for('teacher.my_subjects') }}">View My Subjects</a>
+              <a class="btn" href="{{ url_for('teacher.view_students') }}">View Students</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
 </body>
-
 </html>

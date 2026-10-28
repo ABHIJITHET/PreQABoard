@@ -1,176 +1,118 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
-    <meta charset="UTF-8">
-
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
-
-    <title>My Question Papers - PreQABoard</title>
-
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Question Papers • Teacher • PreQABoard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/teacher/teacher_my_question_papers.css') }}">
 </head>
-
 <body>
+  <div class="t-layout">
+    <aside class="t-sidebar">
+      <div class="brand">
+        <div class="brand-mark"></div>
+        <div class="brand-title">
+          <strong>PreQABoard</strong>
+          <span>Teacher Panel</span>
+        </div>
+      </div>
 
-    <h1>PreQABoard</h1>
+      <nav class="nav">
+        <a href="{{ url_for('teacher.dashboard') }}"><span>Dashboard</span><small>Home</small></a>
+        <a href="{{ url_for('teacher.profile') }}"><span>Profile</span><small>Account</small></a>
+        <a href="{{ url_for('teacher.my_subjects') }}"><span>My Subjects</span><small>Assigned</small></a>
+        <a href="{{ url_for('teacher.view_students') }}"><span>Students</span><small>Directory</small></a>
+        <a href="{{ url_for('teacher.doubt_list') }}"><span>Doubts</span><small>Inbox</small></a>
+        <a class="active" href="{{ url_for('teacher.my_question_papers') }}"><span>Question Papers</span><small>My Uploads</small></a>
+        <a href="{{ url_for('teacher.my_materials') }}"><span>Study Materials</span><small>My Uploads</small></a>
+        <a href="{{ url_for('teacher.upload_answer_key') }}"><span>Upload Answer Key</span><small>PDF</small></a>
+        <a href="{{ url_for('teacher.change_password') }}"><span>Change Password</span><small>Security</small></a>
+        <a href="{{ url_for('teacher.logout') }}"><span>Logout</span><small>Exit</small></a>
+      </nav>
 
-    <h2>My Question Papers</h2>
+      <div class="sidebar-footer">
+        “View” opens the PDF using your query-parameter viewer.
+      </div>
+    </aside>
 
-    <hr>
+    <main class="t-main">
+      <header class="topbar">
+        <div class="page-title">
+          <h1>My Question Papers</h1>
+          <p>Your uploads and HOD approval status.</p>
+        </div>
+        <div class="actions">
+          <a class="btn btn-primary" href="{{ url_for('teacher.upload_question_paper') }}">Upload New</a>
+        </div>
+      </header>
 
+      {% if error %}
+        <div class="alerts">
+          <div class="alert error">{{ error }}</div>
+        </div>
+      {% endif %}
 
-    {% if error %}
+      <section class="grid">
+        <div class="card" style="grid-column: span 12;">
+          <div class="card-head">
+            <div>
+              <h2>Uploads</h2>
+              <p>Latest uploads shown first.</p>
+            </div>
+          </div>
 
-        <p style="color: red;">
-            {{ error }}
-        </p>
-
-    {% endif %}
-
-
-    {% if question_papers %}
-
-        <table border="1" cellpadding="10">
-
-            <tr>
-
-                <th>Sl No</th>
-
-                <th>Subject</th>
-
-                <th>Exam Type</th>
-
-                <th>Title</th>
-
-                <th>Academic Year</th>
-
-                <th>File</th>
-
-                <th>Uploaded Date</th>
-
-                <th>HOD Status</th>
-
-            </tr>
-
-
-            {% for paper in question_papers %}
-
-                <tr>
-
-                    <td>
-                        {{ loop.index }}
-                    </td>
-
-
-                    <td>
-
-                        {{ paper.subject_code }}
-
-                        <br>
-
-                        {{ paper.subject_name }}
-
-                    </td>
-
-
-                    <td>
-                        {{ paper.exam_type_name }}
-                    </td>
-
-
-                    <td>
-                        {{ paper.title }}
-                    </td>
-
-
-                    <td>
-                        {{ paper.academic_year_name }}
-                    </td>
-
-
-                    <td>
-
-                        <a href="{{ url_for(
-                            'teacher.my_question_papers',
-                            question_paper_id=paper.question_paper_id
-                        ) }}">
-
-                            View PDF
-
-                        </a>
-
-                    </td>
-
-
-                    <td>
-                        {{ paper.upload_date }}
-                    </td>
-
-
-                    <td>
-
-                        {% if paper.approved_by_hod %}
-
-                            <span style="color: green;">
-                                Approved
-                            </span>
-
+          <div class="card-body">
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Title</th>
+                    <th>Subject</th>
+                    <th>Exam Type</th>
+                    <th>Academic Year</th>
+                    <th>Upload Date</th>
+                    <th>Status</th>
+                    <th>File</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for qp in question_papers %}
+                    <tr>
+                      <td class="muted">{{ loop.index }}</td>
+                      <td>{{ qp.title }}</td>
+                      <td class="muted">{{ qp.subject_code }} — {{ qp.subject_name }}</td>
+                      <td class="muted">{{ qp.exam_type_name }}</td>
+                      <td class="muted">{{ qp.academic_year_name }}</td>
+                      <td class="muted">{{ qp.upload_date }}</td>
+                      <td>
+                        {% if qp.approved_by_hod %}
+                          <span class="badge ok">Approved</span>
                         {% else %}
-
-                            <span style="color: orange;">
-                                Pending HOD Approval
-                            </span>
-
+                          <span class="badge warn">Pending</span>
                         {% endif %}
+                      </td>
+                      <td class="filecell">
+                        <a class="btn btn-link"
+                           href="{{ url_for('teacher.my_question_papers', question_paper_id=qp.question_paper_id) }}"
+                           target="_blank" rel="noopener">
+                          View PDF
+                        </a>
+                      </td>
+                    </tr>
+                  {% else %}
+                    <tr>
+                      <td colspan="8" class="muted">No question papers uploaded yet.</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
 
-                    </td>
-
-                </tr>
-
-            {% endfor %}
-
-        </table>
-
-    {% else %}
-
-        <p>
-            You have not uploaded any question papers yet.
-        </p>
-
-    {% endif %}
-
-
-    <hr>
-
-
-    <p>
-
-        <a href="{{ url_for('teacher.upload_question_paper') }}">
-            Upload Question Paper
-        </a>
-
-    </p>
-
-
-    <p>
-
-        <a href="{{ url_for('teacher.dashboard') }}">
-            Back to Dashboard
-        </a>
-
-    </p>
-
-
-    <p>
-
-        <a href="{{ url_for('teacher.logout') }}">
-            Logout
-        </a>
-
-    </p>
-
+        </div>
+      </section>
+    </main>
+  </div>
 </body>
-
 </html>

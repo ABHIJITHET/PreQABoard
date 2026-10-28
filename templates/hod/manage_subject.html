@@ -1,328 +1,268 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
-    <meta charset="UTF-8">
-
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
-
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Manage Subjects - PreQABoard</title>
 
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/hod/hod_manage_subject.css') }}">
 </head>
 
 <body>
 
-    <h1>PreQABoard</h1>
-
-    <h2>Manage Subjects</h2>
-
-    <hr>
-
-    <p>
-        <a href="{{ url_for('hod.dashboard') }}">
-            ← Back to Dashboard
-        </a>
-    </p>
-
-
-    <!-- =====================================================
-         ADD SUBJECT
-    ====================================================== -->
-
-    <h3>Add New Subject</h3>
-
-    <form method="POST"
-          action="{{ url_for('hod.add_subject') }}">
-
-        <label>Course:</label>
-
-        <br>
-
-        <select name="course_id" required>
-
-            <option value="">
-                -- Select Course --
-            </option>
-
-            {% for course in courses %}
-
-            <option value="{{ course.course_id }}">
-                {{ course.course_name }}
-            </option>
-
-            {% endfor %}
-
-        </select>
-
-        <br><br>
-
-
-        <label>Semester:</label>
-
-        <br>
-
-        <select name="semester_id" required>
-
-            <option value="">
-                -- Select Semester --
-            </option>
-
-            {% for semester in semesters %}
-
-            <option value="{{ semester.semester_id }}">
-                Semester {{ semester.semester_number }}
-            </option>
-
-            {% endfor %}
-
-        </select>
-
-        <br><br>
-
-
-        <label>Subject Code:</label>
-
-        <br>
-
-        <input
-            type="text"
-            name="subject_code"
-            required
-        >
-
-        <br><br>
-
-
-        <label>Subject Name:</label>
-
-        <br>
-
-        <input
-            type="text"
-            name="subject_name"
-            required
-        >
-
-        <br><br>
-
-
-        <label>Credits:</label>
-
-        <br>
-
-        <input
-            type="number"
-            name="credits"
-            min="1"
-            max="20"
-            required
-        >
-
-        <br><br>
-
-
-        <button type="submit">
-            Add Subject
-        </button>
-
-    </form>
-
-
-    <hr>
-
-
-    <!-- =====================================================
-         SUBJECT LIST
-    ====================================================== -->
-
-    <h3>Subjects in Your Department</h3>
-
-    {% if subjects %}
-
-    <table border="1" cellpadding="10">
-
-        <thead>
-
-            <tr>
-
-                <th>No.</th>
-                <th>Course</th>
-                <th>Semester</th>
-                <th>Subject Code</th>
-                <th>Subject Name</th>
-                <th>Credits</th>
-                <th>Status</th>
-                <th>Created At</th>
-                <th>Action</th>
-
-            </tr>
-
-        </thead>
-
-
-        <tbody>
-
-            {% for subject in subjects %}
-
-            <tr>
-
-                <td>
-                    {{ loop.index }}
-                </td>
-
-
-                <td>
-                    {{ subject.course_name }}
-                </td>
-
-
-                <td>
-                    Semester {{ subject.semester_number }}
-                </td>
-
-
-                <td>
-                    {{ subject.subject_code }}
-                </td>
-
-
-                <td>
-                    {{ subject.subject_name }}
-                </td>
-
-
-                <td>
-                    {{ subject.credits }}
-                </td>
-
-
-                <td>
-                    {{ subject.status }}
-                </td>
-
-
-                <td>
-                    {{ subject.created_at }}
-                </td>
-
-
-                <td>
-
-                    <!-- ================================
-                         EDIT
-                    ================================= -->
-
-                    <a href="{{ url_for(
-                        'hod.edit_subject',
-                        subject_id=subject.subject_id
-                    ) }}">
-                        Edit
-                    </a>
-
-                    <br><br>
-
-
-                    <!-- ================================
-                         DELETE
-                    ================================= -->
-
-                    <form
-                        method="POST"
-                        action="{{ url_for(
-                            'hod.delete_subject',
-                            subject_id=subject.subject_id
-                        ) }}"
-                        onsubmit="return confirm(
-                            'Are you sure you want to delete this subject?'
-                        );"
-                    >
-
-                        <button type="submit">
-                            Delete
-                        </button>
-
-                    </form>
-
-                    <br>
-
-
-                    <!-- ================================
-                         ACTIVATE / DEACTIVATE
-                    ================================= -->
-
-                    {% if subject.status == 'Active' %}
-
-                    <form
-                        method="POST"
-                        action="{{ url_for(
-                            'hod.change_subject_status',
-                            subject_id=subject.subject_id
-                        ) }}"
-                    >
-
-                        <input
-                            type="hidden"
-                            name="status"
-                            value="Inactive"
-                        >
-
-                        <button type="submit">
-                            Deactivate
-                        </button>
-
-                    </form>
-
-                    {% else %}
-
-                    <form
-                        method="POST"
-                        action="{{ url_for(
-                            'hod.change_subject_status',
-                            subject_id=subject.subject_id
-                        ) }}"
-                    >
-
-                        <input
-                            type="hidden"
-                            name="status"
-                            value="Active"
-                        >
-
-                        <button type="submit">
-                            Activate
-                        </button>
-
-                    </form>
-
-                    {% endif %}
-
-                </td>
-
-            </tr>
-
-            {% endfor %}
-
-        </tbody>
-
-    </table>
-
-    {% else %}
-
-    <p>
-        No subjects have been added to your department yet.
-    </p>
-
-    {% endif %}
-
-
-    <br>
-
-    <a href="{{ url_for('hod.logout') }}">
-        Logout
-    </a>
+    <!-- background layers -->
+    <div class="bg" aria-hidden="true">
+        <div class="bg__grid"></div>
+        <div class="bg__glow bg__glow--a"></div>
+        <div class="bg__glow bg__glow--b"></div>
+    </div>
+
+    <!-- =========================
+         SIDEBAR
+         ========================= -->
+    <aside class="sidebar">
+        <div class="sidebar__brand">
+            <div class="brandmark" aria-hidden="true">PQ</div>
+            <div class="sidebar__brandText">
+                <h2>PreQABoard</h2>
+                <p>HOD Panel</p>
+            </div>
+        </div>
+
+        <nav class="nav">
+            <a href="{{ url_for('hod.dashboard') }}" data-endpoint="hod.dashboard">Dashboard</a>
+
+            <a href="{{ url_for('hod.semester_calendar') }}" data-endpoint="hod.semester_calendar">Semester Calendar</a>
+            <a href="{{ url_for('hod.manage_syllabus') }}" data-endpoint="hod.manage_syllabus">Manage Syllabus</a>
+            <a href="{{ url_for('hod.manage_teachers') }}" data-endpoint="hod.manage_teachers">Manage Teachers</a>
+
+            <a class="is-active" href="{{ url_for('hod.manage_subjects') }}" data-endpoint="hod.manage_subjects">
+                Manage Subjects
+            </a>
+
+            <a href="{{ url_for('hod.teacher_assignments') }}" data-endpoint="hod.teacher_assignments">Assign Teachers</a>
+            <a href="{{ url_for('hod.student_approvals') }}" data-endpoint="hod.student_approvals">Student Approvals</a>
+            <a href="{{ url_for('hod.students') }}" data-endpoint="hod.students">View Students</a>
+            <a href="{{ url_for('hod.approve_papers') }}" data-endpoint="hod.approve_papers">Approve Question Papers</a>
+            <a href="{{ url_for('hod.approve_materials') }}" data-endpoint="hod.approve_materials">Approve Materials</a>
+            <a href="{{ url_for('hod.view_doubts') }}" data-endpoint="hod.view_doubts">Student Doubts</a>
+            <a href="{{ url_for('hod.profile') }}" data-endpoint="hod.profile">My Profile</a>
+        </nav>
+
+        <div class="sidebar__footer">
+            <a class="logout" href="{{ url_for('hod.logout') }}">Logout</a>
+            <div class="sidebar__hint">
+                Tip: Keep subject codes consistent across semesters.
+            </div>
+        </div>
+    </aside>
+
+    <!-- =========================
+         MAIN
+         ========================= -->
+    <main class="main">
+
+        <section class="topbar">
+            <div class="topbar__title">
+                <h1>Manage Subjects</h1>
+                <p>Create, edit, activate/deactivate, and remove subjects in your department.</p>
+            </div>
+
+            <div class="topbar__actions">
+                <a class="btn btn-soft" href="{{ url_for('hod.dashboard') }}">← Back to Dashboard</a>
+            </div>
+        </section>
+
+        <!-- flash messages (optional) -->
+        <section class="alerts">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category|lower }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </section>
+
+        <section class="layout-grid">
+
+            <!-- =========================
+                 ADD SUBJECT
+                 ========================= -->
+            <section class="panel">
+                <div class="panel__head">
+                    <h2>Add New Subject</h2>
+                    <p class="panel__sub">Map a subject to a course and semester.</p>
+                </div>
+
+                <form class="form" method="POST" action="{{ url_for('hod.add_subject') }}">
+
+                    <div class="field">
+                        <label for="course_id">Course</label>
+                        <select id="course_id" name="course_id" required>
+                            <option value="">-- Select Course --</option>
+                            {% for course in courses %}
+                                <option value="{{ course.course_id }}">{{ course.course_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label for="semester_id">Semester</label>
+                        <select id="semester_id" name="semester_id" required>
+                            <option value="">-- Select Semester --</option>
+                            {% for semester in semesters %}
+                                <option value="{{ semester.semester_id }}">Semester {{ semester.semester_number }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label for="subject_code">Subject Code</label>
+                        <input id="subject_code" type="text" name="subject_code" placeholder="e.g., CS301" required />
+                    </div>
+
+                    <div class="field">
+                        <label for="subject_name">Subject Name</label>
+                        <input id="subject_name" type="text" name="subject_name" placeholder="e.g., Data Structures" required />
+                    </div>
+
+                    <div class="field">
+                        <label for="credits">Credits</label>
+                        <input id="credits" type="number" name="credits" min="1" max="20" placeholder="1 - 20" required />
+                        <div class="hint">Allowed range: 1 to 20.</div>
+                    </div>
+
+                    <div class="form__actions">
+                        <button class="btn btn-primary" type="submit">Add Subject</button>
+                        <a class="btn btn-ghost" href="{{ url_for('hod.manage_subjects') }}">Reset</a>
+                    </div>
+                </form>
+            </section>
+
+            <!-- =========================
+                 SUBJECT LIST
+                 ========================= -->
+            <section class="panel panel--wide">
+                <div class="panel__head panel__head--row">
+                    <div>
+                        <h2>Subjects in Your Department</h2>
+                        <p class="panel__sub">Manage subject status and details.</p>
+                    </div>
+
+                    <div class="meta">
+                        <span class="pill pill--accent">
+                            Total: {{ subjects|length if subjects else 0 }}
+                        </span>
+                    </div>
+                </div>
+
+                {% if subjects %}
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th class="col--index">No.</th>
+                                    <th>Course</th>
+                                    <th>Semester</th>
+                                    <th>Subject Code</th>
+                                    <th>Subject Name</th>
+                                    <th class="col--credits">Credits</th>
+                                    <th class="col--status">Status</th>
+                                    <th class="col--created">Created At</th>
+                                    <th class="col--actions">Action</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                {% for subject in subjects %}
+                                    <tr>
+                                        <td class="col--index">{{ loop.index }}</td>
+                                        <td class="dept-name">{{ subject.course_name }}</td>
+                                        <td>Semester {{ subject.semester_number }}</td>
+                                        <td class="mono">{{ subject.subject_code }}</td>
+                                        <td>{{ subject.subject_name }}</td>
+                                        <td class="col--credits">{{ subject.credits }}</td>
+
+                                        <td class="col--status">
+                                            {% if subject.status == 'Active' %}
+                                                <span class="pill pill--success">Active</span>
+                                            {% else %}
+                                                <span class="pill pill--warn">Inactive</span>
+                                            {% endif %}
+                                        </td>
+
+                                        <td class="col--created muted">{{ subject.created_at }}</td>
+
+                                        <td class="col--actions">
+                                            <div class="action-buttons">
+
+                                                <a class="view-button" href="{{ url_for('hod.edit_subject', subject_id=subject.subject_id) }}">
+                                                    Edit
+                                                </a>
+
+                                                <form
+                                                    method="POST"
+                                                    action="{{ url_for('hod.delete_subject', subject_id=subject.subject_id) }}"
+                                                    onsubmit="return confirm('Are you sure you want to delete this subject?');"
+                                                >
+                                                    <button class="view-button danger-button" type="submit">
+                                                        Delete
+                                                    </button>
+                                                </form>
+
+                                                {% if subject.status == 'Active' %}
+                                                    <form method="POST" action="{{ url_for('hod.change_subject_status', subject_id=subject.subject_id) }}">
+                                                        <input type="hidden" name="status" value="Inactive" />
+                                                        <button class="view-button muted-button" type="submit">
+                                                            Deactivate
+                                                        </button>
+                                                    </form>
+                                                {% else %}
+                                                    <form method="POST" action="{{ url_for('hod.change_subject_status', subject_id=subject.subject_id) }}">
+                                                        <input type="hidden" name="status" value="Active" />
+                                                        <button class="view-button" type="submit">
+                                                            Activate
+                                                        </button>
+                                                    </form>
+                                                {% endif %}
+
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="no-data">
+                        No subjects have been added to your department yet.
+                    </div>
+                {% endif %}
+            </section>
+
+        </section>
+
+        <div class="page-footer">
+            PreQABoard • HOD
+        </div>
+
+    </main>
+
+    <script>
+        // Auto-active nav highlight
+        (function () {
+            const endpoint = "{{ request.endpoint }}";
+            document.querySelectorAll(".nav a[data-endpoint]").forEach(a => {
+                if (a.dataset.endpoint === endpoint) {
+                    document.querySelectorAll(".nav a").forEach(x => x.classList.remove("is-active"));
+                    a.classList.add("is-active");
+                }
+            });
+        })();
+    </script>
 
 </body>
-
 </html>

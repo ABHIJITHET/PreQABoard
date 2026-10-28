@@ -1,53 +1,100 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Post Doubt - PreQABoard</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Post Doubt • Student • PreQABoard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/student/student_post_doubt.css') }}">
 </head>
 <body>
+  <div class="s-layout">
+    <aside class="s-sidebar">
+      <div class="brand">
+        <div class="brand-mark"></div>
+        <div class="brand-title">
+          <strong>PreQABoard</strong>
+          <span>Student Panel</span>
+        </div>
+      </div>
 
-    <h2>Post a Doubt</h2>
+      <nav class="nav">
+        <a href="{{ url_for('student.dashboard') }}"><span>Dashboard</span><small>Home</small></a>
+        <a href="{{ url_for('student.profile') }}"><span>My Profile</span><small>Account</small></a>
+        <a href="{{ url_for('student.syllabus') }}"><span>Syllabus</span><small>Downloads</small></a>
+        <a href="{{ url_for('student.question_papers') }}"><span>Question Papers</span><small>Search</small></a>
+        <a href="{{ url_for('student.study_materials') }}"><span>Study Materials</span><small>PDF</small></a>
+        <a href="{{ url_for('student.teacher_answers') }}"><span>Teacher Answers</span><small>Answer Keys</small></a>
+        <a href="{{ url_for('student.repeated_questions') }}"><span>Repeated Questions</span><small>AI</small></a>
+        <a href="{{ url_for('student.ai_chat') }}"><span>AI Chat</span><small>Assistant</small></a>
+        <a class="active" href="{{ url_for('student.post_doubt') }}"><span>Post Doubt</span><small>Ask</small></a>
+        <a href="{{ url_for('student.my_doubts') }}"><span>My Doubts</span><small>History</small></a>
+        <a href="{{ url_for('student.logout') }}"><span>Logout</span><small>Exit</small></a>
+      </nav>
+    </aside>
 
-    <p>
-        <a href="{{ url_for('student.dashboard') }}">← Dashboard</a> |
-        <a href="{{ url_for('student.my_doubts') }}">My Doubts</a> |
-        <a href="{{ url_for('student.logout') }}">Logout</a>
-    </p>
+    <main class="s-main">
+      <header class="topbar">
+        <div class="page-title">
+          <h1>Post a Doubt</h1>
+          <p>Ask your doubt. AI reply may be generated automatically.</p>
+        </div>
+        <div class="actions">
+          <a class="btn" href="{{ url_for('student.my_doubts') }}">My Doubts</a>
+          <a class="btn" href="{{ url_for('student.dashboard') }}">Dashboard</a>
+        </div>
+      </header>
 
-    <hr>
-
-    {% if error %}
-        <p style="color:red;"><strong>{{ error }}</strong></p>
-    {% endif %}
-
-    <form method="POST" action="{{ url_for('student.post_doubt') }}">
-
-        <label>Subject:</label><br>
-        <select name="subject_id" required>
-            <option value="">Select Subject</option>
-            {% for s in subjects %}
-                <option value="{{ s.subject_id }}">
-                    {{ s.subject_code }} - {{ s.subject_name }}
-                </option>
+      <div class="alerts">
+        {% if error %}<div class="alert error">{{ error }}</div>{% endif %}
+        {% with msgs = get_flashed_messages(with_categories=True) %}
+          {% if msgs %}
+            {% for category, message in msgs %}
+              <div class="alert {{ category }}">{{ message }}</div>
             {% endfor %}
-        </select>
+          {% endif %}
+        {% endwith %}
+      </div>
 
-        <br><br>
+      <section class="grid">
+        <div class="card" style="grid-column: span 12;">
+          <div class="card-head">
+            <div>
+              <h2>Doubt Form</h2>
+              <p>Select subject, add title (optional) and description.</p>
+            </div>
+          </div>
+          <div class="card-body">
+            <form class="form" method="POST" action="{{ url_for('student.post_doubt') }}">
+              <div class="field">
+                <label for="subject_id">Subject</label>
+                <select id="subject_id" name="subject_id" required>
+                  <option value="" selected>Select Subject</option>
+                  {% for s in subjects %}
+                    <option value="{{ s.subject_id }}">{{ s.subject_code }} - {{ s.subject_name }}</option>
+                  {% endfor %}
+                </select>
+              </div>
 
-        <label>Title (optional):</label><br>
-        <input type="text" name="doubt_title">
+              <div class="field">
+                <label for="doubt_title">Title (optional)</label>
+                <input id="doubt_title" type="text" name="doubt_title" placeholder="Short title (optional)">
+              </div>
 
-        <br><br>
+              <div class="field">
+                <label for="doubt_description">Description</label>
+                <textarea id="doubt_description" name="doubt_description" rows="6" required placeholder="Describe your doubt clearly..."></textarea>
+              </div>
 
-        <label>Description:</label><br>
-        <textarea name="doubt_description" rows="6" cols="60" required></textarea>
+              <div class="actions">
+                <button class="btn btn-primary" type="submit">Submit Doubt</button>
+                <a class="btn" href="{{ url_for('student.my_doubts') }}">Cancel</a>
+              </div>
+            </form>
+          </div>
+        </div>
+      </section>
 
-        <br><br>
-
-        <button type="submit">Submit Doubt</button>
-
-    </form>
-
+    </main>
+  </div>
 </body>
 </html>

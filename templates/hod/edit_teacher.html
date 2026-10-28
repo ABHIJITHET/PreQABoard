@@ -1,125 +1,158 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Edit Teacher - PreQABoard</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/hod/hod_edit_teacher.css') }}">
 </head>
 
 <body>
 
-    <h1>PreQABoard</h1>
+    <!-- background layers -->
+    <div class="bg" aria-hidden="true">
+        <div class="bg__grid"></div>
+        <div class="bg__glow bg__glow--a"></div>
+        <div class="bg__glow bg__glow--b"></div>
+    </div>
 
-    <h2>Edit Teacher</h2>
+    <main class="main">
 
-    <hr>
+        <header class="topbar">
+            <div class="topbar__title">
+                <h1>Edit Teacher</h1>
+                <p>Update teacher details and save changes.</p>
+            </div>
 
-    <!-- Back to Manage Teachers -->
-    <p>
-        <a href="{{ url_for('hod.manage_teachers') }}">
-            ← Back to Manage Teachers
-        </a>
-    </p>
+            <div class="topbar__actions">
+                <a class="btn btn-secondary" href="{{ url_for('hod.manage_teachers') }}">
+                    ← Back to Manage Teachers
+                </a>
+                <a class="btn btn-danger" href="{{ url_for('hod.logout') }}">
+                    Logout
+                </a>
+            </div>
+        </header>
 
-    <!-- Error Message -->
-    {% if error %}
-    <p style="color: red;">
-        {{ error }}
-    </p>
-    {% endif %}
+        <!-- Error Message -->
+        <section class="alerts">
+            {% if error %}
+                <div class="alert alert-danger">
+                    {{ error }}
+                </div>
+            {% endif %}
 
-    <!-- Edit Teacher Form -->
-    <form method="POST">
+            {# Optional flash messages #}
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category|lower }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </section>
 
-        <p>
-            <label for="employee_id">
-                Employee ID:
-            </label>
-            <br>
+        <section class="card">
+            <div class="card__header">
+                <div>
+                    <h2>Teacher Information</h2>
+                    <p class="subtitle">
+                        Teacher ID:
+                        <span class="pill pill--accent">{{ teacher.teacher_id }}</span>
+                    </p>
+                </div>
 
-            <input
-                type="text"
-                id="employee_id"
-                name="employee_id"
-                value="{{ teacher.employee_id }}"
-                required
-            >
-        </p>
+                <div class="subtitle right">
+                    Current Username:
+                    <span class="pill">{{ teacher.username }}</span>
+                </div>
+            </div>
 
-        <p>
-            <label for="full_name">
-                Full Name:
-            </label>
-            <br>
+            <form class="form" method="POST">
 
-            <input
-                type="text"
-                id="full_name"
-                name="full_name"
-                value="{{ teacher.full_name }}"
-                required
-            >
-        </p>
+                <div class="grid">
 
-        <p>
-            <label for="email">
-                Email:
-            </label>
-            <br>
+                    <div class="field">
+                        <label for="employee_id">Employee ID</label>
+                        <input
+                            type="text"
+                            id="employee_id"
+                            name="employee_id"
+                            value="{{ teacher.employee_id }}"
+                            required
+                        />
+                    </div>
 
-            <input
-                type="email"
-                id="email"
-                name="email"
-                value="{{ teacher.email }}"
-                required
-            >
-        </p>
+                    <div class="field">
+                        <label for="full_name">Full Name</label>
+                        <input
+                            type="text"
+                            id="full_name"
+                            name="full_name"
+                            value="{{ teacher.full_name }}"
+                            required
+                        />
+                    </div>
 
-        <p>
-            <label for="phone">
-                Phone:
-            </label>
-            <br>
+                    <div class="field">
+                        <label for="email">Email</label>
+                        <input
+                            type="email"
+                            id="email"
+                            name="email"
+                            value="{{ teacher.email }}"
+                            required
+                        />
+                    </div>
 
-            <input
-                type="text"
-                id="phone"
-                name="phone"
-                value="{{ teacher.phone or '' }}"
-            >
-        </p>
+                    <div class="field">
+                        <label for="phone">Phone (optional)</label>
+                        <input
+                            type="text"
+                            id="phone"
+                            name="phone"
+                            value="{{ teacher.phone or '' }}"
+                        />
+                    </div>
 
-        <p>
-            <label for="username">
-                Username:
-            </label>
-            <br>
+                    <div class="field">
+                        <label for="username">Username</label>
+                        <input
+                            type="text"
+                            id="username"
+                            name="username"
+                            value="{{ teacher.username }}"
+                            required
+                        />
+                    </div>
 
-            <input
-                type="text"
-                id="username"
-                name="username"
-                value="{{ teacher.username }}"
-                required
-            >
-        </p>
+                </div>
 
-        <br>
+                <div class="form__actions">
+                    <button class="btn btn-primary" type="submit">
+                        Update Teacher
+                    </button>
 
-        <button type="submit">
-            Update Teacher
-        </button>
+                    <a class="btn btn-ghost" href="{{ url_for('hod.manage_teachers') }}">
+                        Cancel
+                    </a>
+                </div>
 
-        <a href="{{ url_for('hod.manage_teachers') }}">
-            Cancel
-        </a>
+                <p class="hint">
+                    Tip: Ensure the email/username are unique before saving.
+                </p>
 
-    </form>
+            </form>
+        </section>
+
+        <footer class="page-footer">
+            PreQABoard • HOD
+        </footer>
+
+    </main>
 
 </body>
-
 </html>
-```

@@ -1,0 +1,8 @@
+/* static/css/teacher/teacher_doubt_list.css */
+@import url("teacher_base.css");
+
+.dtext{
+  max-width: 760px;
+  white-space: pre-wrap;
+  line-height:1.5;
+}

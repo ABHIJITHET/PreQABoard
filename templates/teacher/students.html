@@ -1,395 +1,156 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
-
-    <title>View Students | Teacher</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Students • Teacher • PreQABoard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/teacher/teacher_students.css') }}">
 </head>
-
 <body>
+  <div class="t-layout">
+    <aside class="t-sidebar">
+      <div class="brand">
+        <div class="brand-mark"></div>
+        <div class="brand-title">
+          <strong>PreQABoard</strong>
+          <span>Teacher Panel</span>
+        </div>
+      </div>
 
-    <!-- =====================================================
-         PAGE HEADER
-    ====================================================== -->
+      <nav class="nav">
+        <a href="{{ url_for('teacher.dashboard') }}"><span>Dashboard</span><small>Home</small></a>
+        <a href="{{ url_for('teacher.profile') }}"><span>Profile</span><small>Account</small></a>
+        <a href="{{ url_for('teacher.my_subjects') }}"><span>My Subjects</span><small>Assigned</small></a>
+        <a class="active" href="{{ url_for('teacher.view_students') }}"><span>Students</span><small>Directory</small></a>
+        <a href="{{ url_for('teacher.doubt_list') }}"><span>Doubts</span><small>Inbox</small></a>
+        <a href="{{ url_for('teacher.my_question_papers') }}"><span>Question Papers</span><small>My Uploads</small></a>
+        <a href="{{ url_for('teacher.my_materials') }}"><span>Study Materials</span><small>My Uploads</small></a>
+        <a href="{{ url_for('teacher.upload_answer_key') }}"><span>Upload Answer Key</span><small>PDF</small></a>
+        <a href="{{ url_for('teacher.change_password') }}"><span>Change Password</span><small>Security</small></a>
+        <a href="{{ url_for('teacher.logout') }}"><span>Logout</span><small>Exit</small></a>
+      </nav>
 
-    <header>
+      <div class="sidebar-footer">
+        Filters show students only from your assigned course/semester scope.
+      </div>
+    </aside>
 
-        <h1>View Students</h1>
+    <main class="t-main">
+      <header class="topbar">
+        <div class="page-title">
+          <h1>Students</h1>
+          <p>Search and filter students within your assigned scope.</p>
+        </div>
+      </header>
 
-        <p>
-            Students assigned to your subjects
-        </p>
+      {% if error %}
+        <div class="alerts">
+          <div class="alert error">{{ error }}</div>
+        </div>
+      {% endif %}
 
-        <hr>
+      <section class="grid">
+        <div class="card" style="grid-column: span 12;">
+          <div class="card-head">
+            <div>
+              <h2>Filters</h2>
+              <p>Search by name/register/email and filter by course/semester.</p>
+            </div>
+          </div>
+          <div class="card-body">
+            <form class="filters" method="GET" action="{{ url_for('teacher.view_students') }}">
+              <div class="field">
+                <label for="search">Search</label>
+                <input id="search" name="search" type="text" value="{{ search or '' }}" placeholder="Name / Register No / Email">
+              </div>
 
-    </header>
-
-
-    <!-- =====================================================
-         NAVIGATION
-    ====================================================== -->
-
-    <nav>
-
-        <a href="{{ url_for('teacher.dashboard') }}">
-            Dashboard
-        </a>
-
-        |
-
-        <a href="{{ url_for('teacher.my_subjects') }}">
-            My Subjects
-        </a>
-
-        |
-
-        <a href="{{ url_for('teacher.view_students') }}">
-            View Students
-        </a>
-
-        |
-
-        <a href="{{ url_for('teacher.profile') }}">
-            Profile
-        </a>
-
-        |
-
-        <a href="{{ url_for('teacher.logout') }}">
-            Logout
-        </a>
-
-    </nav>
-
-    <hr>
-
-
-    <!-- =====================================================
-         ERROR MESSAGE
-    ====================================================== -->
-
-    {% if error %}
-
-        <p>
-            <strong>Error:</strong>
-            {{ error }}
-        </p>
-
-    {% endif %}
-
-
-    <!-- =====================================================
-         SEARCH AND FILTER
-    ====================================================== -->
-
-    <section>
-
-        <h2>Search / Filter Students</h2>
-
-        <form method="GET"
-              action="{{ url_for('teacher.view_students') }}">
-
-            <!-- SEARCH -->
-
-            <label for="search">
-                Search:
-            </label>
-
-            <input
-                type="text"
-                id="search"
-                name="search"
-                value="{{ search }}"
-                placeholder="Name, register number or email"
-            >
-
-
-            <br><br>
-
-
-            <!-- COURSE -->
-
-            <label for="course_id">
-                Course:
-            </label>
-
-            <select
-                id="course_id"
-                name="course_id"
-            >
-
-                <option value="">
-                    All Courses
-                </option>
-
-                {% for course in courses %}
-
-                    <option
-                        value="{{ course.course_id }}"
-                        {% if selected_course|string == course.course_id|string %}
-                            selected
-                        {% endif %}
-                    >
-                        {{ course.course_name }}
+              <div class="field">
+                <label for="course_id">Course</label>
+                <select id="course_id" name="course_id">
+                  <option value="">All</option>
+                  {% for c in courses %}
+                    <option value="{{ c.course_id }}" {% if selected_course and selected_course|string == c.course_id|string %}selected{% endif %}>
+                      {{ c.course_name }}
                     </option>
+                  {% endfor %}
+                </select>
+              </div>
 
-                {% endfor %}
-
-            </select>
-
-
-            <br><br>
-
-
-            <!-- SEMESTER -->
-
-            <label for="semester_id">
-                Semester:
-            </label>
-
-            <select
-                id="semester_id"
-                name="semester_id"
-            >
-
-                <option value="">
-                    All Semesters
-                </option>
-
-                {% for semester in semesters %}
-
-                    <option
-                        value="{{ semester.semester_id }}"
-                        {% if selected_semester|string == semester.semester_id|string %}
-                            selected
-                        {% endif %}
-                    >
-                        Semester {{ semester.semester_number }}
+              <div class="field">
+                <label for="semester_id">Semester</label>
+                <select id="semester_id" name="semester_id">
+                  <option value="">All</option>
+                  {% for sem in semesters %}
+                    <option value="{{ sem.semester_id }}" {% if selected_semester and selected_semester|string == sem.semester_id|string %}selected{% endif %}>
+                      Sem {{ sem.semester_number }}
                     </option>
+                  {% endfor %}
+                </select>
+              </div>
 
-                {% endfor %}
+              <div class="actions">
+                <button class="btn btn-primary" type="submit">Apply</button>
+                <a class="btn" href="{{ url_for('teacher.view_students') }}">Reset</a>
+              </div>
+            </form>
+          </div>
+        </div>
 
-            </select>
-
-
-            <br><br>
-
-
-            <!-- BUTTONS -->
-
-            <button type="submit">
-                Search
-            </button>
-
-            <a href="{{ url_for('teacher.view_students') }}">
-                Clear Filters
-            </a>
-
-        </form>
-
-    </section>
-
-
-    <hr>
-
-
-    <!-- =====================================================
-         STUDENT COUNT
-    ====================================================== -->
-
-    <section>
-
-        <h2>
-            Students
-        </h2>
-
-        <p>
-            Total students found:
-            <strong>{{ students|length }}</strong>
-        </p>
-
-    </section>
-
-
-    <!-- =====================================================
-         STUDENT TABLE
-    ====================================================== -->
-
-    <section>
-
-        {% if students %}
-
-            <table border="1"
-                   cellpadding="8"
-                   cellspacing="0">
-
+        <div class="card" style="grid-column: span 12;">
+          <div class="card-head">
+            <div>
+              <h2>Student List</h2>
+              <p>Ordered by register number.</p>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="table-wrap">
+              <table>
                 <thead>
-
-                    <tr>
-
-                        <th>
-                            #
-                        </th>
-
-                        <th>
-                            Register Number
-                        </th>
-
-                        <th>
-                            Student Name
-                        </th>
-
-                        <th>
-                            Email
-                        </th>
-
-                        <th>
-                            Phone
-                        </th>
-
-                        <th>
-                            Course
-                        </th>
-
-                        <th>
-                            Semester
-                        </th>
-
-                        <th>
-                            Department
-                        </th>
-
-                        <th>
-                            Account Status
-                        </th>
-
-                    </tr>
-
+                  <tr>
+                    <th>#</th>
+                    <th>Register No</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Course</th>
+                    <th>Semester</th>
+                    <th>Department</th>
+                    <th>Status</th>
+                  </tr>
                 </thead>
-
-
                 <tbody>
-
-                    {% for student in students %}
-
-                        <tr>
-
-                            <!-- NUMBER -->
-
-                            <td>
-                                {{ loop.index }}
-                            </td>
-
-
-                            <!-- REGISTER NUMBER -->
-
-                            <td>
-                                {{ student.register_number }}
-                            </td>
-
-
-                            <!-- NAME -->
-
-                            <td>
-                                {{ student.full_name }}
-                            </td>
-
-
-                            <!-- EMAIL -->
-
-                            <td>
-                                {{ student.email }}
-                            </td>
-
-
-                            <!-- PHONE -->
-
-                            <td>
-                                {{ student.phone }}
-                            </td>
-
-
-                            <!-- COURSE -->
-
-                            <td>
-                                {{ student.course_name }}
-                            </td>
-
-
-                            <!-- SEMESTER -->
-
-                            <td>
-                                Semester
-                                {{ student.semester_number }}
-                            </td>
-
-
-                            <!-- DEPARTMENT -->
-
-                            <td>
-                                {{ student.department_name }}
-                            </td>
-
-
-                            <!-- STATUS -->
-
-                            <td>
-                                {{ student.account_status }}
-                            </td>
-
-                        </tr>
-
-                    {% endfor %}
-
+                  {% for st in students %}
+                    <tr>
+                      <td class="muted">{{ loop.index }}</td>
+                      <td class="muted">{{ st.register_number }}</td>
+                      <td>{{ st.full_name }}</td>
+                      <td class="muted">{{ st.email }}</td>
+                      <td class="muted">{{ st.phone }}</td>
+                      <td class="muted">{{ st.course_name }}</td>
+                      <td>Sem {{ st.semester_number }}</td>
+                      <td class="muted">{{ st.department_name }}</td>
+                      <td>
+                        {% if (st.account_status|string|lower) == 'active' %}
+                          <span class="badge ok">{{ st.account_status }}</span>
+                        {% else %}
+                          <span class="badge warn">{{ st.account_status }}</span>
+                        {% endif %}
+                      </td>
+                    </tr>
+                  {% else %}
+                    <tr>
+                      <td colspan="9" class="muted">No students found for the selected filters.</td>
+                    </tr>
+                  {% endfor %}
                 </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
 
-            </table>
-
-        {% else %}
-
-            <p>
-                No students found.
-            </p>
-
-            {% if search or selected_course or selected_semester %}
-
-                <p>
-                    Try changing your search or filter options.
-                </p>
-
-            {% else %}
-
-                <p>
-                    There are currently no students related
-                    to your active subject assignments.
-                </p>
-
-            {% endif %}
-
-        {% endif %}
-
-    </section>
-
-
-    <hr>
-
-
-    <!-- =====================================================
-         FOOTER
-    ====================================================== -->
-
-    <footer>
-
-        <p>
-            Teacher Module
-        </p>
-
-    </footer>
-
+      </section>
+    </main>
+  </div>
 </body>
-
 </html>

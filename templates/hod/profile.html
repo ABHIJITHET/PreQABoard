@@ -1,139 +1,206 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
-    <meta charset="UTF-8">
-
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
-
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>HOD Profile - PreQABoard</title>
 
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/hod/hod_profile.css') }}">
 </head>
 
 <body>
 
-    <h1>PreQABoard</h1>
+    <!-- background layers -->
+    <div class="bg" aria-hidden="true">
+        <div class="bg__grid"></div>
+        <div class="bg__glow bg__glow--a"></div>
+        <div class="bg__glow bg__glow--b"></div>
+    </div>
 
-    <h2>HOD Profile</h2>
+    <!-- =========================
+         SIDEBAR
+         ========================= -->
+    <aside class="sidebar">
+        <div class="sidebar__brand">
+            <div class="brandmark" aria-hidden="true">PQ</div>
+            <div class="sidebar__brandText">
+                <h2>PreQABoard</h2>
+                <p>HOD Panel</p>
+            </div>
+        </div>
 
-    <hr>
+        <nav class="nav">
+            <a href="{{ url_for('hod.dashboard') }}" data-endpoint="hod.dashboard">Dashboard</a>
 
+            <a href="{{ url_for('hod.semester_calendar') }}" data-endpoint="hod.semester_calendar">Semester Calendar</a>
+            <a href="{{ url_for('hod.manage_syllabus') }}" data-endpoint="hod.manage_syllabus">Manage Syllabus</a>
+            <a href="{{ url_for('hod.manage_teachers') }}" data-endpoint="hod.manage_teachers">Manage Teachers</a>
+            <a href="{{ url_for('hod.manage_subjects') }}" data-endpoint="hod.manage_subjects">Manage Subjects</a>
+            <a href="{{ url_for('hod.teacher_assignments') }}" data-endpoint="hod.teacher_assignments">Assign Teachers</a>
+            <a href="{{ url_for('hod.student_approvals') }}" data-endpoint="hod.student_approvals">Student Approvals</a>
+            <a href="{{ url_for('hod.students') }}" data-endpoint="hod.students">View Students</a>
+            <a href="{{ url_for('hod.approve_papers') }}" data-endpoint="hod.approve_papers">Approve Question Papers</a>
+            <a href="{{ url_for('hod.approve_materials') }}" data-endpoint="hod.approve_materials">Approve Materials</a>
+            <a href="{{ url_for('hod.view_doubts') }}" data-endpoint="hod.view_doubts">Student Doubts</a>
 
-    <!-- =====================================================
-         NAVIGATION
-    ====================================================== -->
+            <a class="is-active" href="{{ url_for('hod.profile') }}" data-endpoint="hod.profile">
+                My Profile
+            </a>
+        </nav>
 
-    <p>
-        <a href="{{ url_for('hod.dashboard') }}">
-            ← Back to Dashboard
-        </a>
-    </p>
+        <div class="sidebar__footer">
+            <a class="logout" href="{{ url_for('hod.logout') }}">Logout</a>
+            <div class="sidebar__hint">
+                Tip: Keep your profile details up to date.
+            </div>
+        </div>
+    </aside>
 
+    <!-- =========================
+         MAIN
+         ========================= -->
+    <main class="main">
 
-    <!-- =====================================================
-         PROFILE INFORMATION
-    ====================================================== -->
+        <section class="topbar">
+            <div class="topbar__title">
+                <h1>HOD Profile</h1>
+                <p>View your account information and manage password.</p>
+            </div>
 
-    <h3>Profile Information</h3>
+            <div class="topbar__actions">
+                <a class="btn btn-soft" href="{{ url_for('hod.dashboard') }}">← Back to Dashboard</a>
+                <a class="btn btn-primary" href="{{ url_for('hod.change_password') }}">Change Password</a>
+            </div>
+        </section>
 
-    {% if hod %}
+        <!-- Flash messages (optional) -->
+        <section class="alerts">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category|lower }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </section>
 
-    <table border="1" cellpadding="10">
+        <section class="grid">
 
-        <tr>
-            <th>HOD ID</th>
-            <td>{{ hod.hod_id }}</td>
-        </tr>
+            <!-- Profile Card -->
+            <section class="panel">
+                <div class="panel__head">
+                    <h2>Profile Information</h2>
+                    <p class="panel__sub">Your account details.</p>
+                </div>
 
-        <tr>
-            <th>Full Name</th>
-            <td>{{ hod.full_name }}</td>
-        </tr>
+                {% if hod %}
+                    <div class="profile">
+                        <div class="avatar">
+                            <div class="avatar__ring"></div>
+                            <div class="avatar__txt">
+                                {{ (hod.full_name[:1] if hod.full_name else 'H') | upper }}
+                            </div>
+                        </div>
 
-        <tr>
-            <th>Email</th>
-            <td>{{ hod.email }}</td>
-        </tr>
+                        <div class="profile__meta">
+                            <div class="profile__name">{{ hod.full_name }}</div>
+                            <div class="profile__line">
+                                <span class="pill pill--accent">{{ hod.department_name or '-' }}</span>
+                                {% if hod.account_status == 'Active' %}
+                                    <span class="pill pill--success">Active</span>
+                                {% elif hod.account_status == 'Inactive' %}
+                                    <span class="pill pill--warn">Inactive</span>
+                                {% else %}
+                                    <span class="pill pill--pending">{{ hod.account_status }}</span>
+                                {% endif %}
+                            </div>
+                            <div class="profile__hint">HOD ID: <span class="mono">{{ hod.hod_id }}</span></div>
+                        </div>
+                    </div>
 
-        <tr>
-            <th>Phone</th>
-            <td>
-                {{ hod.phone or '-' }}
-            </td>
-        </tr>
+                    <div class="table-container">
+                        <table>
+                            <tbody>
+                                <tr>
+                                    <th>Email</th>
+                                    <td>{{ hod.email }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Phone</th>
+                                    <td>{{ hod.phone or '-' }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Username</th>
+                                    <td class="mono">{{ hod.username or '-' }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Department</th>
+                                    <td>{{ hod.department_name or '-' }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Account Status</th>
+                                    <td>{{ hod.account_status }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Created At</th>
+                                    <td class="muted">{{ hod.created_at or '-' }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="no-data">
+                        HOD profile information could not be found.
+                    </div>
+                {% endif %}
+            </section>
 
-        <tr>
-            <th>Username</th>
-            <td>
-                {{ hod.username or '-' }}
-            </td>
-        </tr>
+            <!-- Account Options Card -->
+            <section class="panel panel--side">
+                <div class="panel__head">
+                    <h2>Account Options</h2>
+                    <p class="panel__sub">Security & session.</p>
+                </div>
 
-        <tr>
-            <th>Department</th>
-            <td>
-                {{ hod.department_name or '-' }}
-            </td>
-        </tr>
+                <div class="side-actions">
+                    <a class="btn btn-primary w-100" href="{{ url_for('hod.change_password') }}">
+                        Change Password
+                    </a>
+                    <a class="btn btn-ghost w-100" href="{{ url_for('hod.dashboard') }}">
+                        Back to Dashboard
+                    </a>
+                    <a class="btn btn-danger w-100" href="{{ url_for('hod.logout') }}">
+                        Logout
+                    </a>
+                </div>
 
-        <tr>
-            <th>Account Status</th>
-            <td>
-                {{ hod.account_status }}
-            </td>
-        </tr>
+                <div class="note">
+                    For security reasons, update your password periodically.
+                </div>
+            </section>
 
-        <tr>
-            <th>Created At</th>
-            <td>
-                {{ hod.created_at or '-' }}
-            </td>
-        </tr>
+        </section>
 
-    </table>
+        <div class="page-footer">
+            PreQABoard • HOD
+        </div>
 
-    {% else %}
+    </main>
 
-    <p>
-        HOD profile information could not be found.
-    </p>
-
-    {% endif %}
-
-
-    <br>
-
-    <hr>
-
-
-    <!-- =====================================================
-         ACCOUNT OPTIONS
-    ====================================================== -->
-
-    <h3>Account Options</h3>
-
-    <p>
-        <a href="{{ url_for('hod.change_password') }}">
-            Change Password
-        </a>
-    </p>
-
-
-    <hr>
-
-
-    <!-- =====================================================
-         LOGOUT
-    ====================================================== -->
-
-    <p>
-        <a href="{{ url_for('hod.logout') }}">
-            Logout
-        </a>
-    </p>
+    <script>
+        // Auto-active nav highlight
+        (function () {
+            const endpoint = "{{ request.endpoint }}";
+            document.querySelectorAll(".nav a[data-endpoint]").forEach(a => {
+                if (a.dataset.endpoint === endpoint) {
+                    document.querySelectorAll(".nav a").forEach(x => x.classList.remove("is-active"));
+                    a.classList.add("is-active");
+                }
+            });
+        })();
+    </script>
 
 </body>
-
 </html>
